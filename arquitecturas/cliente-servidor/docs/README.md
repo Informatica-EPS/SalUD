@@ -3,5 +3,6 @@
 Esta carpeta contiene:
 
 - Diagrama arquitectural
-- Decisiones
+- Decisiones (ADR)
+- Contrato API (borrador)
 - Evidencias de despliegue (Azure)
