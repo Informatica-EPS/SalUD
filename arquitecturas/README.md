@@ -9,25 +9,7 @@ En esta carpeta se desarrollarán las diferentes arquitecturas del proyecto:
 
 Cada arquitectura tendrá su propia estructura de:
 
-/arquitecturas
-  /cliente-servidor
-    /apps
-      /frontend
-      /backend
-    /infra
-    /docs
+- apps
+- infra
+- docs
 
-  /eventos
-    /apps
-    /infra
-    /docs
-
-  /capas
-    /apps
-    /infra
-    /docs
-
-  /microservicios
-    /apps
-    /infra
-    /docs
