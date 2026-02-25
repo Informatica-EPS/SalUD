@@ -9,7 +9,7 @@ Se requiere implementar la arquitectura Cliente-Servidor para el proyecto SalUD.
 ## Decisión
 - Frontend: React
 - Backend: Node.js
-- Base de datos: Por definir
+- Base de datos: PostgreSQL
 - Contenedores: Docker
 - Despliegue: Azure
 
