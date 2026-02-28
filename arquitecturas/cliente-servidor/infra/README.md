@@ -1,8 +1,7 @@
 # Infraestructura - Cliente-Servidor
 
-Aquí estará la configuración para ejecutar y desplegar esta arquitectura:
+Como ejecutar:
 
-- Dockerfile (frontend y backend)
-- docker-compose.yml (servicios locales)
-- variables de entorno (.env.example)
-- configuración Azure (si aplica)
+- Para desarrollo escribir 'dev' en la terminal
+- Para desarrollo sin hot reload escribir 'dev1' en la terminal
+- Para produccion escribir 'prod' en la terminal
