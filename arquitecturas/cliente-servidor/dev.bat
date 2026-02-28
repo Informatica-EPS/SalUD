@@ -1,0 +1,1 @@
+docker-compose -f infra/docker-compose.yaml -f infra/docker-compose.dev.yaml up --build
