@@ -14,6 +14,12 @@ Plataforma de servicios de salud desarrollada bajo una arquitectura cliente-serv
 
 ---
 
+## 🛠️ Requisitos Previos
+* **Docker Desktop** instalado y corriendo.
+* **Git** para clonar el proyecto.
+
+---
+
 ## 🚀 Cómo Iniciar el Proyecto
 
 Para levantar todos los servicios (Base de Datos, Backend, Frontend y pgAdmin) con carga automática de variables de entorno y Hot Reload:
