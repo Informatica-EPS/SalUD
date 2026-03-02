@@ -7,7 +7,7 @@ import PersonIcon from '@mui/icons-material/Person';
 
 const HomePage = () => {
    const navigate = useNavigate();
-   const { logout } = useAuth();
+   const { logout, user } = useAuth();
 
    const handleLogout = () => {
       logout();
@@ -28,9 +28,16 @@ const HomePage = () => {
                alignItems: 'center',
             }}
          >
-            <Typography variant="h5" component="h1">
-               SalUD - Cliente-Servidor (Frontend)
-            </Typography>
+            <Box>
+               <Typography variant="h5" component="h1">
+                  SalUD - Cliente-Servidor (Frontend)
+               </Typography>
+               {user && (
+                  <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                     Bienvenido, {user.name}
+                  </Typography>
+               )}
+            </Box>
             <Button color="inherit" onClick={handleLogout}>
                Cerrar Sesión
             </Button>
@@ -56,7 +63,11 @@ const HomePage = () => {
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                            Programa una nueva cita médica con el especialista de tu preferencia
                         </Typography>
-                        <Button variant="contained" fullWidth>
+                        <Button 
+                           variant="contained" 
+                           fullWidth
+                           onClick={() => navigate('/citas-disponibles')}
+                        >
                            Nueva Cita
                         </Button>
                      </CardContent>
@@ -68,13 +79,17 @@ const HomePage = () => {
                      <CardContent sx={{ flexGrow: 1, textAlign: 'center' }}>
                         <LocalHospitalIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
                         <Typography variant="h5" component="h2" gutterBottom>
-                           Médicos
+                           Citas Disponibles
                         </Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                           Consulta el directorio de médicos disponibles y sus especialidades
+                           Consulta todas las citas médicas disponibles por fecha y especialidad
                         </Typography>
-                        <Button variant="contained" fullWidth>
-                           Ver Médicos
+                        <Button 
+                           variant="contained" 
+                           fullWidth
+                           onClick={() => navigate('/citas-disponibles')}
+                        >
+                           Ver Disponibilidad
                         </Button>
                      </CardContent>
                   </Card>
@@ -90,7 +105,11 @@ const HomePage = () => {
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                            Revisa tus citas programadas, historial y próximas consultas
                         </Typography>
-                        <Button variant="contained" fullWidth>
+                        <Button 
+                           variant="contained" 
+                           fullWidth
+                           onClick={() => navigate('/mis-citas')}
+                        >
                            Ver Mis Citas
                         </Button>
                      </CardContent>

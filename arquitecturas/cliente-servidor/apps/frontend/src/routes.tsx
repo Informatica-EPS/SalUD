@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { LoginPage, HomePage } from './modulos/pages';
+import { LoginPage, HomePage, CitasDisponiblesPage, MisCitasPage } from './modulos/pages';
 import { useAuth } from './context';
 
 // Componente para proteger rutas
@@ -18,6 +18,22 @@ const AppRoutes = () => {
                element={
                   <ProtectedRoute>
                      <HomePage />
+                  </ProtectedRoute>
+               }
+            />
+            <Route
+               path="/citas-disponibles"
+               element={
+                  <ProtectedRoute>
+                     <CitasDisponiblesPage />
+                  </ProtectedRoute>
+               }
+            />
+            <Route
+               path="/mis-citas"
+               element={
+                  <ProtectedRoute>
+                     <MisCitasPage />
                   </ProtectedRoute>
                }
             />
