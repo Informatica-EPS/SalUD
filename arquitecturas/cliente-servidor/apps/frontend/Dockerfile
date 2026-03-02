@@ -8,8 +8,8 @@ RUN npm install
 
 COPY . .
 
-# React usa el 3000 por defecto
-EXPOSE 3000
+
+EXPOSE 8080
 
 # Esto permite que los cambios de código se vean reflejados (Hot Reload)
-CMD ["npm", "start"]
+CMD ["npm", "run", "dev"]
