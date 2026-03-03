@@ -39,7 +39,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
    }, [user]);
 
-   const login = (email: string, password: string) => {
+   const login = (email: string, _password: string) => {
       // Aquí implementarás la lógica real de autenticación con el backend
       // Por ahora, simulamos un login exitoso
       console.log('Login exitoso:', email);

@@ -1,1 +1,1 @@
-docker-compose -f docker-compose.yaml -f docker-compose.prod.yaml up
+docker compose --env-file infra/dev.env -f infra/docker-compose.yaml -f infra/docker-compose.prod.yaml up -d --build
