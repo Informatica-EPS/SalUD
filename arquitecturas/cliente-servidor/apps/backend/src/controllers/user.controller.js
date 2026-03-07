@@ -1,25 +1,33 @@
-
 const userService = require('../services/user.service');
 
-const createUser = async (req, res, next) => {
+const login = async (req, res, next) => {
   try {
-    const user = await userService.createUser(req.body);
-    res.status(201).json(user);
-  } catch (error) {
-    next(error);
-  }
-};
+    const { documento, password } = req.body;
 
-const getUsers = async (req, res, next) => {
-  try {
-    const users = await userService.getUsers();
-    res.json(users);
+    const user = await userService.getUserByDocument(documento);
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Contraseña incorrecta' });
+    }
+
+    res.status(200).json({
+      id: user.id,
+      primer_nombre: user.primer_nombre,
+      primer_apellido: user.primer_apellido,
+      documento: user.documento,
+      email: user.email,
+      roles: user.Roles.map(r => r.nombre) // lista de roles
+    });
   } catch (error) {
     next(error);
   }
 };
 
 module.exports = {
-  createUser,
-  getUsers
+  login
 };
