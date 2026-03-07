@@ -6,7 +6,6 @@ Aquí se almacenará:
 * Tipografía
 * Guía visual
 
----
 
 ## Paleta de Colores
 
@@ -60,7 +59,3 @@ Aquí se almacenará:
 |---------|-------------|
 | `SalUD_Logo.jpeg` | Logo oficial completo |
 | `SalUD-Icono.jpeg` | Ícono de la app |
-
----
-
-*Última actualización: Marzo 2026 · SalUD EPS © 2026*
