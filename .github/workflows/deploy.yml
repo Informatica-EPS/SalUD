@@ -2,7 +2,7 @@ name: Deploy SalUD Production
 
 on:
   push:
-    branches: [ prod ] # Se activa solo cuando haces push o merge a la rama prod
+    branches: [ prod ]
 
 jobs:
   deploy:
