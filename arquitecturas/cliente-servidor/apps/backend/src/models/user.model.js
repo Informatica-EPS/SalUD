@@ -8,24 +8,27 @@ const User = sequelize.define('User', {
     primaryKey: true,
     autoIncrement: true
   },
-  primer_nombre: DataTypes.STRING(100),
-  segundo_nombre: DataTypes.STRING(100),
-  primer_apellido: DataTypes.STRING(100),
-  segundo_apellido: DataTypes.STRING(100),
+  primer_nombre: DataTypes.STRING(30),
+  segundo_nombre: DataTypes.STRING(30),
+  primer_apellido: DataTypes.STRING(30),
+  segundo_apellido: DataTypes.STRING(30),
   fecha_nacimiento: DataTypes.DATEONLY,
-  lugar_nacimiento: DataTypes.STRING(150),
+  lugar_nacimiento: DataTypes.STRING(50),
   direccion: DataTypes.STRING(200),
   documento: {
-    type: DataTypes.STRING(64),
-    unique: true
+    type: DataTypes.STRING(20),
+    allowNull: false
   },
-  tipo_documento: DataTypes.STRING(30),
+  tipo_documento: {
+    type: DataTypes.STRING(4),
+    allowNull: false
+  },
   usuario: {
-    type: DataTypes.STRING(80),
+    type: DataTypes.STRING(30),
     unique: true
   },
   email: {
-    type: DataTypes.STRING(150),
+    type: DataTypes.STRING(100),
     unique: true
   },
   password: DataTypes.STRING(64), // guardada en SHA256
@@ -38,7 +41,13 @@ const User = sequelize.define('User', {
   actualizado_por: DataTypes.STRING(100)
 }, {
   tableName: 'usuarios',
-  timestamps: false
+  timestamps: false,
+  indexes: [
+    {
+      unique: true,
+      fields: ['tipo_documento', 'documento']
+    }
+  ]
 });
 
 // Comparar contraseña con SHA256

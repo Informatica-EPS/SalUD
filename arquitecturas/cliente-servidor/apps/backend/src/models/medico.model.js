@@ -1,25 +1,29 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
-const Role = sequelize.define('Role', {
+const Medico = sequelize.define('Medico', {
   id: {
     type: DataTypes.BIGINT,
     primaryKey: true,
     autoIncrement: true
   },
-  nombre: {
-    type: DataTypes.STRING(30),
+  registro_medico: {
+    type: DataTypes.STRING(80),
     allowNull: false,
     unique: true
   },
-  descripcion: DataTypes.STRING(200),
   creado_por: DataTypes.STRING(100),
   fecha_creacion: DataTypes.DATE,
   ultima_actualizacion: DataTypes.DATE,
-  actualizado_por: DataTypes.STRING(100)
+  actualizado_por: DataTypes.STRING(100),
+  id_usuario: {
+    type: DataTypes.BIGINT,
+    allowNull: false,
+    unique: true
+  }
 }, {
-  tableName: 'roles',
+  tableName: 'medicos',
   timestamps: false
 });
 
-module.exports = Role;
+module.exports = Medico;

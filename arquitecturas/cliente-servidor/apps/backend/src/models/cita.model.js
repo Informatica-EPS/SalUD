@@ -1,30 +1,33 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
-const Patient = sequelize.define('Patient', {
+const Cita = sequelize.define('Cita', {
   id: {
     type: DataTypes.BIGINT,
     primaryKey: true,
     autoIncrement: true
   },
-  ocupacion: DataTypes.STRING(120),
-  discapacidad: DataTypes.STRING(120),
-  religion: DataTypes.STRING(30),
-  etnia: DataTypes.STRING(20),
-  identidad_genero: DataTypes.STRING(20),
-  sexo: DataTypes.STRING(10),
+  tipo_cita: DataTypes.STRING(10),
+  estado: DataTypes.STRING(10),
   creado_por: DataTypes.STRING(100),
   fecha_creacion: DataTypes.DATE,
   ultima_actualizacion: DataTypes.DATE,
   actualizado_por: DataTypes.STRING(100),
-  id_usuario: {
+  id_paciente: {
     type: DataTypes.BIGINT,
-    allowNull: false,
-    unique: true
+    allowNull: false
+  },
+  id_medico: {
+    type: DataTypes.BIGINT,
+    allowNull: false
+  },
+  id_franja_horaria: {
+    type: DataTypes.BIGINT,
+    allowNull: false
   }
 }, {
-  tableName: 'pacientes',
+  tableName: 'citas',
   timestamps: false
 });
 
-module.exports = Patient;
+module.exports = Cita;
