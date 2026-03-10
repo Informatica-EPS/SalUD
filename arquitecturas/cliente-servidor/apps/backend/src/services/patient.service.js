@@ -1,15 +1,44 @@
-const Patient = require("../models/patient.model");
+"use strict";
+const patientModel = require("../models/patient.model");
+console.log(JSON.stringify(patientModel));
 
-const createPatient = async (data) => {
-  const { name, documentNumber } = data;
-  return await Patient.create({ name, documentNumber });
-};
+class PatientService {
+  async create(data, auditUserId) {
+    const newPatient = await patientModel.create({
+      ...data,
+      createdBy: auditUserId,
+      updatedBy: auditUserId,
+    });
+    return newPatient;
+  }
 
-const getPatients = async () => {
-  return await Patient.findAll();
-};
+  async findAll() {
+    return await patientModel.findAll();
+  }
 
-module.exports = {
-  createPatient,
-  getPatients,
-};
+  async findById(id) {
+    return await patientModel.findByPk(id);
+  }
+
+  async update(id, data, auditUserId) {
+    const patient = await patientModel.findByPk(id);
+    if (!patient) return null;
+
+    await patient.update({
+      ...data,
+      updatedBy: auditUserId,
+    });
+
+    return patient;
+  }
+
+  async delete(id) {
+    const patient = await patientModel.findByPk(id);
+    if (!patient) return false;
+
+    await patient.destroy();
+    return true;
+  }
+}
+
+module.exports = new PatientService();

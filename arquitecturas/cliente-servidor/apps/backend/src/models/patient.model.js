@@ -1,30 +1,57 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+const { DataTypes } = require("sequelize");
+const sequelize = require("../config/database");
 
-const Patient = sequelize.define('Patient', {
-  id: {
-    type: DataTypes.BIGINT,
-    primaryKey: true,
-    autoIncrement: true
+const Patient = sequelize.define(
+  "Patient", // Antes: "Patient"
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    ocupacion: {
+      // Antes: occupation
+      type: DataTypes.STRING,
+    },
+    discapacidad: {
+      // Antes: disability
+      type: DataTypes.STRING,
+    },
+    religion: {
+      // Antes: religion
+      type: DataTypes.STRING,
+    },
+    etnia: {
+      // Antes: ethnicity
+      type: DataTypes.STRING,
+    },
+    identidadGenero: {
+      // Antes: genderIdentity
+      type: DataTypes.STRING,
+    },
+    sexo: {
+      // Antes: sex
+      type: DataTypes.STRING,
+    },
+    idUsuario: {
+      // Antes: userId
+      type: DataTypes.INTEGER,
+    },
+    // Auditoría
+    creadoPor: {
+      // Antes: createdBy
+      type: DataTypes.INTEGER,
+    },
+    actualizadoPor: {
+      // Antes: updatedBy
+      type: DataTypes.INTEGER,
+    },
   },
-  ocupacion: DataTypes.STRING(120),
-  discapacidad: DataTypes.STRING(120),
-  religion: DataTypes.STRING(30),
-  etnia: DataTypes.STRING(20),
-  identidad_genero: DataTypes.STRING(20),
-  sexo: DataTypes.STRING(10),
-  creado_por: DataTypes.STRING(100),
-  fecha_creacion: DataTypes.DATE,
-  ultima_actualizacion: DataTypes.DATE,
-  actualizado_por: DataTypes.STRING(100),
-  id_usuario: {
-    type: DataTypes.BIGINT,
-    allowNull: false,
-    unique: true
-  }
-}, {
-  tableName: 'pacientes',
-  timestamps: false
-});
+  {
+    tableName: "pacientes", // Antes: "patients"
+    underscored: true,
+    timestamps: true,
+  },
+);
 
 module.exports = Patient;
