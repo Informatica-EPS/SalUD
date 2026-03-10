@@ -1,21 +1,55 @@
 const { DataTypes } = require("sequelize");
-const sequelize = require("../config/database"); // Asegúrate de que esta ruta apunte a tu database.js
+const sequelize = require("../config/database");
 
 const Patient = sequelize.define(
-  "Patient",
+  "Patient", // Antes: "Patient"
   {
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
     },
-    documentNumber: {
+    ocupacion: {
+      // Antes: occupation
       type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
+    },
+    discapacidad: {
+      // Antes: disability
+      type: DataTypes.STRING,
+    },
+    religion: {
+      // Antes: religion
+      type: DataTypes.STRING,
+    },
+    etnia: {
+      // Antes: ethnicity
+      type: DataTypes.STRING,
+    },
+    identidadGenero: {
+      // Antes: genderIdentity
+      type: DataTypes.STRING,
+    },
+    sexo: {
+      // Antes: sex
+      type: DataTypes.STRING,
+    },
+    idUsuario: {
+      // Antes: userId
+      type: DataTypes.INTEGER,
+    },
+    // Auditoría
+    creadoPor: {
+      // Antes: createdBy
+      type: DataTypes.INTEGER,
+    },
+    actualizadoPor: {
+      // Antes: updatedBy
+      type: DataTypes.INTEGER,
     },
   },
   {
-    tableName: "Patients",
+    tableName: "pacientes", // Antes: "patients"
+    underscored: true,
     timestamps: true,
   },
 );
