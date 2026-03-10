@@ -199,10 +199,14 @@ function compareColumn(dbColumn, modelAttr) {
 }
 
 async function loadModels(sequelize, modelsDir) {
-  const databaseModulePath = path.resolve("./src/config/database.js");
-  require.cache[databaseModulePath] = {
-    id: databaseModulePath,
-    filename: databaseModulePath,
+  const databaseModulePath = path.resolve(modelsDir, "..", "config", "database.js");
+  const fallbackDatabaseModulePath = path.resolve("./src/config/database.js");
+  const modulePathToOverride = fs.existsSync(databaseModulePath)
+    ? databaseModulePath
+    : fallbackDatabaseModulePath;
+  require.cache[modulePathToOverride] = {
+    id: modulePathToOverride,
+    filename: modulePathToOverride,
     loaded: true,
     exports: sequelize,
   };

@@ -95,3 +95,5 @@ Aplicar migraciones:
 **Nota:** Cada vez que se lance el db:diff:schema se crea un nuevo archivo de migración, este archivo será luego lanzado por el migrate. 
 En ese orden de ideas, si desean hacer commit de un archivo de migración, **DEBEN SIEMPRE DEJAR EL MÁS RECIENTE, NUNCA MÁS DE UNO.** 
 Así, no afectamos el migrate en la maquina remota. 
+
+**Variable de enterno local para correr el comando diff:** $env:DATABASE_URL="postgres://user_admin:super_password_123@localhost:5432/mi_base_de_dato
