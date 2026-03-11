@@ -1,41 +1,63 @@
-import axios from 'axios';
+// import axios from 'axios';
 
-// Crear instancia de axios
-const apiClient = axios.create({
-   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
-   timeout: 10000,
-   headers: {
-      'Content-Type': 'application/json',
-   },
-});
+// // Crear instancia de axios
+// const apiClient = axios.create({
+//    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
+//    timeout: 10000,
+//    headers: {
+//       'Content-Type': 'application/json',
+//    },
+// });
 
-// Interceptor para agregar token de autenticación
-apiClient.interceptors.request.use(
-   config => {
-      const token = localStorage.getItem('token');
-      if (token) {
-         config.headers.Authorization = `Bearer ${token}`;
-      }
-      return config;
-   },
-   error => {
-      return Promise.reject(error);
-   }
-);
+// // Interceptor para agregar token de autenticación
+// apiClient.interceptors.request.use(
+//    config => {
+//       const token = localStorage.getItem('token');
+//       if (token) {
+//          config.headers.Authorization = `Bearer ${token}`;
+//       }
+//       return config;
+//    },
+//    error => {
+//       return Promise.reject(error);
+//    }
+// );
 
-// Interceptor para manejar errores
-apiClient.interceptors.response.use(
-   response => response,
-   error => {
-      if (error.response?.status === 401) {
-         // Token expirado o inválido
-         localStorage.removeItem('token');
-         localStorage.removeItem('isAuthenticated');
-         localStorage.removeItem('user');
-         window.location.href = '/login';
-      }
-      return Promise.reject(error);
-   }
-);
+// // Interceptor para manejar errores
+// apiClient.interceptors.response.use(
+//    response => response,
+//    error => {
+//       if (error.response?.status === 401) {
+//          // Token expirado o inválido
+//          localStorage.removeItem('token');
+//          localStorage.removeItem('isAuthenticated');
+//          localStorage.removeItem('user');
+//          window.location.href = '/login';
+//       }
+//       return Promise.reject(error);
+//    }
+// );
 
-export default apiClient;
+// export default apiClient;
+
+
+const API_URL = "http://localhost:5000/api";
+
+export const apiClient = async (
+  endpoint: string,
+  options: RequestInit = {}
+) => {
+
+  const response = await fetch(`${API_URL}${endpoint}`, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+    ...options,
+  });
+
+  if (!response.ok) {
+    throw new Error("Error en la petición");
+  }
+
+  return response.json();
+};
