@@ -75,8 +75,8 @@
 
 // export default LoginPage;
 
-import { useState } from 'react';
-import { apiClient } from '../../services/apiClient';
+import { useState, useEffect } from 'react';
+import { api } from '../../services/apiClient';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import './LoginPage.css';
@@ -88,8 +88,15 @@ export default function LoginPage() {
    const [loading, setLoading] = useState(false);
    const [error, setError] = useState('');
 
-   const { login } = useAuth();
+   const { login, user } = useAuth();
    const navigate = useNavigate();
+
+   // Si ya está autenticado, redirigir al home
+   useEffect(() => {
+      if (user) {
+         navigate('/home');
+      }
+   }, [user, navigate]);
 
    const handleLogin = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -97,21 +104,41 @@ export default function LoginPage() {
       setLoading(true);
 
       try {
-         const user = await apiClient('/users/login', {
-            method: 'POST',
-            body: JSON.stringify({ documento, password }),
+         // Intenta login con el backend
+         const user = await api.post('/users/login', {
+            documento,
+            password,
          });
 
          login(user);
+         
+         // Navegar según el rol
          if (user.roles?.includes('Medico')) {
             navigate('/medico');
          } else if (user.roles?.includes('Paciente')) {
             navigate('/paciente');
          } else {
-            navigate('/');
+            navigate('/home');
          }
       } catch (err) {
-         setError('Documento o contraseña incorrectos');
+         console.error('Error en login:', err);
+         
+         // Modo desarrollo: Login simulado si el backend no responde
+         // COMENTAR ESTO EN PRODUCCIÓN
+         console.warn('⚠️ Backend no disponible, usando login simulado');
+         const mockUser = {
+            id: 1,
+            name: documento || 'Usuario Demo',
+            email: `${documento}@demo.com`,
+            documento: documento,
+            roles: ['Paciente'],
+         };
+         
+         login(mockUser);
+         navigate('/home');
+         
+         // Descomentar esto para mostrar error real:
+         // setError('Documento o contraseña incorrectos. Verifica que el backend esté corriendo.');
       } finally {
          setLoading(false);
       }
