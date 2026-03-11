@@ -14,6 +14,9 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* LIMITAR TIPOS PARA PRODUCCIÓN */
+    "types": ["vite/client", "node"],
+
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
