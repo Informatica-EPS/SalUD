@@ -34,6 +34,7 @@ import {
    ExpandMore as ExpandMoreIcon,
    LocalHospital as HospitalIcon,
    Description as DescriptionIcon,
+   Cancel as CancelIcon,
 } from '@mui/icons-material';
 import { appointmentsService, appointmentDetailsService } from '../../services';
 import { useAuth } from '../../context/AuthContext';
@@ -89,7 +90,27 @@ export default function MedicoPage() {
          setLoading(true);
          setError(null);
          const data = await appointmentsService.getByDoctor(doctorId);
-         setAppointments(Array.isArray(data) ? data : []);
+         console.log('Citas recibidas:', data);
+         
+         // Manejar respuesta paginada o array directo
+         let citasArray: any[] = [];
+         if (data && typeof data === 'object' && 'citas' in data) {
+            // Respuesta paginada
+            citasArray = data.citas || [];
+         } else if (Array.isArray(data)) {
+            // Array directo
+            citasArray = data;
+         }
+         
+         // Normalizar la estructura: mapear Patient -> paciente, TimeSlot -> horario, AppointmentDetail -> detalles
+         const normalizedAppointments = citasArray.map((cita: any) => ({
+            ...cita,
+            paciente: cita.Patient || cita.paciente,
+            horario: cita.TimeSlot || cita.horario,
+            detalles: cita.AppointmentDetail || cita.detalles,
+         }));
+         
+         setAppointments(normalizedAppointments);
       } catch (err) {
          setError('Error al cargar las citas');
          console.error('Error:', err);
@@ -215,8 +236,10 @@ export default function MedicoPage() {
          case 'programada':
             return 'primary';
          case 'completada':
+         case 'completado':
             return 'success';
          case 'cancelada':
+         case 'cancelado':
             return 'error';
          case 'en_proceso':
             return 'warning';
@@ -225,12 +248,13 @@ export default function MedicoPage() {
       }
    };
 
-   const filterAppointments = (estado: string) => {
-      return appointments.filter((apt) => apt.estado === estado);
+   const filterAppointments = (estados: string[]) => {
+      return appointments.filter((apt) => estados.includes(apt.estado));
    };
 
-   const programadas = filterAppointments('programada');
-   const completadas = filterAppointments('completada');
+   const programadas = filterAppointments(['programada']);
+   const completadas = filterAppointments(['completada', 'completado']);
+   const canceladas = filterAppointments(['cancelada', 'cancelado']);
 
    if (loading) {
       return (
@@ -266,7 +290,7 @@ export default function MedicoPage() {
 
          {/* Estadísticas */}
          <Grid container spacing={2} mb={4}>
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={6} sm={3}>
                <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'primary.light' }}>
                   <Typography variant="h4" fontWeight="bold">
                      {programadas.length}
@@ -276,7 +300,7 @@ export default function MedicoPage() {
                   </Typography>
                </Paper>
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={6} sm={3}>
                <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'success.light' }}>
                   <Typography variant="h4" fontWeight="bold">
                      {completadas.length}
@@ -286,7 +310,17 @@ export default function MedicoPage() {
                   </Typography>
                </Paper>
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={6} sm={3}>
+               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'error.light' }}>
+                  <Typography variant="h4" fontWeight="bold">
+                     {canceladas.length}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                     Canceladas
+                  </Typography>
+               </Paper>
+            </Grid>
+            <Grid item xs={6} sm={3}>
                <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'grey.200' }}>
                   <Typography variant="h4" fontWeight="bold">
                      {appointments.length}
@@ -303,6 +337,7 @@ export default function MedicoPage() {
             <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)}>
                <Tab icon={<CalendarIcon />} label="Programadas" iconPosition="start" />
                <Tab icon={<CheckIcon />} label="Completadas" iconPosition="start" />
+               <Tab icon={<CancelIcon />} label="Canceladas" iconPosition="start" />
             </Tabs>
          </Paper>
 
@@ -324,12 +359,11 @@ export default function MedicoPage() {
                               <Box display="flex" justifyContent="space-between" alignItems="start" mb={2}>
                                  <Box display="flex" gap={2}>
                                     <Avatar sx={{ bgcolor: 'primary.main' }}>
-                                       {getPatientFullName(appointment.paciente || appointment.Paciente)
-                                          ?.charAt(0)}
+                                       {getPatientFullName(appointment.paciente)?.charAt(0) || 'P'}
                                     </Avatar>
                                     <Box>
                                        <Typography variant="h6">
-                                          {getPatientFullName(appointment.paciente || appointment.Paciente)}
+                                          {getPatientFullName(appointment.paciente) || 'Paciente sin nombre'}
                                        </Typography>
                                        <Chip
                                           label={appointment.estado}
@@ -413,11 +447,11 @@ export default function MedicoPage() {
                         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                            <Box display="flex" alignItems="center" gap={2} width="100%">
                               <Avatar sx={{ bgcolor: 'success.main' }}>
-                                 {getPatientFullName(appointment.paciente || appointment.Paciente)?.charAt(0)}
+                                 {getPatientFullName(appointment.paciente)?.charAt(0) || 'P'}
                               </Avatar>
                               <Box flex={1}>
                                  <Typography variant="subtitle1" fontWeight="bold">
-                                    {getPatientFullName(appointment.paciente || appointment.Paciente)}
+                                    {getPatientFullName(appointment.paciente) || 'Paciente sin nombre'}
                                  </Typography>
                                  <Typography variant="body2" color="text.secondary">
                                     {appointment.horario?.fecha &&
@@ -490,6 +524,110 @@ export default function MedicoPage() {
             )}
          </TabPanel>
 
+         {/* Tab: Canceladas */}
+         <TabPanel value={tabValue} index={2}>
+            {canceladas.length === 0 ? (
+               <Paper sx={{ p: 6, textAlign: 'center' }}>
+                  <CancelIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+                  <Typography variant="h6" color="text.secondary">
+                     No hay citas canceladas
+                  </Typography>
+               </Paper>
+            ) : (
+               canceladas
+                  .sort((a, b) => {
+                     const dateA = new Date(a.horario?.fecha || '').getTime();
+                     const dateB = new Date(b.horario?.fecha || '').getTime();
+                     return dateB - dateA;
+                  })
+                  .map((appointment) => (
+                     <Accordion key={appointment.id}>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                           <Box display="flex" alignItems="center" gap={2} width="100%">
+                              <Avatar sx={{ bgcolor: 'error.main' }}>
+                                 {getPatientFullName(appointment.paciente)?.charAt(0) || 'P'}
+                              </Avatar>
+                              <Box flex={1}>
+                                 <Typography variant="subtitle1" fontWeight="bold">
+                                    {getPatientFullName(appointment.paciente) || 'Paciente sin nombre'}
+                                 </Typography>
+                                 <Typography variant="body2" color="text.secondary">
+                                    {appointment.horario?.fecha &&
+                                       new Date(
+                                          appointment.horario.fecha + 'T00:00:00'
+                                       ).toLocaleDateString('es-ES')}
+                                 </Typography>
+                              </Box>
+                              <Chip
+                                 label={appointment.estado}
+                                 color={getStatusColor(appointment.estado)}
+                                 size="small"
+                              />
+                           </Box>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                           <Box>
+                              {/* Información Básica */}
+                              <Grid container spacing={2} mb={2}>
+                                 <Grid item xs={12} sm={6}>
+                                    <Box display="flex" alignItems="center" gap={1}>
+                                       <CalendarIcon fontSize="small" color="action" />
+                                       <Typography variant="body2">
+                                          <strong>Fecha:</strong>{' '}
+                                          {appointment.horario?.fecha &&
+                                             new Date(
+                                                appointment.horario.fecha + 'T00:00:00'
+                                             ).toLocaleDateString('es-ES')}
+                                       </Typography>
+                                    </Box>
+                                 </Grid>
+                                 <Grid item xs={12} sm={6}>
+                                    <Box display="flex" alignItems="center" gap={1}>
+                                       <TimeIcon fontSize="small" color="action" />
+                                       <Typography variant="body2">
+                                          <strong>Horario:</strong> {appointment.horario?.horaInicio?.substring(0, 5)} -{' '}
+                                          {appointment.horario?.horaFin?.substring(0, 5)}
+                                       </Typography>
+                                    </Box>
+                                 </Grid>
+                                 <Grid item xs={12}>
+                                    <Box display="flex" alignItems="center" gap={1}>
+                                       <HospitalIcon fontSize="small" color="action" />
+                                       <Typography variant="body2">
+                                          <strong>Tipo:</strong> {appointment.tipoCita}
+                                       </Typography>
+                                    </Box>
+                                 </Grid>
+                              </Grid>
+
+                              {appointment.detalles ? (
+                                 <Box>
+                                    <Divider sx={{ my: 2 }} />
+                                    <Typography variant="body2" color="text.secondary" fontStyle="italic" mb={1}>
+                                       Esta cita fue cancelada pero cuenta con detalles registrados:
+                                    </Typography>
+                                    
+                                    {appointment.detalles.motivo && (
+                                       <Box mb={2}>
+                                          <Typography variant="subtitle2" color="primary" gutterBottom>
+                                             Motivo de Consulta
+                                          </Typography>
+                                          <Typography variant="body2">{appointment.detalles.motivo}</Typography>
+                                       </Box>
+                                    )}
+                                 </Box>
+                              ) : (
+                                 <Typography variant="body2" color="text.secondary" fontStyle="italic">
+                                    Sin detalles médicos registrados
+                                 </Typography>
+                              )}
+                           </Box>
+                        </AccordionDetails>
+                     </Accordion>
+                  ))
+            )}
+         </TabPanel>
+
          {/* Dialog: Detalles de Cita */}
          <Dialog open={openDetailsDialog} onClose={handleCloseDetailsDialog} maxWidth="md" fullWidth>
             <DialogTitle>
@@ -500,7 +638,7 @@ export default function MedicoPage() {
                   <Box sx={{ mb: 3, mt: 2 }}>
                      <Paper variant="outlined" sx={{ p: 2 }}>
                         <Typography variant="subtitle2" gutterBottom>
-                           Paciente: {getPatientFullName(selectedAppointment.paciente || selectedAppointment.Paciente)}
+                           Paciente: {getPatientFullName(selectedAppointment.paciente) || 'Paciente sin nombre'}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
                            Fecha:{' '}

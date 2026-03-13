@@ -96,8 +96,10 @@ export const HistoriaClinicaPage = () => {
          case 'programada':
             return 'primary';
          case 'completada':
+         case 'completado':
             return 'success';
          case 'cancelada':
+         case 'cancelado':
             return 'error';
          case 'en_proceso':
             return 'warning';
@@ -222,7 +224,7 @@ export const HistoriaClinicaPage = () => {
                <Grid item xs={6} sm={3}>
                   <Paper variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
                      <Typography variant="h4" color="success.main" fontWeight="bold">
-                        {citas.filter((c: any) => c.estado === 'completada').length}
+                        {citas.filter((c: any) => c.estado === 'completada' || c.estado === 'completado').length}
                      </Typography>
                      <Typography variant="body2" color="text.secondary">
                         Completadas

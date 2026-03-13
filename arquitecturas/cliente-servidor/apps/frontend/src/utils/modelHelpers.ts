@@ -127,9 +127,9 @@ export const getAppointmentDoctorFullName = (appointment: IAppointment | undefin
  * Obtiene el paciente asociado de un Appointment, manejando ambos formatos de Sequelize
  */
 export const getPatient = (
-   appointment: IAppointment | { Paciente?: IPatient; paciente?: IPatient }
+   entity: IAppointment | { Patient?: IPatient; Paciente?: IPatient; paciente?: IPatient }
 ): IPatient | undefined => {
-   return appointment.Paciente || appointment.paciente;
+   return entity.Patient || entity.Paciente || entity.paciente;
 };
 
 /**
@@ -146,7 +146,7 @@ export const getPatientUser = (patient: IPatient | undefined): IUser | undefined
 export const getPatientFullName = (patient: IPatient | undefined): string => {
    if (!patient) return '';
    const user = getUser(patient);
-   return getUserFullName(user);
+   return getUserFullNameExtended(user);
 };
 
 /**
