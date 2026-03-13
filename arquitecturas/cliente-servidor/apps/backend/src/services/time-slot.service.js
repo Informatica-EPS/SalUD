@@ -1,4 +1,6 @@
 const TimeSlot = require("../models/time-slot.model");
+const Doctor = require("../models/doctor.model");
+const User = require("../models/user.model");
 const DoctorService = require("./doctor.service");
 const DoctorModel = require("../models/doctor.model");
 const PatientModel = require("../models/patient.model");
@@ -48,6 +50,23 @@ class TimeSlotService {
       {
         where: { idDoctor: doctorId, estado: timeSlotStatus.AVAILABLE },
         order: [["createdAt", "ASC"]],
+        include: [
+          {
+            model: Doctor,
+            include: [
+              {
+                model: User,
+                attributes: [
+                  "id",
+                  "primer_nombre",
+                  "segundo_nombre",
+                  "primer_apellido",
+                  "segundo_apellido",
+                ],
+              },
+            ],
+          },
+        ],
       },
     );
 
@@ -68,17 +87,16 @@ class TimeSlotService {
         order: [["createdAt", "ASC"]],
         include: [
           {
-            model: DoctorModel,
-            attributes: ["licenciaMedica"],
+            model: Doctor,
             include: [
               {
-                model: UserModel,
+                model: User,
                 attributes: [
+                  "id",
                   "primer_nombre",
                   "segundo_nombre",
                   "primer_apellido",
                   "segundo_apellido",
-                  "email",
                 ],
               },
             ],
@@ -104,46 +122,16 @@ class TimeSlotService {
         order: [["createdAt", "ASC"]],
         include: [
           {
-            model: DoctorModel,
-            attributes: ["licenciaMedica"],
+            model: Doctor,
             include: [
               {
-                model: UserModel,
+                model: User,
                 attributes: [
+                  "id",
                   "primer_nombre",
                   "segundo_nombre",
                   "primer_apellido",
                   "segundo_apellido",
-                  "email",
-                ],
-              },
-            ],
-          },
-          {
-            model: AppointmentModel,
-            attributes: ["tipoCita", "estado"],
-            include: [
-              {
-                model: PatientModel,
-                attributes: [
-                  "ocupacion",
-                  "discapacidad",
-                  "etnia",
-                  "identidadGenero",
-                  "sexo",
-                ],
-                include: [
-                  {
-                    model: UserModel,
-                    attributes: [
-                      "primer_nombre",
-                      "segundo_nombre",
-                      "primer_apellido",
-                      "segundo_apellido",
-                      "direccion",
-                      "email",
-                    ],
-                  },
                 ],
               },
             ],
@@ -222,46 +210,16 @@ class TimeSlotService {
         order: [["createdAt", "ASC"]],
         include: [
           {
-            model: DoctorModel,
-            attributes: ["licenciaMedica"],
+            model: Doctor,
             include: [
               {
-                model: UserModel,
+                model: User,
                 attributes: [
+                  "id",
                   "primer_nombre",
                   "segundo_nombre",
                   "primer_apellido",
                   "segundo_apellido",
-                  "email",
-                ],
-              },
-            ],
-          },
-          {
-            model: AppointmentModel,
-            attributes: ["tipoCita", "estado"],
-            include: [
-              {
-                model: PatientModel,
-                attributes: [
-                  "ocupacion",
-                  "discapacidad",
-                  "etnia",
-                  "identidadGenero",
-                  "sexo",
-                ],
-                include: [
-                  {
-                    model: UserModel,
-                    attributes: [
-                      "primer_nombre",
-                      "segundo_nombre",
-                      "primer_apellido",
-                      "segundo_apellido",
-                      "direccion",
-                      "email",
-                    ],
-                  },
                 ],
               },
             ],
@@ -287,46 +245,16 @@ class TimeSlotService {
         order: [["createdAt", "ASC"]],
         include: [
           {
-            model: DoctorModel,
-            attributes: ["licenciaMedica"],
+            model: Doctor,
             include: [
               {
-                model: UserModel,
+                model: User,
                 attributes: [
+                  "id",
                   "primer_nombre",
                   "segundo_nombre",
                   "primer_apellido",
                   "segundo_apellido",
-                  "email",
-                ],
-              },
-            ],
-          },
-          {
-            model: AppointmentModel,
-            attributes: ["tipoCita", "estado"],
-            include: [
-              {
-                model: PatientModel,
-                attributes: [
-                  "ocupacion",
-                  "discapacidad",
-                  "etnia",
-                  "identidadGenero",
-                  "sexo",
-                ],
-                include: [
-                  {
-                    model: UserModel,
-                    attributes: [
-                      "primer_nombre",
-                      "segundo_nombre",
-                      "primer_apellido",
-                      "segundo_apellido",
-                      "direccion",
-                      "email",
-                    ],
-                  },
                 ],
               },
             ],
@@ -456,7 +384,7 @@ class TimeSlotService {
     if (!slot) return false;
 
     await slot.update({
-      estado: appointmentsStatus.PROGRAMADO,
+      estado: timeSlotStatus.SCHEDULED,
       updatedBy: updatedBy,
     });
     return slot;
@@ -478,7 +406,7 @@ class TimeSlotService {
     if (!slot) return false;
 
     await slot.update({
-      estado: appointmentsStatus.CANCELADO,
+      estado: timeSlotStatus.CANCELLED,
       updatedBy: updatedBy,
     });
     return slot;

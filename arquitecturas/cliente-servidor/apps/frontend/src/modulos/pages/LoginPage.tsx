@@ -75,8 +75,8 @@
 
 // export default LoginPage;
 
-import { useState } from 'react';
-import { apiClient } from '../../services/apiClient';
+import { useState, useEffect } from 'react';
+import { api } from '../../services/apiClient';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import './LoginPage.css';
@@ -88,8 +88,15 @@ export default function LoginPage() {
    const [loading, setLoading] = useState(false);
    const [error, setError] = useState('');
 
-   const { login } = useAuth();
+   const { login, user } = useAuth();
    const navigate = useNavigate();
+
+   // Si ya está autenticado, redirigir al home
+   useEffect(() => {
+      if (user) {
+         navigate('/home');
+      }
+   }, [user, navigate]);
 
    const handleLogin = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -97,21 +104,37 @@ export default function LoginPage() {
       setLoading(true);
 
       try {
-         const user = await apiClient('/users/login', {
-            method: 'POST',
-            body: JSON.stringify({ documento, password }),
+         // Intenta login con el backend
+         const user = await api.post('/users/login', {
+            documento,
+            password,
          });
 
          login(user);
+         
+         // Navegar según el rol
          if (user.roles?.includes('Medico')) {
             navigate('/medico');
          } else if (user.roles?.includes('Paciente')) {
             navigate('/paciente');
          } else {
-            navigate('/');
+            navigate('/home');
          }
-      } catch (err) {
-         setError('Documento o contraseña incorrectos');
+      } catch (err: any) {
+         console.error('Error en login:', err);
+         
+         // Mostrar mensaje de error apropiado
+         if (err.response?.status === 404) {
+            setError('Usuario no encontrado. Verifica tu documento.');
+         } else if (err.response?.status === 400) {
+            setError('Contraseña incorrecta. Por favor intenta de nuevo.');
+         } else if (err.response?.data?.message) {
+            setError(err.response.data.message);
+         } else if (err.message) {
+            setError('Error al conectar con el servidor. Verifica que el backend esté corriendo.');
+         } else {
+            setError('Error al iniciar sesión. Por favor intenta de nuevo.');
+         }
       } finally {
          setLoading(false);
       }
