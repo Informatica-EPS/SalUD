@@ -332,7 +332,7 @@ class TimeSlotService {
     if (!slot) return false;
 
     await slot.update({
-      estado: appointmentsStatus.PROGRAMADO,
+      estado: timeSlotStatus.SCHEDULED,
       updatedBy: updatedBy,
     });
     return slot;
@@ -343,7 +343,7 @@ class TimeSlotService {
     if (!slot) return false;
 
     await slot.update({
-      estado: appointmentsStatus.DISPONIBLE,
+      estado: timeSlotStatus.AVAILABLE,
       updatedBy: updatedBy,
     });
     return slot;
@@ -354,7 +354,7 @@ class TimeSlotService {
     if (!slot) return false;
 
     await slot.update({
-      estado: appointmentsStatus.CANCELADO,
+      estado: timeSlotStatus.CANCELLED,
       updatedBy: updatedBy,
     });
     return slot;

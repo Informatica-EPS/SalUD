@@ -75,12 +75,12 @@ export const appointmentsService = {
 
    /**
     * Obtener historia clínica de un paciente
-    * GET /api/appointments/clinical-history/:patientId
+    * GET /api/appointments/clinical-records/:patientId
     */
    getClinicalHistory: async (patientId: number): Promise<IClinicalHistoryResponse> => {
       try {
          const response = await api.get<IClinicalHistoryResponse>(
-            `/appointments/clinical-history/${patientId}`
+            `/appointments/clinical-records/${patientId}`
          );
          return response;
       } catch (error) {

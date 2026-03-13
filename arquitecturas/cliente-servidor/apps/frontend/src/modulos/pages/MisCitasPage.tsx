@@ -75,6 +75,7 @@ export const MisCitasPage = () => {
          case 'completada':
             return 'success';
          case 'cancelada':
+         case 'cancelado':
             return 'error';
          case 'en_proceso':
             return 'warning';
@@ -90,6 +91,7 @@ export const MisCitasPage = () => {
          case 'completada':
             return 'Completada';
          case 'cancelada':
+         case 'cancelado':
             return 'Cancelada';
          case 'en_proceso':
             return 'En Proceso';
@@ -117,7 +119,7 @@ export const MisCitasPage = () => {
    // Separar citas por estado (con validación)
    const citasProgramadas = (appointments || []).filter((cita) => cita.estado === 'programada');
    const citasCompletadas = (appointments || []).filter((cita) => cita.estado === 'completada');
-   const citasCanceladas = (appointments || []).filter((cita) => cita.estado === 'cancelada');
+   const citasCanceladas = (appointments || []).filter((cita) => cita.estado === 'cancelada' || cita.estado === 'cancelado');
 
    return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -140,7 +142,7 @@ export const MisCitasPage = () => {
 
          {/* Estadísticas */}
          <Grid container spacing={2} mb={4}>
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} sm={3}>
                <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'primary.light' }}>
                   <Typography variant="h4" fontWeight="bold">
                      {citasProgramadas.length}
@@ -150,7 +152,7 @@ export const MisCitasPage = () => {
                   </Typography>
                </Paper>
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} sm={3}>
                <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'success.light' }}>
                   <Typography variant="h4" fontWeight="bold">
                      {citasCompletadas.length}
@@ -160,7 +162,17 @@ export const MisCitasPage = () => {
                   </Typography>
                </Paper>
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} sm={3}>
+               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'error.light' }}>
+                  <Typography variant="h4" fontWeight="bold">
+                     {citasCanceladas.length}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                     Canceladas
+                  </Typography>
+               </Paper>
+            </Grid>
+            <Grid item xs={12} sm={3}>
                <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'grey.200' }}>
                   <Typography variant="h4" fontWeight="bold">
                      {(appointments || []).length}

@@ -4,7 +4,7 @@ const UserModel = require("../models/user.model");
 const AppointmentDetailModel = require("../models/appointment-details.model");
 const PatientModel = require("../models/patient.model");
 const TimeSlotModel = require("../models/time-slot.model");
-const { appointmentsStatus, functions } = require("../utils");
+const { appointmentsStatus, timeSlotStatus, functions } = require("../utils");
 const TimeSlotService = require("./time-slot.service");
 
 class AppointmentService {
@@ -153,7 +153,7 @@ class AppointmentService {
       );
     }
 
-    if (timeSlot.estado === appointmentsStatus.PROGRAMADO) {
+    if (timeSlot.estado === timeSlotStatus.SCHEDULED) {
       throw new Error("El horario ya está reservado");
     }
 
