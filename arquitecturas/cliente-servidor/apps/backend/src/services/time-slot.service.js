@@ -1,5 +1,9 @@
 const TimeSlot = require("../models/time-slot.model");
 const DoctorService = require("./doctor.service");
+const DoctorModel = require("../models/doctor.model");
+const PatientModel = require("../models/patient.model");
+const AppointmentModel = require("../models/appointments.model");
+const UserModel = require("../models/user.model");
 const { appointmentsStatus, timeSlotStatus, functions } = require("../utils");
 const { Op } = require("sequelize");
 
@@ -53,12 +57,6 @@ class TimeSlotService {
       currentPage: page,
       franjasHorarias: rows,
     };
-    // return await TimeSlot.findAll({
-    //   where: {
-    //     idDoctor: doctorId,
-    //     estado: timeSlotStatus.AVAILABLE,
-    //   },
-    // });
   }
 
   async getAllAvailableSlots(queryParams) {
@@ -68,6 +66,24 @@ class TimeSlotService {
       {
         where: { estado: timeSlotStatus.AVAILABLE },
         order: [["createdAt", "ASC"]],
+        include: [
+          {
+            model: DoctorModel,
+            attributes: ["licenciaMedica"],
+            include: [
+              {
+                model: UserModel,
+                attributes: [
+                  "primer_nombre",
+                  "segundo_nombre",
+                  "primer_apellido",
+                  "segundo_apellido",
+                  "email",
+                ],
+              },
+            ],
+          },
+        ],
       },
     );
 
@@ -77,11 +93,6 @@ class TimeSlotService {
       currentPage: page,
       franjasHorarias: rows,
     };
-    // return await TimeSlot.findAll({
-    //   where: {
-    //     estado: timeSlotStatus.AVAILABLE,
-    //   },
-    // });
   }
 
   async getAllScheduledSlots(queryParams) {
@@ -91,6 +102,53 @@ class TimeSlotService {
       {
         where: { estado: timeSlotStatus.SCHEDULED },
         order: [["createdAt", "ASC"]],
+        include: [
+          {
+            model: DoctorModel,
+            attributes: ["licenciaMedica"],
+            include: [
+              {
+                model: UserModel,
+                attributes: [
+                  "primer_nombre",
+                  "segundo_nombre",
+                  "primer_apellido",
+                  "segundo_apellido",
+                  "email",
+                ],
+              },
+            ],
+          },
+          {
+            model: AppointmentModel,
+            attributes: ["tipoCita", "estado"],
+            include: [
+              {
+                model: PatientModel,
+                attributes: [
+                  "ocupacion",
+                  "discapacidad",
+                  "etnia",
+                  "identidadGenero",
+                  "sexo",
+                ],
+                include: [
+                  {
+                    model: UserModel,
+                    attributes: [
+                      "primer_nombre",
+                      "segundo_nombre",
+                      "primer_apellido",
+                      "segundo_apellido",
+                      "direccion",
+                      "email",
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       },
     );
 
@@ -100,11 +158,6 @@ class TimeSlotService {
       currentPage: page,
       franjasHorarias: rows,
     };
-    // return await TimeSlot.findAll({
-    //   where: {
-    //     estado: timeSlotStatus.SCHEDULED,
-    //   },
-    // });
   }
 
   async validateDoctorExists(idDoctor) {
@@ -165,7 +218,56 @@ class TimeSlotService {
     const { rows, count, page, totalPages } = await functions.paginate(
       TimeSlot,
       queryParams,
-      { order: [["createdAt", "ASC"]] },
+      {
+        order: [["createdAt", "ASC"]],
+        include: [
+          {
+            model: DoctorModel,
+            attributes: ["licenciaMedica"],
+            include: [
+              {
+                model: UserModel,
+                attributes: [
+                  "primer_nombre",
+                  "segundo_nombre",
+                  "primer_apellido",
+                  "segundo_apellido",
+                  "email",
+                ],
+              },
+            ],
+          },
+          {
+            model: AppointmentModel,
+            attributes: ["tipoCita", "estado"],
+            include: [
+              {
+                model: PatientModel,
+                attributes: [
+                  "ocupacion",
+                  "discapacidad",
+                  "etnia",
+                  "identidadGenero",
+                  "sexo",
+                ],
+                include: [
+                  {
+                    model: UserModel,
+                    attributes: [
+                      "primer_nombre",
+                      "segundo_nombre",
+                      "primer_apellido",
+                      "segundo_apellido",
+                      "direccion",
+                      "email",
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
     );
 
     return {
@@ -180,7 +282,57 @@ class TimeSlotService {
     const { rows, count, page, totalPages } = await functions.paginate(
       TimeSlot,
       queryParams,
-      { where: { idDoctor: doctorId }, order: [["createdAt", "ASC"]] },
+      {
+        where: { idDoctor: doctorId },
+        order: [["createdAt", "ASC"]],
+        include: [
+          {
+            model: DoctorModel,
+            attributes: ["licenciaMedica"],
+            include: [
+              {
+                model: UserModel,
+                attributes: [
+                  "primer_nombre",
+                  "segundo_nombre",
+                  "primer_apellido",
+                  "segundo_apellido",
+                  "email",
+                ],
+              },
+            ],
+          },
+          {
+            model: AppointmentModel,
+            attributes: ["tipoCita", "estado"],
+            include: [
+              {
+                model: PatientModel,
+                attributes: [
+                  "ocupacion",
+                  "discapacidad",
+                  "etnia",
+                  "identidadGenero",
+                  "sexo",
+                ],
+                include: [
+                  {
+                    model: UserModel,
+                    attributes: [
+                      "primer_nombre",
+                      "segundo_nombre",
+                      "primer_apellido",
+                      "segundo_apellido",
+                      "direccion",
+                      "email",
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
     );
 
     return {
@@ -189,13 +341,58 @@ class TimeSlotService {
       currentPage: page,
       franjasHorarias: rows,
     };
-    // return await TimeSlot.findAll({
-    //   where: { idDoctor: doctorId },
-    // });
   }
 
   async findById(id) {
-    return await TimeSlot.findByPk(id);
+    return await TimeSlot.findByPk(id, {
+      include: [
+        {
+          model: DoctorModel,
+          attributes: ["licenciaMedica"],
+          include: [
+            {
+              model: UserModel,
+              attributes: [
+                "primer_nombre",
+                "segundo_nombre",
+                "primer_apellido",
+                "segundo_apellido",
+                "email",
+              ],
+            },
+          ],
+        },
+        {
+          model: AppointmentModel,
+          attributes: ["tipoCita", "estado"],
+          include: [
+            {
+              model: PatientModel,
+              attributes: [
+                "ocupacion",
+                "discapacidad",
+                "etnia",
+                "identidadGenero",
+                "sexo",
+              ],
+              include: [
+                {
+                  model: UserModel,
+                  attributes: [
+                    "primer_nombre",
+                    "segundo_nombre",
+                    "primer_apellido",
+                    "segundo_apellido",
+                    "direccion",
+                    "email",
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
   }
 
   async update(id, data, auditUserId) {
