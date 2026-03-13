@@ -6,7 +6,7 @@ services:
     command: npm start
     restart: always
     environment:
-      - DATABASE_URL=postgres://user_admin:super_password_123@db:5432/mi_base_de_datos
+      - DATABASE_URL=postgres://user_admin:super_password_123@db:5432/mi_base_de_datos 
       - NODE_ENV=production
 
   frontend:

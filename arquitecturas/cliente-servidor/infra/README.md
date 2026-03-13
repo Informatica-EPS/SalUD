@@ -60,3 +60,40 @@ En caso de requerir auditoría o revisión en el servidor de producción, se deb
 * **Revisar estado de los contenedores:**
   ```bash
   docker ps
+
+## 5. Migraciones y diff de esquema
+
+Script de generacion de migraciones:
+
+
+- `npm run db:diff:schema -- --name "mi_cambio"`:
+  genera una migracion incremental comparando modelos vs BD actual
+  (crea tablas faltantes, agrega/cambia columnas, agrega/ajusta indices y FKs).
+
+Opcional para eliminar columnas que ya no existen en el modelo:
+
+- `npm run db:diff:schema -- --name "mi_cambio" --drop-missing-columns true`
+
+Aplicar migraciones:
+
+- `npx sequelize-cli db:migrate`
+
+**Flujos recomendado**
+
+* Crear tablas por primera vez:
+1. Revisar el archivo en `src/migrations`, allí debe existir un archivo con el esquema actual de la BD.
+2. Ejecutar `npx sequelize-cli db:migrate`.
+
+
+* Actualizar por cambios en modelo:
+
+1. Cambiar modelos en `src/models`.
+2. Generar migracion con `db:diff:schema`.
+3. Revisar el archivo generado en `src/migrations`.
+4. Ejecutar `npx sequelize-cli db:migrate`.
+
+**Nota:** Cada vez que se lance el db:diff:schema se crea un nuevo archivo de migración, este archivo será luego lanzado por el migrate. 
+En ese orden de ideas, si desean hacer commit de un archivo de migración, **DEBEN SIEMPRE DEJAR EL MÁS RECIENTE, NUNCA MÁS DE UNO.** 
+Así, no afectamos el migrate en la maquina remota. 
+
+**Variable de enterno local para correr el comando diff:** $env:DATABASE_URL="postgres://user_admin:super_password_123@localhost:5432/mi_base_de_dato
