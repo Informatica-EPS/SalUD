@@ -1,15 +1,23 @@
-FROM node:18-alpine
-
+FROM node:18-alpine AS base
 WORKDIR /app
-
 COPY package*.json ./
-
 RUN npm install
-
 COPY . .
 
-
+FROM base AS development
 EXPOSE 8080
-
-# Esto permite que los cambios de código se vean reflejados (Hot Reload)
+# Hot Reload 
 CMD ["npm", "run", "dev"]
+
+
+FROM base AS build
+RUN npm run build
+
+# Producción (Nginx ultraligero para Azure)
+FROM nginx:stable-alpine AS production
+# Copia el build de la etapa anterior
+COPY --from=build /app/dist /usr/share/nginx/html
+# Copia la configuración de rutas
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

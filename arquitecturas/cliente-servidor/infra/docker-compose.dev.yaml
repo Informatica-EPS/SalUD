@@ -54,7 +54,10 @@ services:
       - db
 
   frontend:
-    build: ../apps/frontend
+    build: 
+      context: ../apps/frontend
+      dockerfile: Dockerfile
+      target: development # <--- AGREGAR ESTO
     volumes:
       - ../apps/frontend:/app
       - /app/node_modules
