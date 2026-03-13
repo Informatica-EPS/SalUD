@@ -1,4 +1,5 @@
 const Doctor = require("../models/doctor.model");
+const User = require("../models/user.model");
 
 class DoctorService {
   async create(data, auditUserId) {
@@ -10,11 +11,37 @@ class DoctorService {
   }
 
   async findAll() {
-    return await Doctor.findAll();
+    return await Doctor.findAll({
+      include: [
+        {
+          model: User,
+          attributes: [
+            "id",
+            "primer_nombre",
+            "segundo_nombre",
+            "primer_apellido",
+            "segundo_apellido",
+          ],
+        },
+      ],
+    });
   }
 
   async findById(id) {
-    return await Doctor.findByPk(id);
+    return await Doctor.findByPk(id, {
+      include: [
+        {
+          model: User,
+          attributes: [
+            "id",
+            "primer_nombre",
+            "segundo_nombre",
+            "primer_apellido",
+            "segundo_apellido",
+          ],
+        },
+      ],
+    });
   }
 
   async update(id, data, auditUserId) {

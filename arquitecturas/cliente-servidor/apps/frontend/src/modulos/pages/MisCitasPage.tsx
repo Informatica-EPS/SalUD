@@ -29,6 +29,7 @@ import {
    LocalHospital as HospitalIcon,
 } from '@mui/icons-material';
 import { usePatientAppointments } from '../../hooks';
+import { getDoctorFullName, getDoctor, getTimeSlot, getAppointmentDetail } from '../../utils';
 
 export const MisCitasPage = () => {
    const pacienteId = 1; // TODO: Obtener del contexto de autenticación
@@ -198,8 +199,7 @@ export const MisCitasPage = () => {
                                     <Box display="flex" alignItems="center" gap={1} mb={1}>
                                        <PersonIcon color="primary" />
                                        <Typography variant="h6">
-                                          Dr. {cita.doctor?.usuario?.primerNombre}{' '}
-                                          {cita.doctor?.usuario?.primerApellido}
+                                          {getDoctorFullName(getDoctor(cita) || cita.doctor)}
                                        </Typography>
                                     </Box>
 
@@ -213,33 +213,46 @@ export const MisCitasPage = () => {
                                     <Box display="flex" alignItems="center" gap={1} mb={1}>
                                        <CalendarIcon fontSize="small" color="action" />
                                        <Typography variant="body2" color="text.secondary">
-                                          {cita.horario?.fecha &&
-                                             new Date(
-                                                cita.horario.fecha + 'T00:00:00'
-                                             ).toLocaleDateString('es-ES', {
-                                                weekday: 'long',
-                                                year: 'numeric',
-                                                month: 'long',
-                                                day: 'numeric',
-                                             })}
+                                          {(() => {
+                                             const horario = getTimeSlot(cita);
+                                             if (horario?.fecha) {
+                                                return new Date(
+                                                   horario.fecha + 'T00:00:00'
+                                                ).toLocaleDateString('es-ES', {
+                                                   weekday: 'long',
+                                                   year: 'numeric',
+                                                   month: 'long',
+                                                   day: 'numeric',
+                                                });
+                                             }
+                                             return 'Fecha no disponible';
+                                          })()}
                                        </Typography>
                                     </Box>
 
                                     <Box display="flex" alignItems="center" gap={1} mb={1}>
                                        <TimeIcon fontSize="small" color="action" />
                                        <Typography variant="body2" color="text.secondary">
-                                          {cita.horario?.horaInicio} - {cita.horario?.horaFin}
+                                          {(() => {
+                                             const horario = getTimeSlot(cita);
+                                             return horario?.horaInicio && horario?.horaFin
+                                                ? `${horario.horaInicio} - ${horario.horaFin}`
+                                                : 'Hora no disponible';
+                                          })()}
                                        </Typography>
                                     </Box>
 
-                                    {cita.detalles?.motivo && (
-                                       <Box display="flex" alignItems="start" gap={1} mt={2}>
-                                          <DescriptionIcon fontSize="small" color="action" />
-                                          <Typography variant="body2" color="text.secondary">
-                                             <strong>Motivo:</strong> {cita.detalles.motivo}
-                                          </Typography>
-                                       </Box>
-                                    )}
+                                    {(() => {
+                                       const detalles = getAppointmentDetail(cita);
+                                       return detalles?.motivo ? (
+                                          <Box display="flex" alignItems="start" gap={1} mt={2}>
+                                             <DescriptionIcon fontSize="small" color="action" />
+                                             <Typography variant="body2" color="text.secondary">
+                                                <strong>Motivo:</strong> {detalles.motivo}
+                                             </Typography>
+                                          </Box>
+                                       ) : null;
+                                    })()}
                                  </Grid>
 
                                  <Grid item xs={12} md={4}>
@@ -280,57 +293,62 @@ export const MisCitasPage = () => {
                <Grid container spacing={2}>
                   {[...citasCompletadas, ...citasCanceladas]
                      .sort((a, b) => {
-                        const dateA = new Date(a.horario?.fecha || '').getTime();
-                        const dateB = new Date(b.horario?.fecha || '').getTime();
+                        const horarioA = getTimeSlot(a);
+                        const horarioB = getTimeSlot(b);
+                        const dateA = new Date(horarioA?.fecha || '').getTime();
+                        const dateB = new Date(horarioB?.fecha || '').getTime();
                         return dateB - dateA;
                      })
-                     .map((cita) => (
-                        <Grid item xs={12} md={6} key={cita.id}>
-                           <Card variant="outlined">
-                              <CardContent>
-                                 <Box display="flex" justifyContent="space-between" mb={2}>
-                                    <Chip
-                                       label={getStatusLabel(cita.estado)}
-                                       color={getStatusColor(cita.estado)}
-                                       size="small"
-                                    />
-                                    <Typography variant="caption" color="text.secondary">
-                                       #{cita.id}
-                                    </Typography>
-                                 </Box>
-
-                                 <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-                                    Dr. {cita.doctor?.usuario?.primerNombre}{' '}
-                                    {cita.doctor?.usuario?.primerApellido}
-                                 </Typography>
-
-                                 <Typography variant="body2" color="text.secondary" gutterBottom>
-                                    {cita.horario?.fecha &&
-                                       new Date(
-                                          cita.horario.fecha + 'T00:00:00'
-                                       ).toLocaleDateString('es-ES')}
-                                    {' • '}
-                                    {cita.horario?.horaInicio}
-                                 </Typography>
-
-                                 <Typography variant="body2" color="text.secondary">
-                                    {cita.tipoCita}
-                                 </Typography>
-
-                                 {cita.detalles?.diagnostico && (
-                                    <Box mt={2} p={1} bgcolor="grey.100" borderRadius={1}>
+                     .map((cita) => {
+                        const horario = getTimeSlot(cita);
+                        const detalles = getAppointmentDetail(cita);
+                        return (
+                           <Grid item xs={12} md={6} key={cita.id}>
+                              <Card variant="outlined">
+                                 <CardContent>
+                                    <Box display="flex" justifyContent="space-between" mb={2}>
+                                       <Chip
+                                          label={getStatusLabel(cita.estado)}
+                                          color={getStatusColor(cita.estado)}
+                                          size="small"
+                                       />
                                        <Typography variant="caption" color="text.secondary">
-                                          <strong>Diagnóstico:</strong>
-                                       </Typography>
-                                       <Typography variant="body2">
-                                          {cita.detalles.diagnostico}
+                                          #{cita.id}
                                        </Typography>
                                     </Box>
-                                 )}
-                              </CardContent>
-                           </Card>
-                        </Grid>
-                     ))}
+
+                                    <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                                       {getDoctorFullName(getDoctor(cita) || cita.doctor)}
+                                    </Typography>
+
+                                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                                       {horario?.fecha &&
+                                          new Date(
+                                             horario.fecha + 'T00:00:00'
+                                          ).toLocaleDateString('es-ES')}
+                                       {' • '}
+                                       {horario?.horaInicio}
+                                    </Typography>
+
+                                    <Typography variant="body2" color="text.secondary">
+                                       {cita.tipoCita}
+                                    </Typography>
+
+                                    {detalles?.diagnostico && (
+                                       <Box mt={2} p={1} bgcolor="grey.100" borderRadius={1}>
+                                          <Typography variant="caption" color="text.secondary">
+                                             <strong>Diagnóstico:</strong>
+                                          </Typography>
+                                          <Typography variant="body2">
+                                             {detalles.diagnostico}
+                                          </Typography>
+                                       </Box>
+                                    )}
+                                 </CardContent>
+                              </Card>
+                           </Grid>
+                        );
+                     })}
                </Grid>
             </>
          )}

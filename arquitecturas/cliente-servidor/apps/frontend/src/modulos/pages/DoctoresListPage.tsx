@@ -86,13 +86,13 @@ export const DoctoresPage = () => {
                               fontSize: '2.5rem',
                            }}
                         >
-                           {doctor.usuario?.primerNombre?.charAt(0)}
-                           {doctor.usuario?.primerApellido?.charAt(0)}
+                           {((doctor.User || doctor.usuario)?.primer_nombre || (doctor.User || doctor.usuario)?.primerNombre)?.charAt(0)}
+                           {((doctor.User || doctor.usuario)?.primer_apellido || (doctor.User || doctor.usuario)?.primerApellido)?.charAt(0)}
                         </Avatar>
 
                         {/* Nombre */}
                         <Typography variant="h6" gutterBottom fontWeight="bold">
-                           Dr. {doctor.usuario?.primerNombre} {doctor.usuario?.primerApellido}
+                           Dr. {(doctor.User || doctor.usuario)?.primer_nombre || (doctor.User || doctor.usuario)?.primerNombre} {(doctor.User || doctor.usuario)?.primer_apellido || (doctor.User || doctor.usuario)?.primerApellido}
                         </Typography>
 
                         {/* Especialidad - Simulada */}
@@ -123,13 +123,13 @@ export const DoctoresPage = () => {
                                     whiteSpace: 'nowrap',
                                  }}
                               >
-                                 {doctor.usuario?.correo}
+                                 {(doctor.User || doctor.usuario)?.email || (doctor.User || doctor.usuario)?.correo}
                               </Typography>
                            </Box>
                            <Box display="flex" alignItems="center" gap={1}>
                               <PhoneIcon fontSize="small" color="action" />
                               <Typography variant="body2" color="text.secondary">
-                                 {doctor.usuario?.telefono}
+                                 {(doctor.User || doctor.usuario)?.telefono}
                               </Typography>
                            </Box>
                         </Box>

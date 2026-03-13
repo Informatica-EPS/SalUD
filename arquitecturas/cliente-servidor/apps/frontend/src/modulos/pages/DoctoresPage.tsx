@@ -29,7 +29,8 @@ const DoctoresPage: React.FC = () => {
 
    // Filtrar doctores por nombre
    const doctoresFiltrados = doctors.filter((doctor) => {
-      const nombreCompleto = `${doctor.usuario?.primerNombre} ${doctor.usuario?.primerApellido}`.toLowerCase();
+      const usuario = doctor.User || doctor.usuario;
+      const nombreCompleto = `${usuario?.primer_nombre || usuario?.primerNombre || ''} ${usuario?.primer_apellido || usuario?.primerApellido || ''}`.toLowerCase();
       return nombreCompleto.includes(busqueda.toLowerCase());
    });
 
@@ -157,12 +158,12 @@ const DoctoresPage: React.FC = () => {
                                     mr: 2,
                                  }}
                               >
-                                 {doctor.usuario?.primerNombre?.[0]}
-                                 {doctor.usuario?.primerApellido?.[0]}
+                                 {((doctor.User || doctor.usuario)?.primer_nombre || (doctor.User || doctor.usuario)?.primerNombre)?.[0]}
+                                 {((doctor.User || doctor.usuario)?.primer_apellido || (doctor.User || doctor.usuario)?.primerApellido)?.[0]}
                               </Avatar>
                               <Box sx={{ flexGrow: 1 }}>
                                  <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                                    Dr. {doctor.usuario?.primerNombre} {doctor.usuario?.primerApellido}
+                                    Dr. {(doctor.User || doctor.usuario)?.primer_nombre || (doctor.User || doctor.usuario)?.primerNombre} {(doctor.User || doctor.usuario)?.primer_apellido || (doctor.User || doctor.usuario)?.primerApellido}
                                  </Typography>
                                  <Chip
                                     label="Disponible"
@@ -182,29 +183,29 @@ const DoctoresPage: React.FC = () => {
                                  </Typography>
                               </Box>
 
-                              {doctor.usuario?.correo && (
+                              {((doctor.User || doctor.usuario)?.email || (doctor.User || doctor.usuario)?.correo) && (
                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                     <EmailIcon fontSize="small" color="action" />
                                     <Typography variant="body2" color="text.secondary">
-                                       {doctor.usuario.correo}
+                                       {(doctor.User || doctor.usuario)?.email || (doctor.User || doctor.usuario)?.correo}
                                     </Typography>
                                  </Box>
                               )}
 
-                              {doctor.usuario?.telefono && (
+                              {(doctor.User || doctor.usuario)?.telefono && (
                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                     <PhoneIcon fontSize="small" color="action" />
                                     <Typography variant="body2" color="text.secondary">
-                                       {doctor.usuario.telefono}
+                                       {(doctor.User || doctor.usuario)?.telefono}
                                     </Typography>
                                  </Box>
                               )}
 
-                              {doctor.usuario?.numeroIdentificacion && (
+                              {((doctor.User || doctor.usuario)?.documento || (doctor.User || doctor.usuario)?.numeroIdentificacion) && (
                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                     <PersonIcon fontSize="small" color="action" />
                                     <Typography variant="body2" color="text.secondary">
-                                       <strong>ID:</strong> {doctor.usuario.numeroIdentificacion}
+                                       <strong>ID:</strong> {(doctor.User || doctor.usuario)?.documento || (doctor.User || doctor.usuario)?.numeroIdentificacion}
                                     </Typography>
                                  </Box>
                               )}

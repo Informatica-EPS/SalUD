@@ -30,6 +30,7 @@ import {
 import { useDoctors, useCreateAppointment } from '../../hooks';
 import { timeSlotsService } from '../../services';
 import { ITimeSlot } from '../../interface';
+import { getTimeSlotDoctorFullName, getDoctorFullName } from '../../utils';
 
 export const CitasDisponiblesPage = () => {
    const { doctors, loading: loadingDoctors } = useDoctors();
@@ -180,7 +181,7 @@ export const CitasDisponiblesPage = () => {
                         <MenuItem value="todos">Todos los doctores</MenuItem>
                         {doctors.map((doctor) => (
                            <MenuItem key={doctor.id} value={doctor.id.toString()}>
-                              Dr. {doctor.usuario?.primerNombre} {doctor.usuario?.primerApellido}
+                              {getDoctorFullName(doctor)}
                            </MenuItem>
                         ))}
                      </Select>
@@ -239,8 +240,7 @@ export const CitasDisponiblesPage = () => {
                         <Box display="flex" alignItems="center" gap={1} mb={2}>
                            <PersonIcon color="primary" />
                            <Typography variant="subtitle1" fontWeight="bold">
-                              Dr. {slot.doctor?.usuario?.primerNombre}{' '}
-                              {slot.doctor?.usuario?.primerApellido}
+                              {getTimeSlotDoctorFullName(slot)}
                            </Typography>
                         </Box>
 
@@ -304,8 +304,7 @@ export const CitasDisponiblesPage = () => {
                   <Box sx={{ pt: 2 }}>
                      <Alert severity="info" sx={{ mb: 3 }}>
                         <Typography variant="subtitle2" gutterBottom>
-                           Dr. {selectedSlot.doctor?.usuario?.primerNombre}{' '}
-                           {selectedSlot.doctor?.usuario?.primerApellido}
+                           {getTimeSlotDoctorFullName(selectedSlot)}
                         </Typography>
                         <Typography variant="body2">
                            {new Date(selectedSlot.fecha + 'T00:00:00').toLocaleDateString('es-ES', {

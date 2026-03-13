@@ -1,4 +1,6 @@
 const TimeSlot = require("../models/time-slot.model");
+const Doctor = require("../models/doctor.model");
+const User = require("../models/user.model");
 const DoctorService = require("./doctor.service");
 const { appointmentsStatus, timeSlotStatus, functions } = require("../utils");
 const { Op } = require("sequelize");
@@ -44,6 +46,23 @@ class TimeSlotService {
       {
         where: { idDoctor: doctorId, estado: timeSlotStatus.AVAILABLE },
         order: [["createdAt", "ASC"]],
+        include: [
+          {
+            model: Doctor,
+            include: [
+              {
+                model: User,
+                attributes: [
+                  "id",
+                  "primer_nombre",
+                  "segundo_nombre",
+                  "primer_apellido",
+                  "segundo_apellido",
+                ],
+              },
+            ],
+          },
+        ],
       },
     );
 
@@ -53,12 +72,6 @@ class TimeSlotService {
       currentPage: page,
       franjasHorarias: rows,
     };
-    // return await TimeSlot.findAll({
-    //   where: {
-    //     idDoctor: doctorId,
-    //     estado: timeSlotStatus.AVAILABLE,
-    //   },
-    // });
   }
 
   async getAllAvailableSlots(queryParams) {
@@ -68,6 +81,23 @@ class TimeSlotService {
       {
         where: { estado: timeSlotStatus.AVAILABLE },
         order: [["createdAt", "ASC"]],
+        include: [
+          {
+            model: Doctor,
+            include: [
+              {
+                model: User,
+                attributes: [
+                  "id",
+                  "primer_nombre",
+                  "segundo_nombre",
+                  "primer_apellido",
+                  "segundo_apellido",
+                ],
+              },
+            ],
+          },
+        ],
       },
     );
 
@@ -77,11 +107,6 @@ class TimeSlotService {
       currentPage: page,
       franjasHorarias: rows,
     };
-    // return await TimeSlot.findAll({
-    //   where: {
-    //     estado: timeSlotStatus.AVAILABLE,
-    //   },
-    // });
   }
 
   async getAllScheduledSlots(queryParams) {
@@ -91,6 +116,23 @@ class TimeSlotService {
       {
         where: { estado: timeSlotStatus.SCHEDULED },
         order: [["createdAt", "ASC"]],
+        include: [
+          {
+            model: Doctor,
+            include: [
+              {
+                model: User,
+                attributes: [
+                  "id",
+                  "primer_nombre",
+                  "segundo_nombre",
+                  "primer_apellido",
+                  "segundo_apellido",
+                ],
+              },
+            ],
+          },
+        ],
       },
     );
 
@@ -100,11 +142,6 @@ class TimeSlotService {
       currentPage: page,
       franjasHorarias: rows,
     };
-    // return await TimeSlot.findAll({
-    //   where: {
-    //     estado: timeSlotStatus.SCHEDULED,
-    //   },
-    // });
   }
 
   async validateDoctorExists(idDoctor) {
@@ -165,7 +202,26 @@ class TimeSlotService {
     const { rows, count, page, totalPages } = await functions.paginate(
       TimeSlot,
       queryParams,
-      { order: [["createdAt", "ASC"]] },
+      {
+        order: [["createdAt", "ASC"]],
+        include: [
+          {
+            model: Doctor,
+            include: [
+              {
+                model: User,
+                attributes: [
+                  "id",
+                  "primer_nombre",
+                  "segundo_nombre",
+                  "primer_apellido",
+                  "segundo_apellido",
+                ],
+              },
+            ],
+          },
+        ],
+      },
     );
 
     return {
@@ -180,7 +236,27 @@ class TimeSlotService {
     const { rows, count, page, totalPages } = await functions.paginate(
       TimeSlot,
       queryParams,
-      { where: { idDoctor: doctorId }, order: [["createdAt", "ASC"]] },
+      {
+        where: { idDoctor: doctorId },
+        order: [["createdAt", "ASC"]],
+        include: [
+          {
+            model: Doctor,
+            include: [
+              {
+                model: User,
+                attributes: [
+                  "id",
+                  "primer_nombre",
+                  "segundo_nombre",
+                  "primer_apellido",
+                  "segundo_apellido",
+                ],
+              },
+            ],
+          },
+        ],
+      },
     );
 
     return {
@@ -189,9 +265,6 @@ class TimeSlotService {
       currentPage: page,
       franjasHorarias: rows,
     };
-    // return await TimeSlot.findAll({
-    //   where: { idDoctor: doctorId },
-    // });
   }
 
   async findById(id) {

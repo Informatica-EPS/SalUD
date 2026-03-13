@@ -119,15 +119,15 @@ export const HistoriaClinicaPage = () => {
                            fontSize: '2rem',
                         }}
                      >
-                        {historia.paciente.usuario?.primerNombre?.charAt(0)}
-                        {historia.paciente.usuario?.primerApellido?.charAt(0)}
+                        {((historia.paciente.User || historia.paciente.usuario)?.primer_nombre || (historia.paciente.User || historia.paciente.usuario)?.primerNombre)?.charAt(0)}
+                        {((historia.paciente.User || historia.paciente.usuario)?.primer_apellido || (historia.paciente.User || historia.paciente.usuario)?.primerApellido)?.charAt(0)}
                      </Avatar>
                      <Box>
                         <Typography variant="h6" gutterBottom>
-                           {historia.paciente.usuario?.primerNombre}{' '}
-                           {historia.paciente.usuario?.segundoNombre}{' '}
-                           {historia.paciente.usuario?.primerApellido}{' '}
-                           {historia.paciente.usuario?.segundoApellido}
+                           {(historia.paciente.User || historia.paciente.usuario)?.primer_nombre || (historia.paciente.User || historia.paciente.usuario)?.primerNombre}{' '}
+                           {(historia.paciente.User || historia.paciente.usuario)?.segundo_nombre || (historia.paciente.User || historia.paciente.usuario)?.segundoNombre}{' '}
+                           {(historia.paciente.User || historia.paciente.usuario)?.primer_apellido || (historia.paciente.User || historia.paciente.usuario)?.primerApellido}{' '}
+                           {(historia.paciente.User || historia.paciente.usuario)?.segundo_apellido || (historia.paciente.User || historia.paciente.usuario)?.segundoApellido}
                         </Typography>
                         <Box display="flex" alignItems="center" gap={1} mb={0.5}>
                            <PersonIcon fontSize="small" color="action" />
@@ -271,8 +271,8 @@ export const HistoriaClinicaPage = () => {
                                     )}
                               </Typography>
                               <Typography variant="body2" color="text.secondary">
-                                 Dr. {cita.doctor?.usuario?.primerNombre}{' '}
-                                 {cita.doctor?.usuario?.primerApellido}
+                                 Dr. {(cita.doctor?.User || cita.doctor?.usuario)?.primer_nombre || (cita.doctor?.User || cita.doctor?.usuario)?.primerNombre}{' '}
+                                 {(cita.doctor?.User || cita.doctor?.usuario)?.primer_apellido || (cita.doctor?.User || cita.doctor?.usuario)?.primerApellido}
                               </Typography>
                            </Box>
                            <Chip

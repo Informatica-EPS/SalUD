@@ -42,7 +42,33 @@ class AppointmentService {
     const { rows, count, page, totalPages } = await functions.paginate(
       Appointment,
       queryParams,
-      { where: { idPaciente } },
+      {
+        where: { idPaciente },
+        include: [
+          {
+            model: DoctorModel,
+            include: [
+              {
+                model: UserModel,
+                attributes: [
+                  "id",
+                  "primer_nombre",
+                  "segundo_nombre",
+                  "primer_apellido",
+                  "segundo_apellido",
+                ],
+              },
+            ],
+          },
+          {
+            model: TimeSlotModel,
+          },
+          {
+            model: AppointmentDetailModel,
+          },
+        ],
+        order: [["createdAt", "DESC"]],
+      },
     );
 
     return {
@@ -51,14 +77,39 @@ class AppointmentService {
       totalItems: count,
       citas: rows,
     };
-    // return await Appointment.findAll({ where: { idPaciente } });
   }
 
   async findByDoctor(idDoctor, queryParams) {
     const { rows, count, page, totalPages } = await functions.paginate(
       Appointment,
       queryParams,
-      { where: { idDoctor } },
+      {
+        where: { idDoctor },
+        include: [
+          {
+            model: PatientModel,
+            include: [
+              {
+                model: UserModel,
+                attributes: [
+                  "id",
+                  "primer_nombre",
+                  "segundo_nombre",
+                  "primer_apellido",
+                  "segundo_apellido",
+                ],
+              },
+            ],
+          },
+          {
+            model: TimeSlotModel,
+          },
+          {
+            model: AppointmentDetailModel,
+          },
+        ],
+        order: [["createdAt", "DESC"]],
+      },
     );
 
     return {
@@ -67,7 +118,6 @@ class AppointmentService {
       totalItems: count,
       citas: rows,
     };
-    // return await Appointment.findAll({ where: { idDoctor } });
   }
 
   async findById(id) {

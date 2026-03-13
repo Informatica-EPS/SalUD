@@ -5,20 +5,36 @@
 // Usuario
 export interface IUser {
    id: number;
-   tipoIdentificacion: string;
-   numeroIdentificacion: string;
-   primerNombre: string;
+   tipo_documento?: string;
+   documento?: string;
+   primer_nombre?: string;
+   segundo_nombre?: string;
+   primer_apellido?: string;
+   segundo_apellido?: string;
+   fecha_nacimiento?: string;
+   lugar_nacimiento?: string;
+   direccion?: string;
+   usuario?: string;
+   email?: string;
+   password?: string;
+   creado_por?: string;
+   fecha_creacion?: string;
+   ultima_actualizacion?: string;
+   actualizado_por?: string;
+   // Campos en camelCase para compatibilidad con código existente
+   tipoIdentificacion?: string;
+   numeroIdentificacion?: string;
+   primerNombre?: string;
    segundoNombre?: string;
-   primerApellido: string;
+   primerApellido?: string;
    segundoApellido?: string;
-   fechaNacimiento: string;
-   telefono: string;
-   direccion: string;
-   correo: string;
+   fechaNacimiento?: string;
+   telefono?: string;
+   correo?: string;
    contrasena?: string;
-   idRol: number;
-   creadoPor: number;
-   actualizadoPor: number;
+   idRol?: number;
+   creadoPor?: number;
+   actualizadoPor?: number;
    createdAt?: string;
    updatedAt?: string;
    rol?: IRole;
@@ -50,6 +66,7 @@ export interface IPatient {
    createdAt?: string;
    updatedAt?: string;
    usuario?: IUser;
+   User?: IUser; // Sequelize devuelve el modelo asociado con este nombre
 }
 
 // Doctor
@@ -62,6 +79,7 @@ export interface IDoctor {
    createdAt?: string;
    updatedAt?: string;
    usuario?: IUser;
+   User?: IUser; // Sequelize devuelve el modelo asociado con este nombre
 }
 
 // TimeSlot (Horario)
@@ -77,6 +95,7 @@ export interface ITimeSlot {
    createdAt?: string;
    updatedAt?: string;
    doctor?: IDoctor;
+   Doctor?: IDoctor; // Sequelize devuelve el modelo asociado con este nombre
 }
 
 // Appointment (Cita)
@@ -95,6 +114,11 @@ export interface IAppointment {
    doctor?: IDoctor;
    horario?: ITimeSlot;
    detalles?: IAppointmentDetail;
+   // Sequelize devuelve los modelos asociados con estos nombres
+   Paciente?: IPatient;
+   Doctor?: IDoctor;
+   TimeSlot?: ITimeSlot;
+   AppointmentDetail?: IAppointmentDetail;
 }
 
 // AppointmentDetail (Detalle de Cita)

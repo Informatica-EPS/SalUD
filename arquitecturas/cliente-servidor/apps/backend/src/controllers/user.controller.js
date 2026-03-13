@@ -3,6 +3,8 @@ const userService = require('../services/user.service');
 const login = async (req, res, next) => {
   try {
     const { documento, password } = req.body;
+    console.log('Login attempt:', documento);
+    console.log('Password provided:',password);
 
     const user = await userService.getUserByDocument(documento);
 

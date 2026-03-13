@@ -14,6 +14,7 @@ const getUsers = async () => {
 // Buscar usuario por documento (hash SHA256)
 const getUserByDocument = async (documento) => {
   const hashedDocumento = crypto.createHash('sha256').update(documento).digest('hex');
+  console.log('Hashed documento:', hashedDocumento);
 
   return await User.findOne({
     where: { documento: hashedDocumento },

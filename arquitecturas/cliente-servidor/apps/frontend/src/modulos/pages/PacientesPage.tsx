@@ -206,8 +206,8 @@ export const PacientesPage = () => {
                               </Box>
                               <Box flex={1}>
                                  <Typography variant="h6" gutterBottom>
-                                    {patient.usuario?.primerNombre}{' '}
-                                    {patient.usuario?.primerApellido}
+                                    {(patient.User || patient.usuario)?.primer_nombre || (patient.User || patient.usuario)?.primerNombre}{' '}
+                                    {(patient.User || patient.usuario)?.primer_apellido || (patient.User || patient.usuario)?.primerApellido}
                                  </Typography>
                                  <Box display="flex" flexDirection="column" gap={0.5}>
                                     <Box display="flex" alignItems="center" gap={1}>
