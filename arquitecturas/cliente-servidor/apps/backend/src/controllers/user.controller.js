@@ -17,14 +17,26 @@ const login = async (req, res, next) => {
       return res.status(400).json({ message: 'Contraseña incorrecta' });
     }
 
-    res.status(200).json({
+    const response = {
       id: user.id,
       primer_nombre: user.primer_nombre,
       primer_apellido: user.primer_apellido,
       documento: user.documento,
       email: user.email,
       roles: user.Roles.map(r => r.nombre) // lista de roles
-    });
+    };
+
+    // Agregar ID de paciente si existe
+    if (user.Patients && user.Patients.length > 0) {
+      response.idPaciente = user.Patients[0].id;
+    }
+
+    // Agregar ID de doctor si existe
+    if (user.Doctors && user.Doctors.length > 0) {
+      response.idDoctor = user.Doctors[0].id;
+    }
+
+    res.status(200).json(response);
   } catch (error) {
     next(error);
   }

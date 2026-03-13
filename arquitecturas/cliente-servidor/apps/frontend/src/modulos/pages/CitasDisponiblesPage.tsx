@@ -31,8 +31,10 @@ import { useDoctors, useCreateAppointment } from '../../hooks';
 import { timeSlotsService } from '../../services';
 import { ITimeSlot } from '../../interface';
 import { getTimeSlotDoctorFullName, getDoctorFullName } from '../../utils';
+import { useAuth } from '../../context/AuthContext';
 
 export const CitasDisponiblesPage = () => {
+   const { user } = useAuth();
    const { doctors, loading: loadingDoctors } = useDoctors();
    const { createAppointment, loading: creatingAppointment } = useCreateAppointment();
 
@@ -52,7 +54,7 @@ export const CitasDisponiblesPage = () => {
    const [motivo, setMotivo] = useState('');
    const [tipoCita, setTipoCita] = useState('MEDICINA_GENERAL');
 
-   const pacienteId = 1; // TODO: Obtener del contexto de autenticación
+   const pacienteId = user?.idPaciente || 1; // Fallback temporal a 1 para desarrollo
 
    useEffect(() => {
       loadAvailableSlots();

@@ -5,6 +5,8 @@ interface User {
    name?: string;
    email?: string;
    roles?: string[];
+   idPaciente?: number;
+   idDoctor?: number;
    // eslint-disable-next-line @typescript-eslint/no-explicit-any
    [key: string]: any;
 }

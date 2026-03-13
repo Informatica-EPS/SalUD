@@ -30,9 +30,11 @@ import {
 } from '@mui/icons-material';
 import { usePatientAppointments } from '../../hooks';
 import { getDoctorFullName, getDoctor, getTimeSlot, getAppointmentDetail } from '../../utils';
+import { useAuth } from '../../context/AuthContext';
 
 export const MisCitasPage = () => {
-   const pacienteId = 1; // TODO: Obtener del contexto de autenticación
+   const { user } = useAuth();
+   const pacienteId = user?.idPaciente || 1; // Fallback temporal a 1 para desarrollo
    const {
       appointments,
       loading,

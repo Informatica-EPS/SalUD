@@ -16,12 +16,24 @@ const getUserByDocument = async (documento) => {
   const hashedDocumento = crypto.createHash('sha256').update(documento).digest('hex');
   console.log('Hashed documento:', hashedDocumento);
 
+  const { Patient, Doctor } = require('../models/associations');
+
   return await User.findOne({
     where: { documento: hashedDocumento },
-    include: [{
-      model: Role,
-      through: { attributes: [] }
-    }]
+    include: [
+      {
+        model: Role,
+        through: { attributes: [] }
+      },
+      {
+        model: Patient,
+        attributes: ['id']
+      },
+      {
+        model: Doctor,
+        attributes: ['id']
+      }
+    ]
   });
 };
 
