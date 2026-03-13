@@ -86,13 +86,26 @@ export const timeSlotsService = {
     */
    getByDoctor: async (doctorId: number, limit: number = 20): Promise<ITimeSlot[]> => {
       try {
-         const response = await api.get<ITimeSlot[]>(
+         const response: any = await api.get(
             `/time-slots/doctor/${doctorId}?limit=${limit}`
          );
-         return response;
+         
+         console.log('Response getByDoctor:', response);
+         
+         // Manejar diferentes estructuras de respuesta
+         if (response.franjasHorarias) {
+            // Backend actual: { franjasHorarias: [], totalPages, currentPage, totalItems }
+            return response.franjasHorarias || [];
+         } else if (Array.isArray(response)) {
+            // Array directo
+            return response;
+         } else {
+            // Fallback
+            return [];
+         }
       } catch (error) {
          console.error(`Error al obtener horarios del doctor ${doctorId}:`, error);
-         throw error;
+         return []; // Retornar array vacío en caso de error
       }
    },
 
@@ -102,13 +115,26 @@ export const timeSlotsService = {
     */
    getAvailableByDoctor: async (doctorId: number): Promise<ITimeSlot[]> => {
       try {
-         const response = await api.get<ITimeSlot[]>(
+         const response: any = await api.get(
             `/time-slots/doctor/available/${doctorId}`
          );
-         return response;
+         
+         console.log('Response getAvailableByDoctor:', response);
+         
+         // Manejar diferentes estructuras de respuesta
+         if (response.franjasHorarias) {
+            // Backend actual: { franjasHorarias: [], totalPages, currentPage, totalItems }
+            return response.franjasHorarias || [];
+         } else if (Array.isArray(response)) {
+            // Array directo
+            return response;
+         } else {
+            // Fallback
+            return [];
+         }
       } catch (error) {
          console.error(`Error al obtener horarios disponibles del doctor ${doctorId}:`, error);
-         throw error;
+         return []; // Retornar array vacío en caso de error
       }
    },
 

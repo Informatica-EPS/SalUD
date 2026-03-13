@@ -28,23 +28,32 @@ import {
 } from '@mui/icons-material';
 import { appointmentsService } from '../../services';
 import { IClinicalHistoryResponse } from '../../interface';
+import { useAuth } from '../../context/AuthContext';
+import { getPatientUser, getUserFullName, getUserInitials, getDoctorFullName } from '../../utils';
 
 export const HistoriaClinicaPage = () => {
-   const pacienteId = 1; // TODO: Obtener del contexto o parámetros de ruta
+   const { user } = useAuth();
+   const pacienteId = user?.idPaciente || null;
 
-   const [historia, setHistoria] = useState<IClinicalHistoryResponse | null>(null);
+   const [historia, setHistoria] = useState<any | null>(null);
    const [loading, setLoading] = useState(true);
    const [error, setError] = useState<string | null>(null);
 
    useEffect(() => {
-      loadHistoriaClinica();
+      if (pacienteId) {
+         loadHistoriaClinica();
+      } else {
+         setLoading(false);
+         setError('No se encontró información del paciente en la sesión');
+      }
    }, [pacienteId]);
 
    const loadHistoriaClinica = async () => {
       try {
          setLoading(true);
          setError(null);
-         const data = await appointmentsService.getClinicalHistory(pacienteId);
+         const data = await appointmentsService.getMedicalRecords(pacienteId!);
+         console.log('Historia clínica recibida:', data);
          setHistoria(data);
       } catch (err) {
          setError('Error al cargar la historia clínica');
@@ -77,6 +86,10 @@ export const HistoriaClinicaPage = () => {
          </Container>
       );
    }
+
+   // Obtener datos del paciente (puede venir como paciente o datosPaciente)
+   const datosPaciente = historia.paciente || historia.datosPaciente || {};
+   const citas = historia.citas || [];
 
    const getStatusColor = (status: string) => {
       switch (status) {
@@ -119,33 +132,38 @@ export const HistoriaClinicaPage = () => {
                            fontSize: '2rem',
                         }}
                      >
-                        {((historia.paciente.User || historia.paciente.usuario)?.primer_nombre || (historia.paciente.User || historia.paciente.usuario)?.primerNombre)?.charAt(0)}
-                        {((historia.paciente.User || historia.paciente.usuario)?.primer_apellido || (historia.paciente.User || historia.paciente.usuario)?.primerApellido)?.charAt(0)}
+                        {datosPaciente.nombreCompleto 
+                           ? datosPaciente.nombreCompleto.split(' ').map((n: string) => n.charAt(0)).slice(0, 2).join('')
+                           : getUserInitials(getPatientUser(datosPaciente))}
                      </Avatar>
                      <Box>
                         <Typography variant="h6" gutterBottom>
-                           {(historia.paciente.User || historia.paciente.usuario)?.primer_nombre || (historia.paciente.User || historia.paciente.usuario)?.primerNombre}{' '}
-                           {(historia.paciente.User || historia.paciente.usuario)?.segundo_nombre || (historia.paciente.User || historia.paciente.usuario)?.segundoNombre}{' '}
-                           {(historia.paciente.User || historia.paciente.usuario)?.primer_apellido || (historia.paciente.User || historia.paciente.usuario)?.primerApellido}{' '}
-                           {(historia.paciente.User || historia.paciente.usuario)?.segundo_apellido || (historia.paciente.User || historia.paciente.usuario)?.segundoApellido}
+                           {datosPaciente.nombreCompleto || 
+                            getUserFullName(getPatientUser(datosPaciente)) || 'Sin nombre'}
                         </Typography>
                         <Box display="flex" alignItems="center" gap={1} mb={0.5}>
                            <PersonIcon fontSize="small" color="action" />
                            <Typography variant="body2" color="text.secondary">
-                              ID: {historia.paciente.usuario?.numeroIdentificacion} (
-                              {historia.paciente.usuario?.tipoIdentificacion})
+                              ID: {getPatientUser(datosPaciente)?.numeroIdentificacion || 
+                                   getPatientUser(datosPaciente)?.documento || 
+                                   datosPaciente.documento || 'N/A'} 
+                              {getPatientUser(datosPaciente)?.tipoIdentificacion && 
+                                ` (${getPatientUser(datosPaciente)?.tipoIdentificacion})`}
                            </Typography>
                         </Box>
                         <Box display="flex" alignItems="center" gap={1} mb={0.5}>
                            <EmailIcon fontSize="small" color="action" />
                            <Typography variant="body2" color="text.secondary">
-                              {historia.paciente.usuario?.correo}
+                              {datosPaciente.email || 
+                               getPatientUser(datosPaciente)?.correo || 
+                               getPatientUser(datosPaciente)?.email || 'N/A'}
                            </Typography>
                         </Box>
                         <Box display="flex" alignItems="center" gap={1}>
                            <PhoneIcon fontSize="small" color="action" />
                            <Typography variant="body2" color="text.secondary">
-                              {historia.paciente.usuario?.telefono}
+                              {datosPaciente.telefono || 
+                               getPatientUser(datosPaciente)?.telefono || 'N/A'}
                            </Typography>
                         </Box>
                      </Box>
@@ -157,24 +175,29 @@ export const HistoriaClinicaPage = () => {
                         Información Adicional
                      </Typography>
                      <Box display="flex" gap={1} flexWrap="wrap" mb={1}>
-                        <Chip label={`Ocupación: ${historia.paciente.ocupacion}`} size="small" />
+                        <Chip label={`Ocupación: ${datosPaciente?.ocupacion || 'N/A'}`} size="small" />
                         <Chip
-                           label={`Sexo: ${historia.paciente.sexo === 'M' ? 'Masculino' : 'Femenino'}`}
+                           label={`Sexo: ${datosPaciente?.sexo || 'N/A'}`}
                            size="small"
                         />
                      </Box>
                      <Typography variant="body2" color="text.secondary" gutterBottom>
-                        <strong>Religión:</strong> {historia.paciente.religion}
+                        <strong>Religión:</strong> {datosPaciente?.religion || 'N/A'}
                      </Typography>
                      <Typography variant="body2" color="text.secondary" gutterBottom>
-                        <strong>Etnicidad:</strong> {historia.paciente.etnicidad}
+                        <strong>Etnicidad:</strong> {datosPaciente?.etnicidad || datosPaciente?.etnia || 'N/A'}
                      </Typography>
                      <Typography variant="body2" color="text.secondary" gutterBottom>
-                        <strong>Identidad de Género:</strong> {historia.paciente.identidadGenero}
+                        <strong>Identidad de Género:</strong> {datosPaciente?.identidadGenero || 'N/A'}
                      </Typography>
                      <Typography variant="body2" color="text.secondary">
-                        <strong>Discapacidad:</strong> {historia.paciente.discapacidad}
+                        <strong>Discapacidad:</strong> {datosPaciente?.discapacidad || 'N/A'}
                      </Typography>
+                     {datosPaciente?.direccion && (
+                        <Typography variant="body2" color="text.secondary">
+                           <strong>Dirección:</strong> {datosPaciente.direccion}
+                        </Typography>
+                     )}
                   </Box>
                </Grid>
             </Grid>
@@ -189,7 +212,7 @@ export const HistoriaClinicaPage = () => {
                <Grid item xs={6} sm={3}>
                   <Paper variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
                      <Typography variant="h4" color="primary.main" fontWeight="bold">
-                        {historia.citas.length}
+                        {citas.length}
                      </Typography>
                      <Typography variant="body2" color="text.secondary">
                         Total Citas
@@ -199,7 +222,7 @@ export const HistoriaClinicaPage = () => {
                <Grid item xs={6} sm={3}>
                   <Paper variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
                      <Typography variant="h4" color="success.main" fontWeight="bold">
-                        {historia.citas.filter((c) => c.estado === 'completada').length}
+                        {citas.filter((c: any) => c.estado === 'completada').length}
                      </Typography>
                      <Typography variant="body2" color="text.secondary">
                         Completadas
@@ -209,7 +232,7 @@ export const HistoriaClinicaPage = () => {
                <Grid item xs={6} sm={3}>
                   <Paper variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
                      <Typography variant="h4" color="primary.main" fontWeight="bold">
-                        {historia.citas.filter((c) => c.estado === 'programada').length}
+                        {citas.filter((c: any) => c.estado === 'programada').length}
                      </Typography>
                      <Typography variant="body2" color="text.secondary">
                         Programadas
@@ -219,7 +242,7 @@ export const HistoriaClinicaPage = () => {
                <Grid item xs={6} sm={3}>
                   <Paper variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
                      <Typography variant="h4" color="error.main" fontWeight="bold">
-                        {historia.citas.filter((c) => c.estado === 'cancelada').length}
+                        {citas.filter((c: any) => c.estado === 'cancelada' || c.estado === 'cancelado').length}
                      </Typography>
                      <Typography variant="body2" color="text.secondary">
                         Canceladas
@@ -231,10 +254,10 @@ export const HistoriaClinicaPage = () => {
 
          {/* Historial de Citas */}
          <Typography variant="h6" gutterBottom fontWeight="bold" mb={2}>
-            Historial de Atenciones ({historia.citas.length})
+            Historial de Atenciones ({citas.length})
          </Typography>
 
-         {historia.citas.length === 0 ? (
+         {citas.length === 0 ? (
             <Paper sx={{ p: 6, textAlign: 'center' }}>
                <AssignmentIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
                <Typography variant="h6" color="text.secondary">
@@ -242,46 +265,52 @@ export const HistoriaClinicaPage = () => {
                </Typography>
             </Paper>
          ) : (
-            historia.citas
-               .sort((a, b) => {
+            citas
+               .sort((a: any, b: any) => {
                   const dateA = new Date(a.horario?.fecha || '').getTime();
                   const dateB = new Date(b.horario?.fecha || '').getTime();
                   return dateB - dateA;
                })
-               .map((cita, index) => (
-                  <Accordion key={cita.id} defaultExpanded={index === 0}>
-                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <Box display="flex" alignItems="center" gap={2} width="100%">
-                           <Chip
-                              label={`#${cita.id}`}
-                              size="small"
-                              color="primary"
-                              variant="outlined"
-                           />
-                           <Box flex={1}>
-                              <Typography variant="subtitle1" fontWeight="bold">
-                                 {cita.horario?.fecha &&
-                                    new Date(cita.horario.fecha + 'T00:00:00').toLocaleDateString(
-                                       'es-ES',
-                                       {
-                                          year: 'numeric',
-                                          month: 'long',
-                                          day: 'numeric',
-                                       }
-                                    )}
-                              </Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                 Dr. {(cita.doctor?.User || cita.doctor?.usuario)?.primer_nombre || (cita.doctor?.User || cita.doctor?.usuario)?.primerNombre}{' '}
-                                 {(cita.doctor?.User || cita.doctor?.usuario)?.primer_apellido || (cita.doctor?.User || cita.doctor?.usuario)?.primerApellido}
-                              </Typography>
+               .map((cita: any, index: number) => {
+                  // Obtener nombre del doctor (puede venir como objeto plano o anidado)
+                  const doctorNombre = cita.doctor?.doctorNombreCompleto || 
+                                      getDoctorFullName(cita.doctor) || 
+                                      getDoctorFullName(cita.Doctor) || 
+                                      'Doctor no asignado';
+                  
+                  return (
+                     <Accordion key={cita.id} defaultExpanded={index === 0}>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                           <Box display="flex" alignItems="center" gap={2} width="100%">
+                              <Chip
+                                 label={`#${cita.id}`}
+                                 size="small"
+                                 color="primary"
+                                 variant="outlined"
+                              />
+                              <Box flex={1}>
+                                 <Typography variant="subtitle1" fontWeight="bold">
+                                    {cita.horario?.fecha &&
+                                       new Date(cita.horario.fecha + 'T00:00:00').toLocaleDateString(
+                                          'es-ES',
+                                          {
+                                             year: 'numeric',
+                                             month: 'long',
+                                             day: 'numeric',
+                                          }
+                                       )}
+                                 </Typography>
+                                 <Typography variant="body2" color="text.secondary">
+                                    {doctorNombre}
+                                 </Typography>
+                              </Box>
+                              <Chip
+                                 label={cita.estado}
+                                 color={getStatusColor(cita.estado)}
+                                 size="small"
+                              />
                            </Box>
-                           <Chip
-                              label={cita.estado}
-                              color={getStatusColor(cita.estado)}
-                              size="small"
-                           />
-                        </Box>
-                     </AccordionSummary>
+                        </AccordionSummary>
                      <AccordionDetails>
                         <Box>
                            {/* Información Básica */}
@@ -438,7 +467,8 @@ export const HistoriaClinicaPage = () => {
                         </Box>
                      </AccordionDetails>
                   </Accordion>
-               ))
+                  );
+               })
          )}
       </Container>
    );

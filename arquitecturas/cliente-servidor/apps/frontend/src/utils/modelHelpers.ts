@@ -123,3 +123,38 @@ export const getAppointmentDoctorFullName = (appointment: IAppointment | undefin
    return getDoctorFullName(doctor);
 };
 
+/**
+ * Obtiene el paciente asociado de un Appointment, manejando ambos formatos de Sequelize
+ */
+export const getPatient = (
+   appointment: IAppointment | { Paciente?: IPatient; paciente?: IPatient }
+): IPatient | undefined => {
+   return appointment.Paciente || appointment.paciente;
+};
+
+/**
+ * Obtiene el usuario de un paciente directamente
+ */
+export const getPatientUser = (patient: IPatient | undefined): IUser | undefined => {
+   if (!patient) return undefined;
+   return getUser(patient);
+};
+
+/**
+ * Obtiene el nombre completo de un paciente
+ */
+export const getPatientFullName = (patient: IPatient | undefined): string => {
+   if (!patient) return '';
+   const user = getUser(patient);
+   return getUserFullName(user);
+};
+
+/**
+ * Obtiene el nombre completo del paciente de un Appointment
+ */
+export const getAppointmentPatientFullName = (appointment: IAppointment | undefined): string => {
+   if (!appointment) return '';
+   const patient = getPatient(appointment);
+   return getPatientFullName(patient);
+};
+

@@ -120,25 +120,21 @@ export default function LoginPage() {
          } else {
             navigate('/home');
          }
-      } catch (err) {
+      } catch (err: any) {
          console.error('Error en login:', err);
          
-         // Modo desarrollo: Login simulado si el backend no responde
-         // COMENTAR ESTO EN PRODUCCIÓN
-         console.warn('⚠️ Backend no disponible, usando login simulado');
-         const mockUser = {
-            id: 1,
-            name: documento || 'Usuario Demo',
-            email: `${documento}@demo.com`,
-            documento: documento,
-            roles: ['Paciente'],
-         };
-         
-         login(mockUser);
-         navigate('/home');
-         
-         // Descomentar esto para mostrar error real:
-         // setError('Documento o contraseña incorrectos. Verifica que el backend esté corriendo.');
+         // Mostrar mensaje de error apropiado
+         if (err.response?.status === 404) {
+            setError('Usuario no encontrado. Verifica tu documento.');
+         } else if (err.response?.status === 400) {
+            setError('Contraseña incorrecta. Por favor intenta de nuevo.');
+         } else if (err.response?.data?.message) {
+            setError(err.response.data.message);
+         } else if (err.message) {
+            setError('Error al conectar con el servidor. Verifica que el backend esté corriendo.');
+         } else {
+            setError('Error al iniciar sesión. Por favor intenta de nuevo.');
+         }
       } finally {
          setLoading(false);
       }

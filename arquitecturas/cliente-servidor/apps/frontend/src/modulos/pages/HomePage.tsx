@@ -17,6 +17,14 @@ const HomePage = () => {
       navigate('/login');
    };
 
+   // Determinar roles del usuario
+   // Primero intenta obtener roles del array 'roles', si no existe o está vacío, inferir por idPaciente/idDoctor
+   const userRoles = user?.roles || [];
+   
+   const isPatient = userRoles.includes('Paciente') || (userRoles.length === 0 && user?.idPaciente);
+   const isDoctor = userRoles.includes('Medico') || userRoles.includes('Doctor') || (userRoles.length === 0 && user?.idDoctor);
+   const isAdmin = userRoles.includes('Admin') || userRoles.includes('Administrador');
+
    // Opciones para pacientes
    const patientOptions = [
       {
@@ -98,7 +106,10 @@ const HomePage = () => {
                </Typography>
                {user && (
                   <Typography variant="body1" sx={{ opacity: 0.9, mt: 0.5 }}>
-                     Bienvenido, {user.name}
+                     Bienvenido, {user.primer_nombre || user.name || 'Usuario'}
+                     {isPatient && ' - Paciente'}
+                     {isDoctor && ' - Doctor'}
+                     {isAdmin && ' - Administrador'}
                   </Typography>
                )}
             </Box>
@@ -114,99 +125,105 @@ const HomePage = () => {
                   Panel de Control
                </Typography>
                <Typography variant="h6" color="text.secondary">
-                  Gestiona citas entre pacientes y médicos de manera eficiente
+                  {isPatient && 'Gestiona tus citas y consulta tu historial médico'}
+                  {isDoctor && !isPatient && 'Administra tus horarios y pacientes'}
+                  {!isPatient && !isDoctor && 'Bienvenido al sistema de gestión de citas médicas'}
                </Typography>
             </Box>
 
-            {/* Sección de Pacientes */}
-            <Box sx={{ mb: 5 }}>
-               <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
-                  👤 Panel de Paciente
-               </Typography>
-               <Grid container spacing={3}>
-                  {patientOptions.map((option, index) => (
-                     <Grid item xs={12} md={4} key={index}>
-                        <Card
-                           sx={{
-                              height: '100%',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              transition: 'transform 0.3s, box-shadow 0.3s',
-                              '&:hover': {
-                                 transform: 'translateY(-8px)',
-                                 boxShadow: 6,
-                              },
-                           }}
-                        >
-                           <CardContent sx={{ flexGrow: 1, textAlign: 'center', p: 3 }}>
-                              {option.icon}
-                              <Typography variant="h5" component="h2" gutterBottom sx={{ fontWeight: 'bold' }}>
-                                 {option.title}
-                              </Typography>
-                              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                                 {option.description}
-                              </Typography>
-                              <Button
-                                 variant="contained"
-                                 fullWidth
-                                 color={option.color as any}
-                                 onClick={() => navigate(option.path)}
-                                 size="large"
-                              >
-                                 {option.buttonText}
-                              </Button>
-                           </CardContent>
-                        </Card>
-                     </Grid>
-                  ))}
-               </Grid>
-            </Box>
+            {/* Sección de Pacientes - Solo visible para pacientes */}
+            {isPatient && (
+               <Box sx={{ mb: 5 }}>
+                  <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
+                     👤 Panel de Paciente
+                  </Typography>
+                  <Grid container spacing={3}>
+                     {patientOptions.map((option, index) => (
+                        <Grid item xs={12} md={4} key={index}>
+                           <Card
+                              sx={{
+                                 height: '100%',
+                                 display: 'flex',
+                                 flexDirection: 'column',
+                                 transition: 'transform 0.3s, box-shadow 0.3s',
+                                 '&:hover': {
+                                    transform: 'translateY(-8px)',
+                                    boxShadow: 6,
+                                 },
+                              }}
+                           >
+                              <CardContent sx={{ flexGrow: 1, textAlign: 'center', p: 3 }}>
+                                 {option.icon}
+                                 <Typography variant="h5" component="h2" gutterBottom sx={{ fontWeight: 'bold' }}>
+                                    {option.title}
+                                 </Typography>
+                                 <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                                    {option.description}
+                                 </Typography>
+                                 <Button
+                                    variant="contained"
+                                    fullWidth
+                                    color={option.color as any}
+                                    onClick={() => navigate(option.path)}
+                                    size="large"
+                                 >
+                                    {option.buttonText}
+                                 </Button>
+                              </CardContent>
+                           </Card>
+                        </Grid>
+                     ))}
+                  </Grid>
+               </Box>
+            )}
 
-            {/* Sección de Doctores */}
-            <Box sx={{ mb: 5 }}>
-               <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
-                  👨‍⚕️ Panel de Doctor
-               </Typography>
-               <Grid container spacing={3}>
-                  {doctorOptions.map((option, index) => (
-                     <Grid item xs={12} md={6} key={index}>
-                        <Card
-                           sx={{
-                              height: '100%',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              transition: 'transform 0.3s, box-shadow 0.3s',
-                              '&:hover': {
-                                 transform: 'translateY(-8px)',
-                                 boxShadow: 6,
-                              },
-                           }}
-                        >
-                           <CardContent sx={{ flexGrow: 1, textAlign: 'center', p: 3 }}>
-                              {option.icon}
-                              <Typography variant="h5" component="h2" gutterBottom sx={{ fontWeight: 'bold' }}>
-                                 {option.title}
-                              </Typography>
-                              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                                 {option.description}
-                              </Typography>
-                              <Button
-                                 variant="contained"
-                                 fullWidth
-                                 color={option.color as any}
-                                 onClick={() => navigate(option.path)}
-                                 size="large"
-                              >
-                                 {option.buttonText}
-                              </Button>
-                           </CardContent>
-                        </Card>
-                     </Grid>
-                  ))}
-               </Grid>
-            </Box>
+            {/* Sección de Doctores - Solo visible para doctores */}
+            {isDoctor && (
+               <Box sx={{ mb: 5 }}>
+                  <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
+                     👨‍⚕️ Panel de Doctor
+                  </Typography>
+                  <Grid container spacing={3}>
+                     {doctorOptions.map((option, index) => (
+                        <Grid item xs={12} md={6} key={index}>
+                           <Card
+                              sx={{
+                                 height: '100%',
+                                 display: 'flex',
+                                 flexDirection: 'column',
+                                 transition: 'transform 0.3s, box-shadow 0.3s',
+                                 '&:hover': {
+                                    transform: 'translateY(-8px)',
+                                    boxShadow: 6,
+                                 },
+                              }}
+                           >
+                              <CardContent sx={{ flexGrow: 1, textAlign: 'center', p: 3 }}>
+                                 {option.icon}
+                                 <Typography variant="h5" component="h2" gutterBottom sx={{ fontWeight: 'bold' }}>
+                                    {option.title}
+                                 </Typography>
+                                 <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                                    {option.description}
+                                 </Typography>
+                                 <Button
+                                    variant="contained"
+                                    fullWidth
+                                    color={option.color as any}
+                                    onClick={() => navigate(option.path)}
+                                    size="large"
+                                 >
+                                    {option.buttonText}
+                                 </Button>
+                              </CardContent>
+                           </Card>
+                        </Grid>
+                     ))}
+                  </Grid>
+               </Box>
+            )}
 
-            {/* Sección Común */}
+            {/* Sección Común - Visible para todos */}
             <Box>
                <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
                   🔍 Recursos Comunes
@@ -249,6 +266,18 @@ const HomePage = () => {
                   ))}
                </Grid>
             </Box>
+
+            {/* Mensaje si no tiene roles específicos */}
+            {!isPatient && !isDoctor && (
+               <Box sx={{ mt: 4, p: 4, bgcolor: 'info.light', borderRadius: 2, textAlign: 'center' }}>
+                  <Typography variant="h6" gutterBottom>
+                     👋 Bienvenido al Sistema
+                  </Typography>
+                  <Typography variant="body1" color="text.secondary">
+                     Tu cuenta no tiene roles específicos asignados. Contacta al administrador para obtener acceso completo.
+                  </Typography>
+               </Box>
+            )}
 
             {/* Footer Info */}
             <Box sx={{ mt: 6, p: 3, bgcolor: 'white', borderRadius: 2, boxShadow: 1 }}>

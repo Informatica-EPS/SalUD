@@ -17,23 +17,50 @@ const login = async (req, res, next) => {
       return res.status(400).json({ message: 'Contraseña incorrecta' });
     }
 
+    // Construir array de roles basándose en los registros de la tabla de relaciones
+    const rolesFromTable = user.Roles ? user.Roles.map(r => r.nombre) : [];
+    
+    // Inferir roles basándose en la existencia de registros de Paciente/Doctor
+    const rolesInferred = [];
+    
+    // Agregar ID de paciente si existe e inferir rol
+    let idPaciente = null;
+    if (user.Patients && user.Patients.length > 0) {
+      idPaciente = user.Patients[0].id;
+      // Solo agregar rol si no está ya en la tabla de roles
+      if (!rolesFromTable.includes('Paciente')) {
+        rolesInferred.push('Paciente');
+      }
+    }
+
+    // Agregar ID de doctor si existe e inferir rol
+    let idDoctor = null;
+    if (user.Doctors && user.Doctors.length > 0) {
+      idDoctor = user.Doctors[0].id;
+      // Solo agregar rol si no está ya en la tabla de roles
+      if (!rolesFromTable.includes('Medico') && !rolesFromTable.includes('Doctor')) {
+        rolesInferred.push('Medico');
+      }
+    }
+
+    // Combinar roles de la tabla con roles inferidos
+    const allRoles = [...rolesFromTable, ...rolesInferred];
+
     const response = {
       id: user.id,
       primer_nombre: user.primer_nombre,
       primer_apellido: user.primer_apellido,
       documento: user.documento,
       email: user.email,
-      roles: user.Roles.map(r => r.nombre) // lista de roles
+      roles: allRoles
     };
 
-    // Agregar ID de paciente si existe
-    if (user.Patients && user.Patients.length > 0) {
-      response.idPaciente = user.Patients[0].id;
+    // Agregar IDs si existen
+    if (idPaciente) {
+      response.idPaciente = idPaciente;
     }
-
-    // Agregar ID de doctor si existe
-    if (user.Doctors && user.Doctors.length > 0) {
-      response.idDoctor = user.Doctors[0].id;
+    if (idDoctor) {
+      response.idDoctor = idDoctor;
     }
 
     res.status(200).json(response);

@@ -29,6 +29,7 @@ import {
    EventBusy as BusyIcon,
 } from '@mui/icons-material';
 import { useDoctorTimeSlots } from '../../hooks';
+import { useAuth } from '../../context/AuthContext';
 
 interface TabPanelProps {
    children?: React.ReactNode;
@@ -46,7 +47,8 @@ function TabPanel(props: TabPanelProps) {
 }
 
 export const GestionHorariosPage = () => {
-   const doctorId = 3; // TODO: Obtener del contexto de autenticación
+   const { user } = useAuth();
+   const doctorId = user?.idDoctor || 3; // Fallback temporal
    const {
       availableSlots,
       allSlots,
@@ -127,7 +129,11 @@ export const GestionHorariosPage = () => {
 
    const groupSlotsByDate = (slots: typeof availableSlots) => {
       const grouped: { [key: string]: typeof availableSlots } = {};
-      slots.forEach((slot) => {
+      
+      // Asegurarse de que slots es un array
+      const slotsArray = Array.isArray(slots) ? slots : [];
+      
+      slotsArray.forEach((slot) => {
          if (!grouped[slot.fecha]) {
             grouped[slot.fecha] = [];
          }
@@ -188,7 +194,7 @@ export const GestionHorariosPage = () => {
             <Grid item xs={12} sm={6} md={3}>
                <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'success.light' }}>
                   <Typography variant="h4" fontWeight="bold">
-                     {availableSlots.length}
+                     {Array.isArray(availableSlots) ? availableSlots.length : 0}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                      Disponibles
@@ -198,7 +204,7 @@ export const GestionHorariosPage = () => {
             <Grid item xs={12} sm={6} md={3}>
                <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'primary.light' }}>
                   <Typography variant="h4" fontWeight="bold">
-                     {allSlots.filter((s) => s.estado === 'programado').length}
+                     {Array.isArray(allSlots) ? allSlots.filter((s) => s.estado === 'programado').length : 0}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                      Programados
@@ -208,7 +214,7 @@ export const GestionHorariosPage = () => {
             <Grid item xs={12} sm={6} md={3}>
                <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'grey.200' }}>
                   <Typography variant="h4" fontWeight="bold">
-                     {allSlots.filter((s) => s.estado === 'completado').length}
+                     {Array.isArray(allSlots) ? allSlots.filter((s) => s.estado === 'completado').length : 0}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                      Completados
@@ -218,7 +224,7 @@ export const GestionHorariosPage = () => {
             <Grid item xs={12} sm={6} md={3}>
                <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'grey.300' }}>
                   <Typography variant="h4" fontWeight="bold">
-                     {allSlots.length}
+                     {Array.isArray(allSlots) ? allSlots.length : 0}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                      Total
