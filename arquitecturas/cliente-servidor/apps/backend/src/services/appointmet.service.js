@@ -26,6 +26,66 @@ class AppointmentService {
     const { rows, count, page, totalPages } = await functions.paginate(
       Appointment,
       queryParams,
+      {
+        include: [
+          {
+            model: TimeSlotModel,
+            attributes: ["fecha", "horaInicio", "horaFin"],
+          },
+          {
+            model: DoctorModel,
+            attributes: ["licenciaMedica"],
+            include: [
+              {
+                model: UserModel,
+                attributes: [
+                  "primer_nombre",
+                  "segundo_nombre",
+                  "primer_apellido",
+                  "segundo_apellido",
+                  "email",
+                ],
+              },
+            ],
+          },
+          {
+            model: PatientModel,
+            attributes: [
+              "ocupacion",
+              "discapacidad",
+              "etnia",
+              "identidadGenero",
+              "sexo",
+            ],
+            include: [
+              {
+                model: UserModel,
+                attributes: [
+                  "primer_nombre",
+                  "segundo_nombre",
+                  "primer_apellido",
+                  "segundo_apellido",
+                  "direccion",
+                  "email",
+                ],
+              },
+            ],
+          },
+          {
+            model: AppointmentDetailModel,
+            attributes: [
+              "motivo",
+              "antecedentes",
+              "anamnesis",
+              "revisionSistemas",
+              "examenFisico",
+              "diagnostico",
+              "planManejo",
+              "evolucion",
+            ],
+          },
+        ],
+      },
     );
 
     return {
@@ -121,7 +181,66 @@ class AppointmentService {
   }
 
   async findById(id) {
-    return await Appointment.findByPk(id);
+    return await Appointment.findByPk(id, {
+      include: [
+        {
+          model: DoctorModel,
+          attributes: ["licenciaMedica"],
+          include: [
+            {
+              model: UserModel,
+              attributes: [
+                "primer_nombre",
+                "segundo_nombre",
+                "primer_apellido",
+                "segundo_apellido",
+                "email",
+              ],
+            },
+          ],
+        },
+        {
+          model: AppointmentDetailModel,
+          attributes: [
+            "motivo",
+            "antecedentes",
+            "anamnesis",
+            "revisionSistemas",
+            "examenFisico",
+            "diagnostico",
+            "planManejo",
+            "evolucion",
+          ],
+        },
+        {
+          model: TimeSlotModel,
+          attributes: ["fecha", "horaInicio", "horaFin"],
+        },
+        {
+          model: PatientModel,
+          attributes: [
+            "ocupacion",
+            "discapacidad",
+            "etnia",
+            "identidadGenero",
+            "sexo",
+          ],
+          include: [
+            {
+              model: UserModel,
+              attributes: [
+                "primer_nombre",
+                "segundo_nombre",
+                "primer_apellido",
+                "segundo_apellido",
+                "direccion",
+                "email",
+              ],
+            },
+          ],
+        },
+      ],
+    });
   }
 
   async update(id, data, auditUserId) {

@@ -2,6 +2,10 @@ const TimeSlot = require("../models/time-slot.model");
 const Doctor = require("../models/doctor.model");
 const User = require("../models/user.model");
 const DoctorService = require("./doctor.service");
+const DoctorModel = require("../models/doctor.model");
+const PatientModel = require("../models/patient.model");
+const AppointmentModel = require("../models/appointments.model");
+const UserModel = require("../models/user.model");
 const { appointmentsStatus, timeSlotStatus, functions } = require("../utils");
 const { Op } = require("sequelize");
 
@@ -268,7 +272,55 @@ class TimeSlotService {
   }
 
   async findById(id) {
-    return await TimeSlot.findByPk(id);
+    return await TimeSlot.findByPk(id, {
+      include: [
+        {
+          model: DoctorModel,
+          attributes: ["licenciaMedica"],
+          include: [
+            {
+              model: UserModel,
+              attributes: [
+                "primer_nombre",
+                "segundo_nombre",
+                "primer_apellido",
+                "segundo_apellido",
+                "email",
+              ],
+            },
+          ],
+        },
+        {
+          model: AppointmentModel,
+          attributes: ["tipoCita", "estado"],
+          include: [
+            {
+              model: PatientModel,
+              attributes: [
+                "ocupacion",
+                "discapacidad",
+                "etnia",
+                "identidadGenero",
+                "sexo",
+              ],
+              include: [
+                {
+                  model: UserModel,
+                  attributes: [
+                    "primer_nombre",
+                    "segundo_nombre",
+                    "primer_apellido",
+                    "segundo_apellido",
+                    "direccion",
+                    "email",
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
   }
 
   async update(id, data, auditUserId) {

@@ -1,5 +1,11 @@
 const AppointmentDetail = require("../models/appointment-details.model");
 const AppointmentService = require("./appointmet.service");
+const AppointmentModel = require("../models/appointments.model");
+const PatientModel = require("../models/patient.model");
+const DoctorModel = require("../models/doctor.model");
+const UserModel = require("../models/user.model");
+const TimeSlotModel = require("../models/time-slot.model");
+
 const { functions } = require("../utils");
 
 class AppointmentDetailService {
@@ -47,6 +53,59 @@ class AppointmentDetailService {
     const { rows, count, page, totalPages } = await functions.paginate(
       AppointmentDetail,
       queryParams,
+      {
+        include: [
+          {
+            model: AppointmentModel,
+            attributes: ["tipoCita", "estado"],
+            include: [
+              {
+                model: PatientModel,
+                attributes: [
+                  "ocupacion",
+                  "discapacidad",
+                  "etnia",
+                  "identidadGenero",
+                  "sexo",
+                ],
+                include: [
+                  {
+                    model: UserModel,
+                    attributes: [
+                      "primer_nombre",
+                      "segundo_nombre",
+                      "primer_apellido",
+                      "segundo_apellido",
+                      "direccion",
+                      "email",
+                    ],
+                  },
+                ],
+              },
+              {
+                model: TimeSlotModel,
+                attributes: ["fecha", "horaInicio", "horaFin"],
+              },
+              {
+                model: DoctorModel,
+                attributes: ["licenciaMedica"],
+                include: [
+                  {
+                    model: UserModel,
+                    attributes: [
+                      "primer_nombre",
+                      "segundo_nombre",
+                      "primer_apellido",
+                      "segundo_apellido",
+                      "email",
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
     );
 
     return {
@@ -64,7 +123,59 @@ class AppointmentDetailService {
   }
 
   async findById(id) {
-    return await AppointmentDetail.findByPk(id);
+    return await AppointmentDetail.findByPk(id, {
+      include: [
+        {
+          model: AppointmentModel,
+          attributes: ["tipoCita", "estado"],
+          include: [
+            {
+              model: PatientModel,
+              attributes: [
+                "ocupacion",
+                "discapacidad",
+                "etnia",
+                "identidadGenero",
+                "sexo",
+              ],
+              include: [
+                {
+                  model: UserModel,
+                  attributes: [
+                    "primer_nombre",
+                    "segundo_nombre",
+                    "primer_apellido",
+                    "segundo_apellido",
+                    "direccion",
+                    "email",
+                  ],
+                },
+              ],
+            },
+            {
+              model: TimeSlotModel,
+              attributes: ["fecha", "horaInicio", "horaFin"],
+            },
+            {
+              model: DoctorModel,
+              attributes: ["licenciaMedica"],
+              include: [
+                {
+                  model: UserModel,
+                  attributes: [
+                    "primer_nombre",
+                    "segundo_nombre",
+                    "primer_apellido",
+                    "segundo_apellido",
+                    "email",
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
   }
 
   async update(id, data, auditUserId) {
