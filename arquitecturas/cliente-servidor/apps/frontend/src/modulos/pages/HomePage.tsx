@@ -4,6 +4,9 @@ import { useAuth } from '../../context';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import PersonIcon from '@mui/icons-material/Person';
+import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import DescriptionIcon from '@mui/icons-material/Description';
 
 const HomePage = () => {
    const navigate = useNavigate();
@@ -14,108 +17,275 @@ const HomePage = () => {
       navigate('/login');
    };
 
+   // Determinar roles del usuario
+   // Primero intenta obtener roles del array 'roles', si no existe o está vacío, inferir por idPaciente/idDoctor
+   const userRoles = user?.roles || [];
+   
+   const isPatient = userRoles.includes('Paciente') || (userRoles.length === 0 && user?.idPaciente);
+   const isDoctor = userRoles.includes('Medico') || userRoles.includes('Doctor') || (userRoles.length === 0 && user?.idDoctor);
+   const isAdmin = userRoles.includes('Admin') || userRoles.includes('Administrador');
+
+   // Opciones para pacientes
+   const patientOptions = [
+      {
+         icon: <CalendarMonthIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />,
+         title: 'Citas Disponibles',
+         description: 'Busca y agenda citas con doctores disponibles',
+         path: '/citas-disponibles',
+         buttonText: 'Ver Disponibles',
+         color: 'primary',
+      },
+      {
+         icon: <PersonIcon sx={{ fontSize: 60, color: 'success.main', mb: 2 }} />,
+         title: 'Mis Citas',
+         description: 'Revisa, cancela o reprograma tus citas médicas',
+         path: '/mis-citas',
+         buttonText: 'Ver Mis Citas',
+         color: 'success',
+      },
+      {
+         icon: <DescriptionIcon sx={{ fontSize: 60, color: 'info.main', mb: 2 }} />,
+         title: 'Historia Clínica',
+         description: 'Consulta tu historial médico completo',
+         path: '/historia-clinica',
+         buttonText: 'Ver Historia',
+         color: 'info',
+      },
+   ];
+
+   // Opciones para doctores
+   const doctorOptions = [
+      {
+         icon: <AccessTimeIcon sx={{ fontSize: 60, color: 'warning.main', mb: 2 }} />,
+         title: 'Gestión de Horarios',
+         description: 'Administra tu disponibilidad y horarios',
+         path: '/gestion-horarios',
+         buttonText: 'Gestionar',
+         color: 'warning',
+      },
+      {
+         icon: <MedicalServicesIcon sx={{ fontSize: 60, color: 'secondary.main', mb: 2 }} />,
+         title: 'Mis Pacientes',
+         description: 'Revisa las citas programadas con tus pacientes',
+         path: '/medico',
+         buttonText: 'Ver Pacientes',
+         color: 'secondary',
+      },
+   ];
+
+   // Opciones comunes
+   const commonOptions = [
+      {
+         icon: <LocalHospitalIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />,
+         title: 'Doctores',
+         description: 'Directorio completo de doctores disponibles',
+         path: '/doctores',
+         buttonText: 'Ver Doctores',
+         color: 'primary',
+      },
+   ];
+
    return (
-      <Box sx={{ flexGrow: 1 }}>
+      <Box sx={{ flexGrow: 1, minHeight: '100vh', bgcolor: 'grey.50' }}>
          {/* Header */}
          <Box
             sx={{
                backgroundColor: 'primary.main',
                color: 'white',
-               py: 2,
+               py: 3,
                px: 3,
                display: 'flex',
                justifyContent: 'space-between',
                alignItems: 'center',
+               boxShadow: 3,
             }}
          >
             <Box>
-               <Typography variant="h5" component="h1">
-                  SalUD - Cliente-Servidor (Frontend)
+               <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold' }}>
+                  🏥 SalUD - Sistema de Citas Médicas
                </Typography>
                {user && (
-                  <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                     Bienvenido, {user.name}
+                  <Typography variant="body1" sx={{ opacity: 0.9, mt: 0.5 }}>
+                     Bienvenido, {user.primer_nombre || user.name || 'Usuario'}
+                     {isPatient && ' - Paciente'}
+                     {isDoctor && ' - Doctor'}
+                     {isAdmin && ' - Administrador'}
                   </Typography>
                )}
             </Box>
-            <Button color="inherit" onClick={handleLogout}>
+            <Button color="inherit" variant="outlined" onClick={handleLogout}>
                Cerrar Sesión
             </Button>
          </Box>
 
          {/* Contenido Principal */}
-         <Container sx={{ mt: 4 }}>
-            <Typography variant="h4" gutterBottom align="center">
-               Sistema de Agendamiento de Citas Médicas
-            </Typography>
-            <Typography variant="body1" gutterBottom align="center" color="text.secondary" sx={{ mb: 4 }}>
-               Gestiona citas entre pacientes y médicos de manera eficiente
-            </Typography>
+         <Container sx={{ mt: 5, mb: 5 }}>
+            <Box sx={{ textAlign: 'center', mb: 5 }}>
+               <Typography variant="h3" gutterBottom sx={{ fontWeight: 'bold' }}>
+                  Panel de Control
+               </Typography>
+               <Typography variant="h6" color="text.secondary">
+                  {isPatient && 'Gestiona tus citas y consulta tu historial médico'}
+                  {isDoctor && !isPatient && 'Administra tus horarios y pacientes'}
+                  {!isPatient && !isDoctor && 'Bienvenido al sistema de gestión de citas médicas'}
+               </Typography>
+            </Box>
 
-            <Grid container spacing={3}>
-               <Grid item xs={12} md={4}>
-                  <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                     <CardContent sx={{ flexGrow: 1, textAlign: 'center' }}>
-                        <CalendarMonthIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-                        <Typography variant="h5" component="h2" gutterBottom>
-                           Agendar Cita
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                           Programa una nueva cita médica con el especialista de tu preferencia
-                        </Typography>
-                        <Button 
-                           variant="contained" 
-                           fullWidth
-                           onClick={() => navigate('/citas-disponibles')}
-                        >
-                           Nueva Cita
-                        </Button>
-                     </CardContent>
-                  </Card>
-               </Grid>
+            {/* Sección de Pacientes - Solo visible para pacientes */}
+            {isPatient && (
+               <Box sx={{ mb: 5 }}>
+                  <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
+                     👤 Panel de Paciente
+                  </Typography>
+                  <Grid container spacing={3}>
+                     {patientOptions.map((option, index) => (
+                        <Grid item xs={12} md={4} key={index}>
+                           <Card
+                              sx={{
+                                 height: '100%',
+                                 display: 'flex',
+                                 flexDirection: 'column',
+                                 transition: 'transform 0.3s, box-shadow 0.3s',
+                                 '&:hover': {
+                                    transform: 'translateY(-8px)',
+                                    boxShadow: 6,
+                                 },
+                              }}
+                           >
+                              <CardContent sx={{ flexGrow: 1, textAlign: 'center', p: 3 }}>
+                                 {option.icon}
+                                 <Typography variant="h5" component="h2" gutterBottom sx={{ fontWeight: 'bold' }}>
+                                    {option.title}
+                                 </Typography>
+                                 <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                                    {option.description}
+                                 </Typography>
+                                 <Button
+                                    variant="contained"
+                                    fullWidth
+                                    color={option.color as any}
+                                    onClick={() => navigate(option.path)}
+                                    size="large"
+                                 >
+                                    {option.buttonText}
+                                 </Button>
+                              </CardContent>
+                           </Card>
+                        </Grid>
+                     ))}
+                  </Grid>
+               </Box>
+            )}
 
-               <Grid item xs={12} md={4}>
-                  <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                     <CardContent sx={{ flexGrow: 1, textAlign: 'center' }}>
-                        <LocalHospitalIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-                        <Typography variant="h5" component="h2" gutterBottom>
-                           Citas Disponibles
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                           Consulta todas las citas médicas disponibles por fecha y especialidad
-                        </Typography>
-                        <Button 
-                           variant="contained" 
-                           fullWidth
-                           onClick={() => navigate('/citas-disponibles')}
-                        >
-                           Ver Disponibilidad
-                        </Button>
-                     </CardContent>
-                  </Card>
-               </Grid>
+            {/* Sección de Doctores - Solo visible para doctores */}
+            {isDoctor && (
+               <Box sx={{ mb: 5 }}>
+                  <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
+                     👨‍⚕️ Panel de Doctor
+                  </Typography>
+                  <Grid container spacing={3}>
+                     {doctorOptions.map((option, index) => (
+                        <Grid item xs={12} md={6} key={index}>
+                           <Card
+                              sx={{
+                                 height: '100%',
+                                 display: 'flex',
+                                 flexDirection: 'column',
+                                 transition: 'transform 0.3s, box-shadow 0.3s',
+                                 '&:hover': {
+                                    transform: 'translateY(-8px)',
+                                    boxShadow: 6,
+                                 },
+                              }}
+                           >
+                              <CardContent sx={{ flexGrow: 1, textAlign: 'center', p: 3 }}>
+                                 {option.icon}
+                                 <Typography variant="h5" component="h2" gutterBottom sx={{ fontWeight: 'bold' }}>
+                                    {option.title}
+                                 </Typography>
+                                 <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                                    {option.description}
+                                 </Typography>
+                                 <Button
+                                    variant="contained"
+                                    fullWidth
+                                    color={option.color as any}
+                                    onClick={() => navigate(option.path)}
+                                    size="large"
+                                 >
+                                    {option.buttonText}
+                                 </Button>
+                              </CardContent>
+                           </Card>
+                        </Grid>
+                     ))}
+                  </Grid>
+               </Box>
+            )}
 
-               <Grid item xs={12} md={4}>
-                  <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                     <CardContent sx={{ flexGrow: 1, textAlign: 'center' }}>
-                        <PersonIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-                        <Typography variant="h5" component="h2" gutterBottom>
-                           Mis Citas
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                           Revisa tus citas programadas, historial y próximas consultas
-                        </Typography>
-                        <Button 
-                           variant="contained" 
-                           fullWidth
-                           onClick={() => navigate('/mis-citas')}
+            {/* Sección Común - Visible para todos */}
+            <Box>
+               <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
+                  🔍 Recursos Comunes
+               </Typography>
+               <Grid container spacing={3}>
+                  {commonOptions.map((option, index) => (
+                     <Grid item xs={12} md={6} lg={4} key={index}>
+                        <Card
+                           sx={{
+                              height: '100%',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              transition: 'transform 0.3s, box-shadow 0.3s',
+                              '&:hover': {
+                                 transform: 'translateY(-8px)',
+                                 boxShadow: 6,
+                              },
+                           }}
                         >
-                           Ver Mis Citas
-                        </Button>
-                     </CardContent>
-                  </Card>
+                           <CardContent sx={{ flexGrow: 1, textAlign: 'center', p: 3 }}>
+                              {option.icon}
+                              <Typography variant="h5" component="h2" gutterBottom sx={{ fontWeight: 'bold' }}>
+                                 {option.title}
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                                 {option.description}
+                              </Typography>
+                              <Button
+                                 variant="contained"
+                                 fullWidth
+                                 color={option.color as any}
+                                 onClick={() => navigate(option.path)}
+                                 size="large"
+                              >
+                                 {option.buttonText}
+                              </Button>
+                           </CardContent>
+                        </Card>
+                     </Grid>
+                  ))}
                </Grid>
-            </Grid>
+            </Box>
+
+            {/* Mensaje si no tiene roles específicos */}
+            {!isPatient && !isDoctor && (
+               <Box sx={{ mt: 4, p: 4, bgcolor: 'info.light', borderRadius: 2, textAlign: 'center' }}>
+                  <Typography variant="h6" gutterBottom>
+                     👋 Bienvenido al Sistema
+                  </Typography>
+                  <Typography variant="body1" color="text.secondary">
+                     Tu cuenta no tiene roles específicos asignados. Contacta al administrador para obtener acceso completo.
+                  </Typography>
+               </Box>
+            )}
+
+            {/* Footer Info */}
+            <Box sx={{ mt: 6, p: 3, bgcolor: 'white', borderRadius: 2, boxShadow: 1 }}>
+               <Typography variant="body2" color="text.secondary" align="center">
+                  💡 <strong>Tip:</strong> Todas las páginas están conectadas con el backend real. Asegúrate de que el
+                  backend esté corriendo en http://localhost:5000
+               </Typography>
+            </Box>
          </Container>
       </Box>
    );

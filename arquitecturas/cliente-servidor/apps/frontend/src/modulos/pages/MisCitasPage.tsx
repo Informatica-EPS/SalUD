@@ -1,61 +1,83 @@
+import React, { useState } from 'react';
 import {
    Box,
+   Button,
    Card,
    CardContent,
-   Chip,
-   CircularProgress,
    Container,
    Grid,
    Typography,
-   Button,
+   CircularProgress,
+   Chip,
+   Alert,
+   Paper,
+   Dialog,
+   DialogTitle,
+   DialogContent,
+   DialogActions,
+   IconButton,
+   Divider,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { citasService } from '../../services';
-import { ICitaMedica } from '../../interface';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import PersonIcon from '@mui/icons-material/Person';
-import PlaceIcon from '@mui/icons-material/Place';
+import {
+   CalendarToday as CalendarIcon,
+   AccessTime as TimeIcon,
+   Person as PersonIcon,
+   LocationOn as LocationIcon,
+   Cancel as CancelIcon,
+   Edit as EditIcon,
+   Description as DescriptionIcon,
+   LocalHospital as HospitalIcon,
+} from '@mui/icons-material';
+import { usePatientAppointments } from '../../hooks';
+import { getDoctorFullName, getDoctor, getTimeSlot, getAppointmentDetail } from '../../utils';
+import { useAuth } from '../../context/AuthContext';
 
-const MisCitasPage = () => {
-   const navigate = useNavigate();
-   const [citas, setCitas] = useState<ICitaMedica[]>([]);
-   const [loading, setLoading] = useState(true);
+export const MisCitasPage = () => {
+   const { user } = useAuth();
+   const pacienteId = user?.idPaciente || 1; // Fallback temporal a 1 para desarrollo
+   const {
+      appointments,
+      loading,
+      error,
+      cancelAppointment,
+      refetch,
+   } = usePatientAppointments(pacienteId, 1, 20);
 
-   useEffect(() => {
-      cargarMisCitas();
-   }, []);
+   const [selectedAppointment, setSelectedAppointment] = useState<number | null>(null);
+   const [openCancelDialog, setOpenCancelDialog] = useState(false);
+   const [success, setSuccess] = useState<string | null>(null);
 
-   const cargarMisCitas = async () => {
-      try {
-         setLoading(true);
-         const data = await citasService.getMisCitas();
-         setCitas(data);
-      } catch (error) {
-         console.error('Error al cargar mis citas:', error);
-      } finally {
-         setLoading(false);
+   const handleOpenCancelDialog = (appointmentId: number) => {
+      setSelectedAppointment(appointmentId);
+      setOpenCancelDialog(true);
+   };
+
+   const handleCloseCancelDialog = () => {
+      setOpenCancelDialog(false);
+      setSelectedAppointment(null);
+   };
+
+   const handleCancelar = async () => {
+      if (!selectedAppointment) return;
+
+      const result = await cancelAppointment(selectedAppointment);
+      if (result.success) {
+         setSuccess('Cita cancelada exitosamente');
+         handleCloseCancelDialog();
+         setTimeout(() => setSuccess(null), 3000);
+      } else {
+         setSuccess('Error al cancelar la cita');
       }
    };
 
-   const formatearFecha = (fecha: string) => {
-      const date = new Date(fecha + 'T00:00:00');
-      return date.toLocaleDateString('es-CO', {
-         weekday: 'long',
-         year: 'numeric',
-         month: 'long',
-         day: 'numeric',
-      });
-   };
-
-   const getEstadoColor = (estado: string) => {
-      switch (estado) {
+   const getStatusColor = (status: string) => {
+      switch (status) {
          case 'programada':
             return 'primary';
          case 'completada':
             return 'success';
          case 'cancelada':
+         case 'cancelado':
             return 'error';
          case 'en_proceso':
             return 'warning';
@@ -64,105 +86,319 @@ const MisCitasPage = () => {
       }
    };
 
-   const getEstadoLabel = (estado: string) => {
-      switch (estado) {
+   const getStatusLabel = (status: string) => {
+      switch (status) {
          case 'programada':
             return 'Programada';
          case 'completada':
             return 'Completada';
          case 'cancelada':
+         case 'cancelado':
             return 'Cancelada';
          case 'en_proceso':
             return 'En Proceso';
          default:
-            return estado;
+            return status;
       }
    };
 
    if (loading) {
       return (
-         <Container>
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-               <CircularProgress />
-            </Box>
+         <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
+            <CircularProgress size={60} />
+         </Box>
+      );
+   }
+
+   if (error) {
+      return (
+         <Container maxWidth="lg" sx={{ py: 4 }}>
+            <Alert severity="error">{error}</Alert>
          </Container>
       );
    }
 
+   // Separar citas por estado (con validación)
+   const citasProgramadas = (appointments || []).filter((cita) => cita.estado === 'programada');
+   const citasCompletadas = (appointments || []).filter((cita) => cita.estado === 'completada');
+   const citasCanceladas = (appointments || []).filter((cita) => cita.estado === 'cancelada' || cita.estado === 'cancelado');
+
    return (
-      <Container sx={{ py: 4 }}>
-         <Box sx={{ mb: 4 }}>
-            <Button onClick={() => navigate('/home')} sx={{ mb: 2 }}>
-               ← Volver al Inicio
-            </Button>
-            <Typography variant="h4" gutterBottom>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+         {/* Header */}
+         <Box mb={4}>
+            <Typography variant="h4" gutterBottom fontWeight="bold">
                Mis Citas Médicas
             </Typography>
             <Typography variant="body1" color="text.secondary">
-               Historial y citas programadas
+               Gestiona tus citas programadas y revisa tu historial
             </Typography>
          </Box>
 
-         {citas.length === 0 ? (
-            <Card>
-               <CardContent>
-                  <Typography align="center" color="text.secondary">
-                     No tienes citas médicas registradas
-                  </Typography>
-               </CardContent>
-            </Card>
-         ) : (
-            <Grid container spacing={3}>
-               {citas.map(cita => (
-                  <Grid item xs={12} md={6} key={cita.id}>
-                     <Card>
-                        <CardContent>
-                           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                              <Chip
-                                 label={getEstadoLabel(cita.estado)}
-                                 color={getEstadoColor(cita.estado) as any}
-                                 size="small"
-                              />
-                              <Chip label={cita.medico.especialidad} variant="outlined" size="small" />
-                           </Box>
-
-                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                              <PersonIcon color="action" />
-                              <Typography variant="h6">
-                                 Dr. {cita.medico.nombre} {cita.medico.apellido}
-                              </Typography>
-                           </Box>
-
-                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                              <CalendarTodayIcon color="action" fontSize="small" />
-                              <Typography variant="body2">{formatearFecha(cita.fecha)}</Typography>
-                           </Box>
-
-                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                              <AccessTimeIcon color="action" fontSize="small" />
-                              <Typography variant="body2">{cita.hora}</Typography>
-                           </Box>
-
-                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                              <PlaceIcon color="action" fontSize="small" />
-                              <Typography variant="body2">Consultorio {cita.consultorio}</Typography>
-                           </Box>
-
-                           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                              <strong>Motivo:</strong> {cita.motivo}
-                           </Typography>
-
-                           {cita.estado === 'programada' && (
-                              <Button variant="outlined" color="error" fullWidth>
-                                 Cancelar Cita
-                              </Button>
-                           )}
-                        </CardContent>
-                     </Card>
-                  </Grid>
-               ))}
-            </Grid>
+         {/* Success Alert */}
+         {success && (
+            <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSuccess(null)}>
+               {success}
+            </Alert>
          )}
+
+         {/* Estadísticas */}
+         <Grid container spacing={2} mb={4}>
+            <Grid item xs={12} sm={3}>
+               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'primary.light' }}>
+                  <Typography variant="h4" fontWeight="bold">
+                     {citasProgramadas.length}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                     Programadas
+                  </Typography>
+               </Paper>
+            </Grid>
+            <Grid item xs={12} sm={3}>
+               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'success.light' }}>
+                  <Typography variant="h4" fontWeight="bold">
+                     {citasCompletadas.length}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                     Completadas
+                  </Typography>
+               </Paper>
+            </Grid>
+            <Grid item xs={12} sm={3}>
+               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'error.light' }}>
+                  <Typography variant="h4" fontWeight="bold">
+                     {citasCanceladas.length}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                     Canceladas
+                  </Typography>
+               </Paper>
+            </Grid>
+            <Grid item xs={12} sm={3}>
+               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'grey.200' }}>
+                  <Typography variant="h4" fontWeight="bold">
+                     {(appointments || []).length}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                     Total
+                  </Typography>
+               </Paper>
+            </Grid>
+         </Grid>
+
+         {/* Citas Programadas */}
+         {citasProgramadas.length > 0 && (
+            <>
+               <Typography variant="h5" gutterBottom fontWeight="bold" mb={2}>
+                  Próximas Citas
+               </Typography>
+               <Grid container spacing={3} mb={4}>
+                  {citasProgramadas.map((cita) => (
+                     <Grid item xs={12} key={cita.id}>
+                        <Card elevation={3}>
+                           <CardContent>
+                              <Grid container spacing={2}>
+                                 <Grid item xs={12} md={8}>
+                                    <Box display="flex" alignItems="center" gap={1} mb={2}>
+                                       <Chip
+                                          label={getStatusLabel(cita.estado)}
+                                          color={getStatusColor(cita.estado)}
+                                          size="small"
+                                       />
+                                       <Typography variant="caption" color="text.secondary">
+                                          Cita #{cita.id}
+                                       </Typography>
+                                    </Box>
+
+                                    <Box display="flex" alignItems="center" gap={1} mb={1}>
+                                       <PersonIcon color="primary" />
+                                       <Typography variant="h6">
+                                          {getDoctorFullName(getDoctor(cita) || cita.doctor)}
+                                       </Typography>
+                                    </Box>
+
+                                    <Box display="flex" alignItems="center" gap={1} mb={1}>
+                                       <HospitalIcon fontSize="small" color="action" />
+                                       <Typography variant="body2" color="text.secondary">
+                                          {cita.tipoCita}
+                                       </Typography>
+                                    </Box>
+
+                                    <Box display="flex" alignItems="center" gap={1} mb={1}>
+                                       <CalendarIcon fontSize="small" color="action" />
+                                       <Typography variant="body2" color="text.secondary">
+                                          {(() => {
+                                             const horario = getTimeSlot(cita);
+                                             if (horario?.fecha) {
+                                                return new Date(
+                                                   horario.fecha + 'T00:00:00'
+                                                ).toLocaleDateString('es-ES', {
+                                                   weekday: 'long',
+                                                   year: 'numeric',
+                                                   month: 'long',
+                                                   day: 'numeric',
+                                                });
+                                             }
+                                             return 'Fecha no disponible';
+                                          })()}
+                                       </Typography>
+                                    </Box>
+
+                                    <Box display="flex" alignItems="center" gap={1} mb={1}>
+                                       <TimeIcon fontSize="small" color="action" />
+                                       <Typography variant="body2" color="text.secondary">
+                                          {(() => {
+                                             const horario = getTimeSlot(cita);
+                                             return horario?.horaInicio && horario?.horaFin
+                                                ? `${horario.horaInicio} - ${horario.horaFin}`
+                                                : 'Hora no disponible';
+                                          })()}
+                                       </Typography>
+                                    </Box>
+
+                                    {(() => {
+                                       const detalles = getAppointmentDetail(cita);
+                                       return detalles?.motivo ? (
+                                          <Box display="flex" alignItems="start" gap={1} mt={2}>
+                                             <DescriptionIcon fontSize="small" color="action" />
+                                             <Typography variant="body2" color="text.secondary">
+                                                <strong>Motivo:</strong> {detalles.motivo}
+                                             </Typography>
+                                          </Box>
+                                       ) : null;
+                                    })()}
+                                 </Grid>
+
+                                 <Grid item xs={12} md={4}>
+                                    <Box
+                                       display="flex"
+                                       flexDirection="column"
+                                       gap={1}
+                                       height="100%"
+                                       justifyContent="center"
+                                    >
+                                       <Button
+                                          variant="outlined"
+                                          color="error"
+                                          startIcon={<CancelIcon />}
+                                          onClick={() => handleOpenCancelDialog(cita.id)}
+                                          fullWidth
+                                       >
+                                          Cancelar Cita
+                                       </Button>
+                                    </Box>
+                                 </Grid>
+                              </Grid>
+                           </CardContent>
+                        </Card>
+                     </Grid>
+                  ))}
+               </Grid>
+            </>
+         )}
+
+         {/* Historial de Citas */}
+         {(citasCompletadas.length > 0 || citasCanceladas.length > 0) && (
+            <>
+               <Divider sx={{ my: 4 }} />
+               <Typography variant="h5" gutterBottom fontWeight="bold" mb={2}>
+                  Historial
+               </Typography>
+               <Grid container spacing={2}>
+                  {[...citasCompletadas, ...citasCanceladas]
+                     .sort((a, b) => {
+                        const horarioA = getTimeSlot(a);
+                        const horarioB = getTimeSlot(b);
+                        const dateA = new Date(horarioA?.fecha || '').getTime();
+                        const dateB = new Date(horarioB?.fecha || '').getTime();
+                        return dateB - dateA;
+                     })
+                     .map((cita) => {
+                        const horario = getTimeSlot(cita);
+                        const detalles = getAppointmentDetail(cita);
+                        return (
+                           <Grid item xs={12} md={6} key={cita.id}>
+                              <Card variant="outlined">
+                                 <CardContent>
+                                    <Box display="flex" justifyContent="space-between" mb={2}>
+                                       <Chip
+                                          label={getStatusLabel(cita.estado)}
+                                          color={getStatusColor(cita.estado)}
+                                          size="small"
+                                       />
+                                       <Typography variant="caption" color="text.secondary">
+                                          #{cita.id}
+                                       </Typography>
+                                    </Box>
+
+                                    <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                                       {getDoctorFullName(getDoctor(cita) || cita.doctor)}
+                                    </Typography>
+
+                                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                                       {horario?.fecha &&
+                                          new Date(
+                                             horario.fecha + 'T00:00:00'
+                                          ).toLocaleDateString('es-ES')}
+                                       {' • '}
+                                       {horario?.horaInicio}
+                                    </Typography>
+
+                                    <Typography variant="body2" color="text.secondary">
+                                       {cita.tipoCita}
+                                    </Typography>
+
+                                    {detalles?.diagnostico && (
+                                       <Box mt={2} p={1} bgcolor="grey.100" borderRadius={1}>
+                                          <Typography variant="caption" color="text.secondary">
+                                             <strong>Diagnóstico:</strong>
+                                          </Typography>
+                                          <Typography variant="body2">
+                                             {detalles.diagnostico}
+                                          </Typography>
+                                       </Box>
+                                    )}
+                                 </CardContent>
+                              </Card>
+                           </Grid>
+                        );
+                     })}
+               </Grid>
+            </>
+         )}
+
+         {/* Empty State */}
+         {(appointments || []).length === 0 && (
+            <Paper sx={{ p: 6, textAlign: 'center' }}>
+               <CalendarIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+               <Typography variant="h6" color="text.secondary" gutterBottom>
+                  No tienes citas médicas
+               </Typography>
+               <Typography variant="body2" color="text.secondary" mb={3}>
+                  Agenda tu primera cita con nuestros especialistas
+               </Typography>
+               <Button variant="contained" href="/citas-disponibles">
+                  Ver Horarios Disponibles
+               </Button>
+            </Paper>
+         )}
+
+         {/* Dialog Confirmar Cancelación */}
+         <Dialog open={openCancelDialog} onClose={handleCloseCancelDialog}>
+            <DialogTitle>Cancelar Cita</DialogTitle>
+            <DialogContent>
+               <Typography>
+                  ¿Estás seguro de que deseas cancelar esta cita? Esta acción no se puede
+                  deshacer.
+               </Typography>
+            </DialogContent>
+            <DialogActions>
+               <Button onClick={handleCloseCancelDialog}>No, mantener cita</Button>
+               <Button onClick={handleCancelar} color="error" variant="contained">
+                  Sí, cancelar cita
+               </Button>
+            </DialogActions>
+         </Dialog>
       </Container>
    );
 };

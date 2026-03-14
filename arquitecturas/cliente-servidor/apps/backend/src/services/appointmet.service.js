@@ -4,7 +4,7 @@ const UserModel = require("../models/user.model");
 const AppointmentDetailModel = require("../models/appointment-details.model");
 const PatientModel = require("../models/patient.model");
 const TimeSlotModel = require("../models/time-slot.model");
-const { appointmentsStatus, functions } = require("../utils");
+const { appointmentsStatus, timeSlotStatus, functions } = require("../utils");
 const TimeSlotService = require("./time-slot.service");
 
 class AppointmentService {
@@ -26,6 +26,66 @@ class AppointmentService {
     const { rows, count, page, totalPages } = await functions.paginate(
       Appointment,
       queryParams,
+      {
+        include: [
+          {
+            model: TimeSlotModel,
+            attributes: ["fecha", "horaInicio", "horaFin"],
+          },
+          {
+            model: DoctorModel,
+            attributes: ["licenciaMedica"],
+            include: [
+              {
+                model: UserModel,
+                attributes: [
+                  "primer_nombre",
+                  "segundo_nombre",
+                  "primer_apellido",
+                  "segundo_apellido",
+                  "email",
+                ],
+              },
+            ],
+          },
+          {
+            model: PatientModel,
+            attributes: [
+              "ocupacion",
+              "discapacidad",
+              "etnia",
+              "identidadGenero",
+              "sexo",
+            ],
+            include: [
+              {
+                model: UserModel,
+                attributes: [
+                  "primer_nombre",
+                  "segundo_nombre",
+                  "primer_apellido",
+                  "segundo_apellido",
+                  "direccion",
+                  "email",
+                ],
+              },
+            ],
+          },
+          {
+            model: AppointmentDetailModel,
+            attributes: [
+              "motivo",
+              "antecedentes",
+              "anamnesis",
+              "revisionSistemas",
+              "examenFisico",
+              "diagnostico",
+              "planManejo",
+              "evolucion",
+            ],
+          },
+        ],
+      },
     );
 
     return {
@@ -42,7 +102,33 @@ class AppointmentService {
     const { rows, count, page, totalPages } = await functions.paginate(
       Appointment,
       queryParams,
-      { where: { idPaciente } },
+      {
+        where: { idPaciente },
+        include: [
+          {
+            model: DoctorModel,
+            include: [
+              {
+                model: UserModel,
+                attributes: [
+                  "id",
+                  "primer_nombre",
+                  "segundo_nombre",
+                  "primer_apellido",
+                  "segundo_apellido",
+                ],
+              },
+            ],
+          },
+          {
+            model: TimeSlotModel,
+          },
+          {
+            model: AppointmentDetailModel,
+          },
+        ],
+        order: [["createdAt", "DESC"]],
+      },
     );
 
     return {
@@ -51,14 +137,39 @@ class AppointmentService {
       totalItems: count,
       citas: rows,
     };
-    // return await Appointment.findAll({ where: { idPaciente } });
   }
 
   async findByDoctor(idDoctor, queryParams) {
     const { rows, count, page, totalPages } = await functions.paginate(
       Appointment,
       queryParams,
-      { where: { idDoctor } },
+      {
+        where: { idDoctor },
+        include: [
+          {
+            model: PatientModel,
+            include: [
+              {
+                model: UserModel,
+                attributes: [
+                  "id",
+                  "primer_nombre",
+                  "segundo_nombre",
+                  "primer_apellido",
+                  "segundo_apellido",
+                ],
+              },
+            ],
+          },
+          {
+            model: TimeSlotModel,
+          },
+          {
+            model: AppointmentDetailModel,
+          },
+        ],
+        order: [["createdAt", "DESC"]],
+      },
     );
 
     return {
@@ -67,11 +178,69 @@ class AppointmentService {
       totalItems: count,
       citas: rows,
     };
-    // return await Appointment.findAll({ where: { idDoctor } });
   }
 
   async findById(id) {
-    return await Appointment.findByPk(id);
+    return await Appointment.findByPk(id, {
+      include: [
+        {
+          model: DoctorModel,
+          attributes: ["licenciaMedica"],
+          include: [
+            {
+              model: UserModel,
+              attributes: [
+                "primer_nombre",
+                "segundo_nombre",
+                "primer_apellido",
+                "segundo_apellido",
+                "email",
+              ],
+            },
+          ],
+        },
+        {
+          model: AppointmentDetailModel,
+          attributes: [
+            "motivo",
+            "antecedentes",
+            "anamnesis",
+            "revisionSistemas",
+            "examenFisico",
+            "diagnostico",
+            "planManejo",
+            "evolucion",
+          ],
+        },
+        {
+          model: TimeSlotModel,
+          attributes: ["fecha", "horaInicio", "horaFin"],
+        },
+        {
+          model: PatientModel,
+          attributes: [
+            "ocupacion",
+            "discapacidad",
+            "etnia",
+            "identidadGenero",
+            "sexo",
+          ],
+          include: [
+            {
+              model: UserModel,
+              attributes: [
+                "primer_nombre",
+                "segundo_nombre",
+                "primer_apellido",
+                "segundo_apellido",
+                "direccion",
+                "email",
+              ],
+            },
+          ],
+        },
+      ],
+    });
   }
 
   async update(id, data, auditUserId) {
@@ -103,7 +272,7 @@ class AppointmentService {
       );
     }
 
-    if (timeSlot.estado === appointmentsStatus.PROGRAMADO) {
+    if (timeSlot.estado === timeSlotStatus.SCHEDULED) {
       throw new Error("El horario ya está reservado");
     }
 

@@ -2,56 +2,28 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
 const Patient = sequelize.define(
-  "Patient", // Antes: "Patient"
+  "Patient",
   {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
     },
-    ocupacion: {
-      // Antes: occupation
-      type: DataTypes.STRING,
-    },
-    discapacidad: {
-      // Antes: disability
-      type: DataTypes.STRING,
-    },
-    religion: {
-      // Antes: religion
-      type: DataTypes.STRING,
-    },
-    etnia: {
-      // Antes: ethnicity
-      type: DataTypes.STRING,
-    },
-    identidadGenero: {
-      // Antes: genderIdentity
-      type: DataTypes.STRING,
-    },
-    sexo: {
-      // Antes: sex
-      type: DataTypes.STRING,
-    },
-    idUsuario: {
-      // Antes: userId
-      type: DataTypes.INTEGER,
-    },
-    // Auditoría
-    creadoPor: {
-      // Antes: createdBy
-      type: DataTypes.INTEGER,
-    },
-    actualizadoPor: {
-      // Antes: updatedBy
-      type: DataTypes.INTEGER,
-    },
+    ocupacion: DataTypes.STRING,
+    discapacidad: DataTypes.STRING,
+    religion: DataTypes.STRING,
+    etnia: DataTypes.STRING,
+    identidadGenero: DataTypes.STRING,
+    sexo: DataTypes.STRING,
+    idUsuario: DataTypes.INTEGER,
+    creadoPor: DataTypes.INTEGER,
+    actualizadoPor: DataTypes.INTEGER,
   },
   {
-    tableName: "pacientes", // Antes: "patients"
+    tableName: "pacientes",
     underscored: true,
-    timestamps: true,
-  },
+    timestamps: false,
+  }
 );
 
 module.exports = Patient;

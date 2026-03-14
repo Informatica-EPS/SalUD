@@ -42,7 +42,7 @@ src/
 - `PUT /api/appointments/reschedule/:id`: Cambia el horario de una cita.
 - `PUT /api/appointments/cancel/:id`: Cancela una cita.
 - `PUT /api/appointments/complete/:id`: Marca una cita como completada.
-- `GET /api/appointments/clinical-records/:idPaciente`: Recupera toda la historia clínica (detalles de citas pasadas).
+- `GET /api/appointments/medical-records/:idPaciente`: Recupera toda la historia clínica (detalles de citas pasadas).
 
 ### Detalles de Cita
 
