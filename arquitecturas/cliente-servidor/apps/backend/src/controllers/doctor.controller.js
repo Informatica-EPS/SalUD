@@ -1,4 +1,5 @@
 const doctorService = require("../services/doctor.service");
+const userService = require("../services/user.service");
 
 const createDoctor = async (req, res, next) => {
   try {
@@ -18,7 +19,70 @@ const getDoctors = async (req, res, next) => {
   }
 };
 
+const getDoctorById = async (req, res, next) => {
+  try {
+    const doctor = await doctorService.findById(req.params.id);
+    if (!doctor) {
+      return res.status(404).json({ message: "Doctor no encontrado" });
+    }
+    res.json(doctor);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateDoctor = async (req, res, next) => {
+  try {
+    const doctor = await doctorService.update(
+      req.params.id,
+      req.body,
+      req.user?.id || null
+    );
+    if (!doctor) {
+      return res.status(404).json({ message: "Doctor no encontrado" });
+    }
+    res.json(doctor);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteDoctor = async (req, res, next) => {
+  try {
+    const deleted = await doctorService.delete(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ message: "Doctor no encontrado" });
+    }
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+};
+
+const registerDoctor = async (req, res, next) => {
+  try {
+    const { userData, doctorData } = req.body;
+
+    // Crear usuario
+    const user = await userService.createUser(userData);
+
+    // Crear doctor con el id del usuario recién creado
+    const doctor = await doctorService.create({
+      ...doctorData,
+      idUsuario: user.id
+    }, req.user?.id || null);
+
+    res.status(201).json({ user, doctor });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
+  registerDoctor,
   createDoctor,
   getDoctors,
+  getDoctorById,
+  updateDoctor,
+  deleteDoctor,
 };
