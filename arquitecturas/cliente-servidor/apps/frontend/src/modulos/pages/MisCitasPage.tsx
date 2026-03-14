@@ -70,6 +70,7 @@ export const MisCitasPage = () => {
       switch (status) {
          case 'programada':
             return 'primary';
+         case 'completado':
          case 'completada':
             return 'success';
          case 'cancelada':
@@ -86,6 +87,7 @@ export const MisCitasPage = () => {
       switch (status) {
          case 'programada':
             return 'Programada';
+         case 'completado':
          case 'completada':
             return 'Completada';
          case 'cancelada':
@@ -116,8 +118,8 @@ export const MisCitasPage = () => {
 
    // Separar citas por estado (con validación)
    const citasProgramadas = (appointments || []).filter((cita) => cita.estado === 'programada');
-   const citasCompletadas = (appointments || []).filter((cita) => cita.estado === 'completada');
-   const citasCanceladas = (appointments || []).filter((cita) => cita.estado === 'cancelada');
+   const citasCompletadas = (appointments || []).filter((cita) => cita.estado === 'completado' || cita.estado === 'completada');
+   const citasCanceladas = (appointments || []).filter((cita) => cita.estado === 'cancelado' || cita.estado === 'cancelada');
 
    return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
