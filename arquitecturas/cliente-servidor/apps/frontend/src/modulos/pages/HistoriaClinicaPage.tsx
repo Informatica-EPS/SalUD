@@ -265,9 +265,8 @@ export const HistoriaClinicaPage = () => {
          ) : (
             citas
                .sort((a: any, b: any) => {
-                  const dateA = new Date(a.horario?.fecha || '').getTime();
-                  const dateB = new Date(b.horario?.fecha || '').getTime();
-                  return dateB - dateA;
+                  // Ordenar por ID descendente (más reciente primero)
+                  return b.id - a.id;
                })
                .map((cita: any, index: number) => {
                   // Obtener nombre del doctor (puede venir como objeto plano o anidado)
