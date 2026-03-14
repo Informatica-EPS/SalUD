@@ -1,5 +1,5 @@
 import { api } from './apiClient';
-import { IPatient, ICreatePatientRequest, IApiResponse } from '../interface';
+import { IPatient, ICreatePatientRequest } from '../interface';
 
 /**
  * Servicio para manejar operaciones relacionadas con Pacientes

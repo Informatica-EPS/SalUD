@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { api } from '../../services/apiClient';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { IUser } from '../../interface';
 import './LoginPage.css';
 import logo from '../../assets/logo.png';
 
@@ -34,7 +35,7 @@ export default function LoginPage() {
          }
 
          // Intenta login con el backend
-         const user = await api.post('/users/login', {
+         const userData = await api.post<IUser>('/users/login', {
             documento,
             password,
          });
@@ -42,9 +43,9 @@ export default function LoginPage() {
          login(user);
 
          // Navegar según el rol
-         if (user.roles?.includes('Medico')) {
+         if (userData.roles?.includes('Medico')) {
             navigate('/medico');
-         } else if (user.roles?.includes('Paciente')) {
+         } else if (userData.roles?.includes('Paciente')) {
             navigate('/paciente');
          } else {
             navigate('/home');

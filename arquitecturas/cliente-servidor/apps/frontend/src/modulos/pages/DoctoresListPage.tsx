@@ -1,4 +1,4 @@
-import React from 'react';
+// React is not needed in modern React with JSX transform
 import {
    Box,
    Card,

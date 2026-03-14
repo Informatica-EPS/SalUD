@@ -6,6 +6,9 @@ const PatientModel = require("../models/patient.model");
 const TimeSlotModel = require("../models/time-slot.model");
 const { appointmentsStatus, timeSlotStatus, functions } = require("../utils");
 const TimeSlotService = require("./time-slot.service");
+const {
+  decryptSensitiveFields,
+} = require("../utils/appointment-detail-crypto");
 
 class AppointmentService {
   async create(data) {
@@ -92,7 +95,13 @@ class AppointmentService {
       totalPages,
       totalItems: count,
       currentPage: page,
-      citas: rows,
+      citas: rows.map((row) => {
+        const out = row.toJSON ? row.toJSON() : { ...row };
+        if (out.AppointmentDetail) {
+          out.AppointmentDetail = decryptSensitiveFields(out.AppointmentDetail);
+        }
+        return out;
+      }),
     };
   }
 
@@ -135,7 +144,13 @@ class AppointmentService {
       totalPages,
       currentPage: page,
       totalItems: count,
-      citas: rows,
+      citas: rows.map((row) => {
+        const out = row.toJSON ? row.toJSON() : { ...row };
+        if (out.AppointmentDetail) {
+          out.AppointmentDetail = decryptSensitiveFields(out.AppointmentDetail);
+        }
+        return out;
+      }),
     };
   }
 
@@ -176,12 +191,18 @@ class AppointmentService {
       totalPages,
       currentPage: page,
       totalItems: count,
-      citas: rows,
+      citas: rows.map((row) => {
+        const out = row.toJSON ? row.toJSON() : { ...row };
+        if (out.AppointmentDetail) {
+          out.AppointmentDetail = decryptSensitiveFields(out.AppointmentDetail);
+        }
+        return out;
+      }),
     };
   }
 
   async findById(id) {
-    return await Appointment.findByPk(id, {
+    const row = await Appointment.findByPk(id, {
       include: [
         {
           model: DoctorModel,
@@ -241,6 +262,12 @@ class AppointmentService {
         },
       ],
     });
+    if (!row) return row;
+    const out = row.toJSON ? row.toJSON() : { ...row };
+    if (out.AppointmentDetail) {
+      out.AppointmentDetail = decryptSensitiveFields(out.AppointmentDetail);
+    }
+    return out;
   }
 
   async update(id, data, auditUserId) {
@@ -425,15 +452,16 @@ class AppointmentService {
 
   mapAppointmentDetail(appointmentDetail) {
     if (!appointmentDetail) return null;
+    const decrypted = decryptSensitiveFields(appointmentDetail);
     return {
-      motivo: appointmentDetail.motivo,
-      antecedentes: appointmentDetail.antecedentes,
-      anamnesis: appointmentDetail.anamnesis,
-      revisionSistemas: appointmentDetail.revisionSistemas,
-      examenFisico: appointmentDetail.examenFisico,
-      diagnostico: appointmentDetail.diagnostico,
-      planManejo: appointmentDetail.planManejo,
-      evolucion: appointmentDetail.evolucion,
+      motivo: decrypted.motivo,
+      antecedentes: decrypted.antecedentes,
+      anamnesis: decrypted.anamnesis,
+      revisionSistemas: decrypted.revisionSistemas,
+      examenFisico: decrypted.examenFisico,
+      diagnostico: decrypted.diagnostico,
+      planManejo: decrypted.planManejo,
+      evolucion: decrypted.evolucion,
     };
   }
 
