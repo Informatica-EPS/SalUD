@@ -5,14 +5,17 @@ const PatientModel = require("../models/patient.model");
 const DoctorModel = require("../models/doctor.model");
 const UserModel = require("../models/user.model");
 const TimeSlotModel = require("../models/time-slot.model");
-
 const { functions } = require("../utils");
+const {
+  encryptSensitiveFields,
+  decryptSensitiveFields,
+} = require("../utils/appointment-detail-crypto");
 
 class AppointmentDetailService {
   async create(data, auditUserId) {
     await this.validateDetail(data, false); // false = no requiere diagnóstico
     return await AppointmentDetail.create({
-      ...data,
+      ...encryptSensitiveFields(data),
       createdBy: auditUserId,
       updatedBy: auditUserId,
     });
@@ -46,7 +49,8 @@ class AppointmentDetailService {
   }
 
   async findAll() {
-    return await AppointmentDetail.findAll();
+    const rows = await AppointmentDetail.findAll();
+    return rows.map((row) => decryptSensitiveFields(row));
   }
 
   async findAllPaginated(queryParams) {
@@ -112,18 +116,19 @@ class AppointmentDetailService {
       totalPages,
       totalItems: count,
       currentPage: page,
-      detallesCitas: rows,
+      detallesCitas: rows.map((row) => decryptSensitiveFields(row)),
     };
   }
 
   async findByAppointmentId(appointmentId) {
-    return await AppointmentDetail.findOne({
+    const row = await AppointmentDetail.findOne({
       where: { idCita: appointmentId },
     });
+    return decryptSensitiveFields(row);
   }
 
   async findById(id) {
-    return await AppointmentDetail.findByPk(id, {
+    const row = await AppointmentDetail.findByPk(id, {
       include: [
         {
           model: AppointmentModel,
@@ -176,6 +181,7 @@ class AppointmentDetailService {
         },
       ],
     });
+    return decryptSensitiveFields(row);
   }
 
   async update(id, data, auditUserId) {
@@ -189,11 +195,11 @@ class AppointmentDetailService {
     }
 
     await detail.update({
-      ...data,
+      ...encryptSensitiveFields(data),
       idCita: detail.idCita,
       updatedBy: auditUserId,
     });
-    return detail;
+    return decryptSensitiveFields(detail);
   }
 
   async delete(id) {
