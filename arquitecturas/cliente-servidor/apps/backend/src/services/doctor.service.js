@@ -39,6 +39,13 @@ class DoctorService {
             "segundo_nombre",
             "primer_apellido",
             "segundo_apellido",
+            "documento",
+            "tipo_documento",
+            "usuario",
+            "email",
+            "fecha_nacimiento",
+            "lugar_nacimiento",
+            "direccion"
           ],
         },
       ],

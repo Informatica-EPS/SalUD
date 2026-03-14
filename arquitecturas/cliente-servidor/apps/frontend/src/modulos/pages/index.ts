@@ -1,6 +1,13 @@
 // Páginas de autenticación
 export { default as LoginPage } from './LoginPage';
 
+export { default as RegisterPage } from './RegisterPage';
+
+export { default as AdminHomePage } from './AdminHomePage';
+export { default as PacientesPageAdmin } from './PacientesPageAdmin';
+export { default as DoctoresPageAdmin } from './DoctoresPageAdmin';
+export { default as DoctoresPage } from './DoctoresPage';
+
 // Páginas principales
 export { default as HomePage } from './HomePage';
 
