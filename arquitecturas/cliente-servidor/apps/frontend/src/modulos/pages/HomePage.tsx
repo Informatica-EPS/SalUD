@@ -7,6 +7,8 @@ import PersonIcon from '@mui/icons-material/Person';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import DescriptionIcon from '@mui/icons-material/Description';
+import DoctorsPageAdmin from '../Admin/DoctorsPage';
+import PatientsPageAdmin from '../Admin/PatientsPage';
 
 const HomePage = () => {
    const navigate = useNavigate();
@@ -20,9 +22,12 @@ const HomePage = () => {
    // Determinar roles del usuario
    // Primero intenta obtener roles del array 'roles', si no existe o está vacío, inferir por idPaciente/idDoctor
    const userRoles = user?.roles || [];
-   
+
    const isPatient = userRoles.includes('Paciente') || (userRoles.length === 0 && user?.idPaciente);
-   const isDoctor = userRoles.includes('Medico') || userRoles.includes('Doctor') || (userRoles.length === 0 && user?.idDoctor);
+   const isDoctor =
+      userRoles.includes('Medico') ||
+      userRoles.includes('Doctor') ||
+      (userRoles.length === 0 && user?.idDoctor);
    const isAdmin = userRoles.includes('Admin') || userRoles.includes('Administrador');
 
    // Opciones para pacientes
@@ -82,6 +87,25 @@ const HomePage = () => {
          path: '/doctores',
          buttonText: 'Ver Doctores',
          color: 'primary',
+      },
+   ];
+
+   const adminOptions = [
+      {
+         icon: <LocalHospitalIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />,
+         title: 'Gestionar Doctores',
+         description: 'Administra el listado de doctores registrados',
+         path: '/admin/doctors',
+         buttonText: 'Ver Doctores',
+         color: 'primary',
+      },
+      {
+         icon: <PersonIcon sx={{ fontSize: 60, color: 'secondary.main', mb: 2 }} />,
+         title: 'Gestionar Pacientes',
+         description: 'Administra el listado de pacientes registrados',
+         path: '/admin/patients',
+         buttonText: 'Ver Pacientes',
+         color: 'secondary',
       },
    ];
 
@@ -154,7 +178,12 @@ const HomePage = () => {
                            >
                               <CardContent sx={{ flexGrow: 1, textAlign: 'center', p: 3 }}>
                                  {option.icon}
-                                 <Typography variant="h5" component="h2" gutterBottom sx={{ fontWeight: 'bold' }}>
+                                 <Typography
+                                    variant="h5"
+                                    component="h2"
+                                    gutterBottom
+                                    sx={{ fontWeight: 'bold' }}
+                                 >
                                     {option.title}
                                  </Typography>
                                  <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
@@ -200,7 +229,63 @@ const HomePage = () => {
                            >
                               <CardContent sx={{ flexGrow: 1, textAlign: 'center', p: 3 }}>
                                  {option.icon}
-                                 <Typography variant="h5" component="h2" gutterBottom sx={{ fontWeight: 'bold' }}>
+                                 <Typography
+                                    variant="h5"
+                                    component="h2"
+                                    gutterBottom
+                                    sx={{ fontWeight: 'bold' }}
+                                 >
+                                    {option.title}
+                                 </Typography>
+                                 <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                                    {option.description}
+                                 </Typography>
+                                 <Button
+                                    variant="contained"
+                                    fullWidth
+                                    color={option.color as any}
+                                    onClick={() => navigate(option.path)}
+                                    size="large"
+                                 >
+                                    {option.buttonText}
+                                 </Button>
+                              </CardContent>
+                           </Card>
+                        </Grid>
+                     ))}
+                  </Grid>
+               </Box>
+            )}
+
+            {/* Sección admin - Visible para administradores */}
+            {isAdmin && (
+               <Box sx={{ mt: 4 }}>
+                  <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
+                     ● Panel de Administración
+                  </Typography>
+                  <Grid container spacing={3}>
+                     {adminOptions.map((option, index) => (
+                        <Grid item xs={12} md={6} lg={4} key={index}>
+                           <Card
+                              sx={{
+                                 height: '100%',
+                                 display: 'flex',
+                                 flexDirection: 'column',
+                                 transition: 'transform 0.3s, box-shadow 0.3s',
+                                 '&:hover': {
+                                    transform: 'translateY(-8px)',
+                                    boxShadow: 6,
+                                 },
+                              }}
+                           >
+                              <CardContent sx={{ flexGrow: 1, textAlign: 'center', p: 3 }}>
+                                 {option.icon}
+                                 <Typography
+                                    variant="h5"
+                                    component="h2"
+                                    gutterBottom
+                                    sx={{ fontWeight: 'bold' }}
+                                 >
                                     {option.title}
                                  </Typography>
                                  <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
@@ -245,7 +330,12 @@ const HomePage = () => {
                         >
                            <CardContent sx={{ flexGrow: 1, textAlign: 'center', p: 3 }}>
                               {option.icon}
-                              <Typography variant="h5" component="h2" gutterBottom sx={{ fontWeight: 'bold' }}>
+                              <Typography
+                                 variant="h5"
+                                 component="h2"
+                                 gutterBottom
+                                 sx={{ fontWeight: 'bold' }}
+                              >
                                  {option.title}
                               </Typography>
                               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
@@ -269,12 +359,15 @@ const HomePage = () => {
 
             {/* Mensaje si no tiene roles específicos */}
             {!isPatient && !isDoctor && (
-               <Box sx={{ mt: 4, p: 4, bgcolor: 'info.light', borderRadius: 2, textAlign: 'center' }}>
+               <Box
+                  sx={{ mt: 4, p: 4, bgcolor: 'info.light', borderRadius: 2, textAlign: 'center' }}
+               >
                   <Typography variant="h6" gutterBottom>
                      👋 Bienvenido al Sistema
                   </Typography>
                   <Typography variant="body1" color="text.secondary">
-                     Tu cuenta no tiene roles específicos asignados. Contacta al administrador para obtener acceso completo.
+                     Tu cuenta no tiene roles específicos asignados. Contacta al administrador para
+                     obtener acceso completo.
                   </Typography>
                </Box>
             )}
@@ -282,8 +375,8 @@ const HomePage = () => {
             {/* Footer Info */}
             <Box sx={{ mt: 6, p: 3, bgcolor: 'white', borderRadius: 2, boxShadow: 1 }}>
                <Typography variant="body2" color="text.secondary" align="center">
-                  💡 <strong>Tip:</strong> Todas las páginas están conectadas con el backend real. Asegúrate de que el
-                  backend esté corriendo en http://localhost:5000
+                  💡 <strong>Tip:</strong> Todas las páginas están conectadas con el backend real.
+                  Asegúrate de que el backend esté corriendo en http://localhost:5000
                </Typography>
             </Box>
          </Container>

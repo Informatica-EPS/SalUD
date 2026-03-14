@@ -24,12 +24,53 @@ class PatientService {
   }
 
   async findAll() {
-    return await patientModel.findAll();
+    return await patientModel.findAll({
+      include: [
+        {
+          association: "User",
+          attributes: [
+            "primer_nombre",
+            "segundo_nombre",
+            "primer_apellido",
+            "segundo_apellido",
+            "documento",
+            "tipo_documento",
+            "usuario",
+            "email",
+            "fecha_nacimiento",
+            "lugar_nacimiento",
+            "direccion"
+          ]
+        }
+      ]
+    });
   }
 
+
+  // patient.service.js
   async findById(id) {
-    return await patientModel.findByPk(id);
+    return await patientModel.findByPk(id, {
+      include: [
+        {
+          association: "User",
+          attributes: [
+            "primer_nombre",
+            "segundo_nombre",
+            "primer_apellido",
+            "segundo_apellido",
+            "documento",
+            "tipo_documento",
+            "usuario",
+            "email",
+            "fecha_nacimiento",
+            "lugar_nacimiento",
+            "direccion"
+          ]
+        }
+      ]
+    });
   }
+
 
   async delete(id) {
     const patient = await patientModel.findByPk(id);
