@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
    Box,
    Button,
@@ -25,7 +25,6 @@ import { IDoctor } from '../../interface';
 const DoctoresPage: React.FC = () => {
    const { doctors, loading, error, refetch } = useDoctors();
    const [busqueda, setBusqueda] = useState('');
-   const [doctorSeleccionado, setDoctorSeleccionado] = useState<IDoctor | null>(null);
 
    // Filtrar doctores por nombre
    const doctoresFiltrados = doctors.filter((doctor) => {
@@ -34,10 +33,9 @@ const DoctoresPage: React.FC = () => {
       return nombreCompleto.includes(busqueda.toLowerCase());
    });
 
-   const handleVerHorarios = (doctor: IDoctor) => {
-      setDoctorSeleccionado(doctor);
+   const handleVerHorarios = (_doctor: IDoctor) => {
       // TODO: Navegar a página de horarios o abrir modal
-      console.log('Ver horarios del doctor:', doctor);
+      console.log('Ver horarios del doctor:', _doctor);
    };
 
    if (loading) {

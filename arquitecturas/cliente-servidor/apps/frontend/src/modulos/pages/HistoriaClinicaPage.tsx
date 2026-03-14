@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
    Box,
    Container,
@@ -6,8 +6,6 @@ import {
    CircularProgress,
    Alert,
    Paper,
-   Card,
-   CardContent,
    Grid,
    Chip,
    Accordion,
@@ -23,11 +21,9 @@ import {
    Email as EmailIcon,
    CalendarToday as CalendarIcon,
    LocalHospital as HospitalIcon,
-   Description as DescriptionIcon,
    Assignment as AssignmentIcon,
 } from '@mui/icons-material';
 import { appointmentsService } from '../../services';
-import { IClinicalHistoryResponse } from '../../interface';
 import { useAuth } from '../../context/AuthContext';
 import { getPatientUser, getUserFullName, getUserInitials, getDoctorFullName } from '../../utils';
 

@@ -38,6 +38,9 @@ export interface IUser {
    createdAt?: string;
    updatedAt?: string;
    rol?: IRole;
+   roles?: string[];
+   idPaciente?: number;
+   idDoctor?: number;
 }
 
 // Rol
