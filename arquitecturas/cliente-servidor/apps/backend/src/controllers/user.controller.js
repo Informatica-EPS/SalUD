@@ -1,4 +1,5 @@
 const userService = require('../services/user.service');
+const crypto = require('crypto');
 
 const login = async (req, res, next) => {
   try {
@@ -69,6 +70,37 @@ const login = async (req, res, next) => {
   }
 };
 
+const createUser = async (req, res, next) => {
+  try {
+    const { documento, password, ...rest } = req.body;
+
+    // Hash documento y password
+    const hashedDocumento = crypto.createHash('sha256').update(documento).digest('hex');
+    const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+
+    const user = await userService.createUser({
+      ...rest,
+      documento: hashedDocumento,
+      password: hashedPassword
+    });
+
+    res.status(201).json(user);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getUsers = async (req, res, next) => {
+  try {
+    const users = await userService.getUsers();
+    res.json(users);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
-  login
+  login,
+  createUser,
+  getUsers
 };

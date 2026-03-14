@@ -1,3 +1,4 @@
+"use strict";
 const Doctor = require("../models/doctor.model");
 const User = require("../models/user.model");
 
@@ -5,8 +6,8 @@ class DoctorService {
   async create(data, auditUserId) {
     return await Doctor.create({
       ...data,
-      createdBy: auditUserId,
-      updatedBy: auditUserId,
+      creadoPor: auditUserId,
+      actualizadoPor: auditUserId,
     });
   }
 
@@ -50,7 +51,7 @@ class DoctorService {
 
     await doctor.update({
       ...data,
-      updatedBy: auditUserId,
+      actualizadoPor: auditUserId,
     });
     return doctor;
   }

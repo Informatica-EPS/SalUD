@@ -1,23 +1,14 @@
 "use strict";
 const patientModel = require("../models/patient.model");
-console.log(JSON.stringify(patientModel));
 
 class PatientService {
   async create(data, auditUserId) {
     const newPatient = await patientModel.create({
       ...data,
-      createdBy: auditUserId,
-      updatedBy: auditUserId,
+      creadoPor: auditUserId,
+      actualizadoPor: auditUserId,
     });
     return newPatient;
-  }
-
-  async findAll() {
-    return await patientModel.findAll();
-  }
-
-  async findById(id) {
-    return await patientModel.findByPk(id);
   }
 
   async update(id, data, auditUserId) {
@@ -26,10 +17,18 @@ class PatientService {
 
     await patient.update({
       ...data,
-      updatedBy: auditUserId,
+      actualizadoPor: auditUserId,
     });
 
     return patient;
+  }
+
+  async findAll() {
+    return await patientModel.findAll();
+  }
+
+  async findById(id) {
+    return await patientModel.findByPk(id);
   }
 
   async delete(id) {
