@@ -1,20 +1,20 @@
 const User = require("./user.model");
 const Role = require("./role.model");
+const RoleUser = require("./role_user.model");
 const Doctor = require("./doctor.model");
 const Patient = require("./patient.model");
 const TimeSlot = require("./time-slot.model");
 const Appointment = require("./appointments.model");
 const AppointmentDetail = require("./appointment-details.model");
 
-// Relación muchos a muchos
 User.belongsToMany(Role, {
-  through: "roles_usuario",
+  through: RoleUser,
   foreignKey: "id_usuario",
   otherKey: "id_rol",
 });
 
 Role.belongsToMany(User, {
-  through: "roles_usuario",
+  through: RoleUser,
   foreignKey: "id_rol",
   otherKey: "id_usuario",
 });
