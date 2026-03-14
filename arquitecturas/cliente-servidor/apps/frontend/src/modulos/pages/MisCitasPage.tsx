@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
    Box,
    Button,
@@ -15,16 +15,13 @@ import {
    DialogTitle,
    DialogContent,
    DialogActions,
-   IconButton,
    Divider,
 } from '@mui/material';
 import {
    CalendarToday as CalendarIcon,
    AccessTime as TimeIcon,
    Person as PersonIcon,
-   LocationOn as LocationIcon,
    Cancel as CancelIcon,
-   Edit as EditIcon,
    Description as DescriptionIcon,
    LocalHospital as HospitalIcon,
 } from '@mui/icons-material';
@@ -40,7 +37,6 @@ export const MisCitasPage = () => {
       loading,
       error,
       cancelAppointment,
-      refetch,
    } = usePatientAppointments(pacienteId, 1, 20);
 
    const [selectedAppointment, setSelectedAppointment] = useState<number | null>(null);
@@ -121,7 +117,7 @@ export const MisCitasPage = () => {
    // Separar citas por estado (con validación)
    const citasProgramadas = (appointments || []).filter((cita) => cita.estado === 'programada');
    const citasCompletadas = (appointments || []).filter((cita) => cita.estado === 'completada');
-   const citasCanceladas = (appointments || []).filter((cita) => cita.estado === 'cancelada' || cita.estado === 'cancelado');
+   const citasCanceladas = (appointments || []).filter((cita) => cita.estado === 'cancelada');
 
    return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
