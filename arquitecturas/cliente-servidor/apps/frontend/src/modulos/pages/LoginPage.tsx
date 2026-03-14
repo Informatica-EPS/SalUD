@@ -126,7 +126,7 @@ export default function LoginPage() {
          
          // Mostrar mensaje de error apropiado
          if (err.response?.status === 404) {
-            setError('Usuario no encontrado. Verifica tu documento.');
+            setError('Usuario no encontrado. Verifica tu documento.' + err.response);
          } else if (err.response?.status === 400) {
             setError('Contraseña incorrecta. Por favor intenta de nuevo.');
          } else if (err.response?.data?.message) {

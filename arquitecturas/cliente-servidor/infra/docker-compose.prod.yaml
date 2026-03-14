@@ -32,6 +32,7 @@ services:
       - DATABASE_URL=postgres://user_admin:super_password_123@db:5432/mi_base_de_datos 
       - NODE_ENV=production
       - PORT=5000
+      - APPOINTMENT_DETAIL_KEY=${APPOINTMENT_DETAIL_KEY}
     # Aquí configuramos la espera: el backend no arranca hasta que el healthcheck de la DB sea exitoso
     depends_on:
       db:
