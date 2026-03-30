@@ -28,7 +28,6 @@ import {
 import {
    CalendarToday as CalendarIcon,
    AccessTime as TimeIcon,
-   Person as PersonIcon,
    Check as CheckIcon,
    Edit as EditIcon,
    ExpandMore as ExpandMoreIcon,
@@ -39,7 +38,7 @@ import {
 import { appointmentsService, appointmentDetailsService } from '../../services';
 import { useAuth } from '../../context/AuthContext';
 import { IAppointment, IAppointmentDetail } from '../../interface';
-import { getDoctorFullName, getPatientFullName } from '../../utils';
+import { getPatientFullName } from '../../utils';
 
 interface TabPanelProps {
    children?: React.ReactNode;
@@ -93,10 +92,10 @@ export default function MedicoPage() {
          console.log('Citas recibidas:', data);
          
          // Manejar respuesta paginada o array directo
-         let citasArray: any[] = [];
+         let citasArray: IAppointment[] = [];
          if (data && typeof data === 'object' && 'citas' in data) {
             // Respuesta paginada
-            citasArray = data.citas || [];
+            citasArray = (data as any).citas || [];
          } else if (Array.isArray(data)) {
             // Array directo
             citasArray = data;
@@ -334,7 +333,7 @@ export default function MedicoPage() {
 
          {/* Tabs */}
          <Paper sx={{ mb: 3 }}>
-            <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)}>
+            <Tabs value={tabValue} onChange={(_e, newValue) => setTabValue(newValue)}>
                <Tab icon={<CalendarIcon />} label="Programadas" iconPosition="start" />
                <Tab icon={<CheckIcon />} label="Completadas" iconPosition="start" />
                <Tab icon={<CancelIcon />} label="Canceladas" iconPosition="start" />

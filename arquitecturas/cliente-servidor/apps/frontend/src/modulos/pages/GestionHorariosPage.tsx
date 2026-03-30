@@ -26,7 +26,6 @@ import {
    AccessTime as TimeIcon,
    CalendarToday as CalendarIcon,
    EventAvailable as AvailableIcon,
-   EventBusy as BusyIcon,
 } from '@mui/icons-material';
 import { useDoctorTimeSlots } from '../../hooks';
 import { useAuth } from '../../context/AuthContext';
@@ -56,7 +55,6 @@ export const GestionHorariosPage = () => {
       error,
       createTimeSlot,
       deleteTimeSlot,
-      refetchAvailable,
       refetchAll,
    } = useDoctorTimeSlots(doctorId);
 
@@ -235,7 +233,7 @@ export const GestionHorariosPage = () => {
 
          {/* Tabs */}
          <Paper sx={{ mb: 3 }}>
-            <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)}>
+            <Tabs value={tabValue} onChange={(_e, newValue) => setTabValue(newValue)}>
                <Tab icon={<AvailableIcon />} label="Disponibles" iconPosition="start" />
                <Tab icon={<CalendarIcon />} label="Todos los Horarios" iconPosition="start" />
             </Tabs>

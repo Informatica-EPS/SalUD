@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
    Box,
    Container,
@@ -6,8 +6,6 @@ import {
    CircularProgress,
    Alert,
    Paper,
-   Card,
-   CardContent,
    Grid,
    Chip,
    Accordion,
@@ -23,11 +21,9 @@ import {
    Email as EmailIcon,
    CalendarToday as CalendarIcon,
    LocalHospital as HospitalIcon,
-   Description as DescriptionIcon,
    Assignment as AssignmentIcon,
 } from '@mui/icons-material';
 import { appointmentsService } from '../../services';
-import { IClinicalHistoryResponse } from '../../interface';
 import { useAuth } from '../../context/AuthContext';
 import { getPatientUser, getUserFullName, getUserInitials, getDoctorFullName } from '../../utils';
 
@@ -269,9 +265,8 @@ export const HistoriaClinicaPage = () => {
          ) : (
             citas
                .sort((a: any, b: any) => {
-                  const dateA = new Date(a.horario?.fecha || '').getTime();
-                  const dateB = new Date(b.horario?.fecha || '').getTime();
-                  return dateB - dateA;
+                  // Ordenar por ID descendente (más reciente primero)
+                  return b.id - a.id;
                })
                .map((cita: any, index: number) => {
                   // Obtener nombre del doctor (puede venir como objeto plano o anidado)

@@ -38,6 +38,9 @@ export interface IUser {
    createdAt?: string;
    updatedAt?: string;
    rol?: IRole;
+   roles?: string[];
+   idPaciente?: number;
+   idDoctor?: number;
 }
 
 // Rol
@@ -102,7 +105,7 @@ export interface ITimeSlot {
 export interface IAppointment {
    id: number;
    tipoCita: string;
-   estado: 'programada' | 'completada' | 'cancelada' | 'en_proceso';
+   estado: 'programada' | 'completada' | 'completado' | 'cancelada' | 'cancelado' | 'en_proceso';
    idPaciente: number;
    idDoctor: number;
    idHorario: number;
@@ -184,7 +187,7 @@ export interface ICreateBatchTimeSlotsRequest {
 // Request para crear Appointment
 export interface ICreateAppointmentRequest {
    tipoCita: string;
-   estado: 'programada' | 'completada' | 'cancelada' | 'en_proceso';
+   estado: 'programada' | 'completada' | 'completado' | 'cancelada' | 'cancelado' | 'en_proceso';
    idPaciente: number;
    idDoctor: number;
    idHorario: number;
@@ -195,7 +198,7 @@ export interface ICreateAppointmentRequest {
 // Request para reprogramar Appointment
 export interface IRescheduleAppointmentRequest {
    tipoCita: string;
-   estado: 'programada' | 'completada' | 'cancelada' | 'en_proceso';
+   estado: 'programada' | 'completada' | 'completado' | 'cancelada' | 'cancelado' | 'en_proceso';
    idPaciente: number;
    idDoctor: number;
    idHorario: number;

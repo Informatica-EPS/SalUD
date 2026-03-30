@@ -51,7 +51,7 @@ export default function LoginPage() {
 
          if (user.roles?.includes('Medico')) {
             navigate('/medico');
-         } else if (user.roles?.includes('Paciente')) {
+         } else if (userData.roles?.includes('Paciente')) {
             navigate('/paciente');
          } else {
             navigate('/home');
