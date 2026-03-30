@@ -12,7 +12,6 @@ import {
    // Páginas antiguas
    PacientePage,
    MedicoPage,
-   AdminHomePage,
    DoctorsPage,
    DoctoresPageAdmin,
    PacientesPageAdmin,
@@ -33,8 +32,6 @@ const AppRoutes = () => {
             <Route path="/login" element={<LoginPage />} />
 
             <Route path="/register" element={<RegisterPage />} />
-
-            <Route path="/admin-home" element={<AdminHomePage />} />
             <Route path="/admin/doctors" element={<DoctoresPageAdmin />} />
             <Route path="/admin/patients" element={<PacientesPageAdmin />} />
 
