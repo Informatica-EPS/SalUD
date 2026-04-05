@@ -30,3 +30,10 @@ Detalle del flujo de eventos usando **RabbitMQ** como event router.
 - **Event Producer**: `OrdenService` publica el evento `orden.creada`
 - **Event Router**: RabbitMQ recibe y enruta el mensaje
 - **Event Consumer**: `Notificacion_orden` (Servicio de E-mail)
+
+---
+## Editar diagramas
+Los diagramas fueron creados con [draw.io](https://app.diagrams.net/).
+
+- [Arquitectura_General.drawio](https://drive.google.com/file/d/18xJmV5yQ_JnhSHtwNuMKE4f9XyK1naLg/view?usp=sharing)
+- [Arquitectura_Evento.drawio](https://drive.google.com/file/d/1WNp4jaYf8Lo2DAN_vGg0A3n7BirIyi7e/view?usp=sharing)
