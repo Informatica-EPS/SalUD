@@ -9,11 +9,16 @@ const TimeSlotService = require("./time-slot.service");
 const {
   decryptSensitiveFields,
 } = require("../utils/appointment-detail-crypto");
+const timeSlotService = require("./time-slot.service");
+const { getDateFormatUTC } = require("../utils/functions");
+const { Op } = require("sequelize");
 
 class AppointmentService {
   async create(data) {
-    const { idDoctor, idHorario } = data;
+    const { idDoctor, idHorario, idPaciente } = data;
 
+    await this.validateMustBeFutureDate(idHorario);
+    await this.validatePatientHasNoScheduledAppointments(idPaciente, idHorario);
     await this.validateDoctorHasTimeSlot(idDoctor, idHorario);
 
     return await Appointment.create({
@@ -26,6 +31,15 @@ class AppointmentService {
   }
 
   async findAllPaginated(queryParams) {
+    const nowObj = new Date();
+    const nowDate = nowObj.toLocaleDateString("sv-SE", {
+      timeZone: "America/Bogota",
+    });
+
+    const nowTime = nowObj.toLocaleTimeString("en-GB", {
+      timeZone: "America/Bogota",
+    });
+
     const { rows, count, page, totalPages } = await functions.paginate(
       Appointment,
       queryParams,
@@ -34,6 +48,29 @@ class AppointmentService {
           {
             model: TimeSlotModel,
             attributes: ["fecha", "horaInicio", "horaFin"],
+            where: {
+              [Op.or]: [
+                {
+                  [Op.and]: [
+                    {
+                      fecha: {
+                        [Op.eq]: nowDate,
+                      },
+                    },
+                    {
+                      horaInicio: {
+                        [Op.gte]: nowTime,
+                      },
+                    },
+                  ],
+                },
+                {
+                  fecha: {
+                    [Op.gt]: nowDate,
+                  },
+                },
+              ],
+            },
           },
           {
             model: DoctorModel,
@@ -285,13 +322,49 @@ class AppointmentService {
     const appointment = await Appointment.findByPk(id);
     if (!appointment) return false;
 
+    await this.validateIsNotCompleted(appointment);
+
+    const timeSlot = await TimeSlotService.findById(appointment.idHorario);
+
+    if (timeSlot) {
+      await TimeSlotService.markAsAvailable(appointment.idHorario);
+    }
     await appointment.destroy();
     return true;
   }
 
+  async validateIsNotCompleted(appointment) {
+    if (appointment.estado === appointmentsStatus.REALIZADO) {
+      throw new Error("No se pueden modificar citas ya realizadas");
+    }
+  }
+
+  async validateMustBeFutureDate(idHorario) {
+    const timeSlot = await TimeSlotService.findById(idHorario);
+
+    const nowDate = new Date();
+    const initTime = timeSlot.horaInicio;
+
+    const timeSlotDate = getDateFormatUTC(timeSlot.fecha, initTime, "-05:00");
+
+    if (timeSlotDate < nowDate) {
+      throw new Error("La fecha del horario debe ser futura");
+    }
+  }
+
+  async validatePatientHasNoScheduledAppointments(idPaciente, idHorario) {
+    const newTimeSlot = await timeSlotService.findById(idHorario);
+
+    await timeSlotService.validateOverlappingSlotsForPatient(
+      newTimeSlot.horaInicio,
+      newTimeSlot.horaFin,
+      newTimeSlot.fecha,
+      idPaciente,
+    );
+  }
+
   async validateDoctorHasTimeSlot(idDoctor, idHorario) {
     const timeSlot = await TimeSlotService.findById(idHorario);
-    console.log("validateDoctorHasTimeSlot", timeSlot);
 
     if (!timeSlot || timeSlot.idDoctor !== idDoctor) {
       throw new Error(
@@ -308,7 +381,7 @@ class AppointmentService {
 
   async updateRescheduledAppointment(id, data, auditUserId = 1) {
     const appointment = await Appointment.findByPk(id);
-    if (!appointment) return null; // throw new Error("Appointment not found");
+    if (!appointment) return null;
 
     const oldSlot = await TimeSlotService.findById(appointment.idHorario);
     if (!oldSlot) {
@@ -327,8 +400,17 @@ class AppointmentService {
   }
 
   async updateAppointmentCompleted(id, auditUserId = 1) {
-    const appointment = await Appointment.findByPk(id);
+    const appointment = await Appointment.findByPk(id, {
+      include: [
+        {
+          model: TimeSlotModel,
+          attributes: ["fecha", "horaInicio", "horaFin"],
+        },
+      ],
+    });
     if (!appointment) return null;
+
+    await this.validateAppointmentIsCurrently(appointment);
 
     await appointment.update({
       estado: appointmentsStatus.REALIZADO,
@@ -337,11 +419,25 @@ class AppointmentService {
     return appointment;
   }
 
+  async validateAppointmentIsCurrently(appointment) {
+    const nowDate = new Date();
+    const initTime = appointment.TimeSlot.horaInicio;
+    const endTime = appointment.TimeSlot.horaFin;
+
+    if (
+      nowDate <
+        getDateFormatUTC(appointment.TimeSlot.fecha, initTime, "-05:00") ||
+      nowDate > getDateFormatUTC(appointment.TimeSlot.fecha, endTime, "-05:00")
+    ) {
+      throw new Error(
+        "La cita no está en curso, no se puede marcar como realizada",
+      );
+    }
+  }
+
   async cancelAppointment(id, auditUserId = 1) {
     const appointment = await Appointment.findByPk(id);
     if (!appointment) return null;
-
-    // si ya está cancelada desbordar
 
     if (appointment.estado === appointmentsStatus.CANCELADO) {
       throw new Error("Appointment is already canceled");
