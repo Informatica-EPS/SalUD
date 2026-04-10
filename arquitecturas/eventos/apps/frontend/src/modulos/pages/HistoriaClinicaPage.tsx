@@ -26,6 +26,7 @@ import {
 import { appointmentsService } from '../../services';
 import { useAuth } from '../../context/AuthContext';
 import { getPatientUser, getUserFullName, getUserInitials, getDoctorFullName } from '../../utils';
+import { BackButton } from '../../components';
 
 export const HistoriaClinicaPage = () => {
    const { user } = useAuth();
@@ -107,6 +108,9 @@ export const HistoriaClinicaPage = () => {
    return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
          {/* Header */}
+         <Box mb={2}>
+            <BackButton to="/home" />
+         </Box>
          <Typography variant="h4" gutterBottom fontWeight="bold">
             Historia Clínica
          </Typography>

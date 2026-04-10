@@ -29,6 +29,7 @@ import {
 } from '@mui/icons-material';
 import { useDoctorTimeSlots } from '../../hooks';
 import { useAuth } from '../../context/AuthContext';
+import { BackButton } from '../../components';
 
 interface TabPanelProps {
    children?: React.ReactNode;
@@ -156,6 +157,9 @@ export const GestionHorariosPage = () => {
    return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
          {/* Header */}
+         <Box mb={2}>
+            <BackButton to="/home" />
+         </Box>
          <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
             <Box>
                <Typography variant="h4" gutterBottom fontWeight="bold">

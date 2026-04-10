@@ -41,28 +41,55 @@ export const timeSlotsService = {
    },
 
    /**
-    * Obtener todos los horarios disponibles
-    * GET /api/time-slots/available
+    * Obtener todos los horarios disponibles con paginación
+    * GET /api/time-slots/available?page=1&limit=10
     */
-   getAvailable: async (): Promise<ITimeSlot[]> => {
+   getAvailable: async (page: number = 1, limit: number = 10): Promise<{
+      franjasHorarias: ITimeSlot[];
+      totalPages: number;
+      totalItems: number;
+      currentPage: number;
+   }> => {
       try {
-         const response: any = await api.get('/time-slots/available');
+         const response: any = await api.get(
+            `/time-slots/available?page=${page}&limit=${limit}`
+         );
          console.log('Response getAvailable:', response);
          
          // Manejar diferentes estructuras de respuesta
          if (response.franjasHorarias) {
             // Backend actual: { franjasHorarias: [], totalPages, currentPage, totalItems }
-            return response.franjasHorarias || [];
+            return {
+               franjasHorarias: response.franjasHorarias || [],
+               totalPages: response.totalPages || 1,
+               totalItems: response.totalItems || 0,
+               currentPage: response.currentPage || 1,
+            };
          } else if (Array.isArray(response)) {
-            // Array directo
-            return response;
+            // Array directo (retrocompatibilidad)
+            return {
+               franjasHorarias: response,
+               totalPages: 1,
+               totalItems: response.length,
+               currentPage: 1,
+            };
          } else {
             // Fallback
-            return [];
+            return {
+               franjasHorarias: [],
+               totalPages: 0,
+               totalItems: 0,
+               currentPage: 1,
+            };
          }
       } catch (error) {
          console.error('Error al obtener horarios disponibles:', error);
-         return []; // Retornar array vacío en caso de error
+         return {
+            franjasHorarias: [],
+            totalPages: 0,
+            totalItems: 0,
+            currentPage: 1,
+         };
       }
    },
 

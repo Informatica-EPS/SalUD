@@ -33,6 +33,7 @@ import {
 } from '@mui/icons-material';
 import { patientsService } from '../../services';
 import { IPatient, ICreatePatientRequest } from '../../interface';
+import { BackButton } from '../../components';
 
 export const PacientesPage = () => {
    const [patients, setPatients] = useState<IPatient[]>([]);
@@ -152,6 +153,9 @@ export const PacientesPage = () => {
    return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
          {/* Header */}
+         <Box mb={2}>
+            <BackButton to="/home" />
+         </Box>
          <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
             <Box>
                <Typography variant="h4" gutterBottom fontWeight="bold">

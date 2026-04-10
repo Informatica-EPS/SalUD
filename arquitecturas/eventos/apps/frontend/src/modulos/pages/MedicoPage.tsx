@@ -41,6 +41,7 @@ import { useAuth } from '../../context/AuthContext';
 import { IAppointment, IAppointmentDetail } from '../../interface';
 import { getPatientFullName } from '../../utils';
 import { useNavigate } from 'react-router-dom';
+import { BackButton } from '../../components';
 
 interface TabPanelProps {
    children?: React.ReactNode;
@@ -334,6 +335,9 @@ export default function MedicoPage() {
    return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
          {/* Header */}
+         <Box mb={2}>
+            <BackButton to="/home" />
+         </Box>
          <Box mb={4}>
             <Typography variant="h4" gutterBottom fontWeight="bold">
                👨‍⚕️ Panel de Doctor

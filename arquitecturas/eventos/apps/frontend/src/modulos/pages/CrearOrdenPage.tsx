@@ -23,13 +23,13 @@ import {
    AssignmentTurnedIn as OrderIcon,
    Save as SaveIcon,
    Cancel as CancelIcon,
-   ArrowBack as ArrowBackIcon,
    CheckCircle as CheckIcon,
    Schedule as ScheduleIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useOrders } from '../../hooks';
 import { useAuth } from '../../context/AuthContext';
+import { BackButton } from '../../components';
 import Swal from 'sweetalert2';
 
 const ESPECIALIDADES = [
@@ -184,14 +184,8 @@ export const CrearOrdenPage = () => {
    return (
       <Container maxWidth="md" sx={{ py: 4 }}>
          <Box mb={4}>
-            <Button
-               startIcon={<ArrowBackIcon />}
-               onClick={handleCancel}
-               sx={{ mb: 2 }}
-            >
-               Volver
-            </Button>
-            <Box display="flex" alignItems="center" gap={2} mb={2}>
+            <BackButton />
+            <Box display="flex" alignItems="center" gap={2} mb={2} mt={2}>
                <OrderIcon sx={{ fontSize: 40, color: 'primary.main' }} />
                <Typography variant="h4" fontWeight="bold">
                   Registrar Nueva Orden Médica

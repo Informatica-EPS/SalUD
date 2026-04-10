@@ -28,6 +28,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { ordersService } from '../../services';
 import { IOrder } from '../../interface';
+import { BackButton } from '../../components';
 
 export const MisOrdenesPage = () => {
    const { user } = useAuth();
@@ -114,6 +115,9 @@ export const MisOrdenesPage = () => {
    return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
          {/* Header */}
+         <Box mb={2}>
+            <BackButton to="/home" />
+         </Box>
          <Box mb={4}>
             <Box display="flex" alignItems="center" gap={2} mb={2}>
                <OrderIcon sx={{ fontSize: 40, color: 'primary.main' }} />

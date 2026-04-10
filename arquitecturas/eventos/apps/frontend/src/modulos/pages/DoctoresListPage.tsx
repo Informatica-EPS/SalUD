@@ -21,6 +21,7 @@ import {
 } from '@mui/icons-material';
 import { useDoctors } from '../../hooks';
 import { useNavigate } from 'react-router-dom';
+import { BackButton } from '../../components';
 
 export const DoctoresPage = () => {
    const { doctors, loading, error } = useDoctors();
@@ -49,6 +50,9 @@ export const DoctoresPage = () => {
    return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
          {/* Header */}
+         <Box mb={2}>
+            <BackButton to="/home" />
+         </Box>
          <Box mb={4}>
             <Typography variant="h4" gutterBottom fontWeight="bold">
                Nuestros Médicos

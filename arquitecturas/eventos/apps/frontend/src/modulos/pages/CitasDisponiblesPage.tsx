@@ -26,12 +26,15 @@ import {
    AccessTime as TimeIcon,
    Person as PersonIcon,
    Add as AddIcon,
+   NavigateBefore as NavigateBeforeIcon,
+   NavigateNext as NavigateNextIcon,
 } from '@mui/icons-material';
 import { useDoctors, useCreateAppointment } from '../../hooks';
 import { timeSlotsService } from '../../services';
 import { ITimeSlot } from '../../interface';
 import { getTimeSlotDoctorFullName, getDoctorFullName } from '../../utils';
 import { useAuth } from '../../context/AuthContext';
+import { BackButton } from '../../components';
 
 export const CitasDisponiblesPage = () => {
    const { user } = useAuth();
@@ -39,10 +42,15 @@ export const CitasDisponiblesPage = () => {
    const { createAppointment, loading: creatingAppointment } = useCreateAppointment();
 
    const [slots, setSlots] = useState<ITimeSlot[]>([]);
-   const [filteredSlots, setFilteredSlots] = useState<ITimeSlot[]>([]);
    const [loading, setLoading] = useState(true);
    const [error, setError] = useState<string | null>(null);
    const [success, setSuccess] = useState<string | null>(null);
+
+   // Paginación
+   const [currentPage, setCurrentPage] = useState(1);
+   const [totalPages, setTotalPages] = useState(1);
+   const [totalItems, setTotalItems] = useState(0);
+   const [itemsPerPage, setItemsPerPage] = useState(10);
 
    // Filtros
    const [selectedDoctor, setSelectedDoctor] = useState<string>('todos');
@@ -54,22 +62,47 @@ export const CitasDisponiblesPage = () => {
    const [motivo, setMotivo] = useState('');
    const [tipoCita, setTipoCita] = useState('MEDICINA_GENERAL');
 
-   const pacienteId = user?.idPaciente || 1; // Fallback temporal a 1 para desarrollo
+   const pacienteId = user?.idPaciente || 1;
 
+   // Cargar cuando cambian los filtros o la página
    useEffect(() => {
       loadAvailableSlots();
-   }, []);
-
-   useEffect(() => {
-      applyFilters();
-   }, [selectedDoctor, selectedDate, slots]);
+   }, [currentPage, itemsPerPage, selectedDoctor, selectedDate]);
 
    const loadAvailableSlots = async () => {
       try {
          setLoading(true);
          setError(null);
-         const data = await timeSlotsService.getAvailable();
-         setSlots(data);
+         
+         // Si hay filtro de doctor específico, usar endpoint especializado
+         if (selectedDoctor !== 'todos') {
+            const data = await timeSlotsService.getAvailableByDoctor(
+               parseInt(selectedDoctor)
+            );
+            // Aplicar filtro de fecha si existe
+            let filteredData = data;
+            if (selectedDate !== 'todas') {
+               filteredData = data.filter(slot => slot.fecha === selectedDate);
+            }
+            setSlots(filteredData);
+            setTotalPages(1);
+            setTotalItems(filteredData.length);
+            setCurrentPage(1);
+         } else {
+            // Cargar todos los horarios con paginación
+            const data = await timeSlotsService.getAvailable(currentPage, itemsPerPage);
+            
+            // Aplicar filtro de fecha si existe
+            let finalSlots = data.franjasHorarias;
+            if (selectedDate !== 'todas') {
+               finalSlots = data.franjasHorarias.filter(slot => slot.fecha === selectedDate);
+            }
+            
+            setSlots(finalSlots);
+            setTotalPages(data.totalPages);
+            setTotalItems(data.totalItems);
+            setCurrentPage(data.currentPage);
+         }
       } catch (err) {
          setError('Error al cargar horarios disponibles');
          console.error('Error:', err);
@@ -78,20 +111,16 @@ export const CitasDisponiblesPage = () => {
       }
    };
 
-   const applyFilters = () => {
-      let filtered = slots || [];
+   // Obtener fechas únicas de todos los slots cargados
+   const uniqueDates = Array.from(new Set((slots || []).map((slot) => slot.fecha))).sort();
 
-      if (selectedDoctor !== 'todos') {
-         filtered = filtered.filter(
-            (slot) => slot.idDoctor === parseInt(selectedDoctor)
-         );
+   const handleFilterChange = (filterType: 'doctor' | 'date', value: string) => {
+      if (filterType === 'doctor') {
+         setSelectedDoctor(value);
+      } else {
+         setSelectedDate(value);
       }
-
-      if (selectedDate !== 'todas') {
-         filtered = filtered.filter((slot) => slot.fecha === selectedDate);
-      }
-
-      setFilteredSlots(filtered);
+      setCurrentPage(1); // Resetear a página 1 cuando cambian filtros
    };
 
    const handleOpenDialog = (slot: ITimeSlot) => {
@@ -134,8 +163,30 @@ export const CitasDisponiblesPage = () => {
       }
    };
 
-   // Obtener fechas únicas (con validación)
-   const uniqueDates = Array.from(new Set((slots || []).map((slot) => slot.fecha))).sort();
+   // Obtener todas las fechas disponibles (necesitamos cargar todas para el filtro)
+   const [allDates, setAllDates] = useState<string[]>([]);
+   
+   useEffect(() => {
+      loadAllDates();
+   }, []);
+
+   const loadAllDates = async () => {
+      try {
+         // Cargar una gran cantidad para obtener todas las fechas únicas
+         const data = await timeSlotsService.getAvailable(1, 1000);
+         const dates = Array.from(new Set(data.franjasHorarias.map(slot => slot.fecha))).sort();
+         setAllDates(dates);
+      } catch (err) {
+         console.error('Error al cargar fechas:', err);
+      }
+   };
+
+   const handlePageChange = (newPage: number) => {
+      if (newPage >= 1 && newPage <= totalPages) {
+         setCurrentPage(newPage);
+         window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+   };
 
    if (loading || loadingDoctors) {
       return (
@@ -148,6 +199,9 @@ export const CitasDisponiblesPage = () => {
    return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
          {/* Header */}
+         <Box mb={2}>
+            <BackButton to="/home" />
+         </Box>
          <Box mb={4}>
             <Typography variant="h4" gutterBottom fontWeight="bold">
                Horarios Disponibles
@@ -172,13 +226,13 @@ export const CitasDisponiblesPage = () => {
          {/* Filtros */}
          <Paper sx={{ p: 3, mb: 3 }}>
             <Grid container spacing={2}>
-               <Grid item xs={12} sm={6}>
+               <Grid item xs={12} sm={4}>
                   <FormControl fullWidth>
                      <InputLabel>Doctor</InputLabel>
                      <Select
                         value={selectedDoctor}
                         label="Doctor"
-                        onChange={(e) => setSelectedDoctor(e.target.value)}
+                        onChange={(e) => handleFilterChange('doctor', e.target.value)}
                      >
                         <MenuItem value="todos">Todos los doctores</MenuItem>
                         {doctors.map((doctor) => (
@@ -189,16 +243,16 @@ export const CitasDisponiblesPage = () => {
                      </Select>
                   </FormControl>
                </Grid>
-               <Grid item xs={12} sm={6}>
+               <Grid item xs={12} sm={4}>
                   <FormControl fullWidth>
                      <InputLabel>Fecha</InputLabel>
                      <Select
                         value={selectedDate}
                         label="Fecha"
-                        onChange={(e) => setSelectedDate(e.target.value)}
+                        onChange={(e) => handleFilterChange('date', e.target.value)}
                      >
                         <MenuItem value="todas">Todas las fechas</MenuItem>
-                        {uniqueDates.map((date) => (
+                        {allDates.map((date) => (
                            <MenuItem key={date} value={date}>
                               {new Date(date + 'T00:00:00').toLocaleDateString('es-ES', {
                                  weekday: 'long',
@@ -211,19 +265,40 @@ export const CitasDisponiblesPage = () => {
                      </Select>
                   </FormControl>
                </Grid>
+               <Grid item xs={12} sm={4}>
+                  <FormControl fullWidth>
+                     <InputLabel>Resultados por página</InputLabel>
+                     <Select
+                        value={itemsPerPage}
+                        label="Resultados por página"
+                        onChange={(e) => {
+                           setItemsPerPage(Number(e.target.value));
+                           setCurrentPage(1);
+                        }}
+                     >
+                        <MenuItem value={10}>10 resultados</MenuItem>
+                        <MenuItem value={20}>20 resultados</MenuItem>
+                        <MenuItem value={50}>50 resultados</MenuItem>
+                        <MenuItem value={100}>100 resultados</MenuItem>
+                     </Select>
+                  </FormControl>
+               </Grid>
             </Grid>
          </Paper>
 
          {/* Resultados */}
-         <Box mb={2}>
+         <Box mb={2} display="flex" justifyContent="space-between" alignItems="center">
             <Typography variant="body2" color="text.secondary">
-               {(filteredSlots || []).length} horarios disponibles
+               {selectedDoctor !== 'todos' || selectedDate !== 'todas' 
+                  ? `Mostrando ${(slots || []).length} resultados filtrados`
+                  : `Mostrando ${(slots || []).length} de ${totalItems} horarios disponibles (Página ${currentPage} de ${totalPages})`
+               }
             </Typography>
          </Box>
 
          {/* Grid de Horarios */}
          <Grid container spacing={2}>
-            {(filteredSlots || []).map((slot) => (
+            {(slots || []).map((slot) => (
                <Grid item xs={12} sm={6} md={4} key={slot.id}>
                   <Card
                      elevation={2}
@@ -286,7 +361,7 @@ export const CitasDisponiblesPage = () => {
          </Grid>
 
          {/* Empty State */}
-         {(filteredSlots || []).length === 0 && (
+         {(slots || []).length === 0 && (
             <Paper sx={{ p: 6, textAlign: 'center' }}>
                <CalendarIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
                <Typography variant="h6" color="text.secondary" gutterBottom>
@@ -295,6 +370,56 @@ export const CitasDisponiblesPage = () => {
                <Typography variant="body2" color="text.secondary">
                   Intenta con otros filtros o revisa más tarde
                </Typography>
+            </Paper>
+         )}
+
+         {/* Controles de Paginación - Solo mostrar si NO hay filtros activos */}
+         {totalPages > 1 && selectedDoctor === 'todos' && selectedDate === 'todas' && (
+            <Paper sx={{ p: 2, mt: 4, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2 }}>
+               <Button
+                  variant="outlined"
+                  startIcon={<NavigateBeforeIcon />}
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1 || loading}
+               >
+                  Anterior
+               </Button>
+               
+               <Box display="flex" alignItems="center" gap={1}>
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                     let pageNum;
+                     if (totalPages <= 5) {
+                        pageNum = i + 1;
+                     } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                     } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                     } else {
+                        pageNum = currentPage - 2 + i;
+                     }
+                     
+                     return (
+                        <Button
+                           key={pageNum}
+                           variant={currentPage === pageNum ? 'contained' : 'outlined'}
+                           onClick={() => handlePageChange(pageNum)}
+                           disabled={loading}
+                           sx={{ minWidth: '40px' }}
+                        >
+                           {pageNum}
+                        </Button>
+                     );
+                  })}
+               </Box>
+
+               <Button
+                  variant="outlined"
+                  endIcon={<NavigateNextIcon />}
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages || loading}
+               >
+                  Siguiente
+               </Button>
             </Paper>
          )}
 

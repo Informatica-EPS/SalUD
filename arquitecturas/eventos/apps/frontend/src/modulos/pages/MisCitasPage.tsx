@@ -30,6 +30,7 @@ import { usePatientAppointments } from '../../hooks';
 import { getDoctorFullName, getDoctor, getTimeSlot, getAppointmentDetail } from '../../utils';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { BackButton } from '../../components';
 
 export const MisCitasPage = () => {
    const navigate = useNavigate();
@@ -127,6 +128,9 @@ export const MisCitasPage = () => {
    return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
          {/* Header */}
+         <Box mb={2}>
+            <BackButton to="/home" />
+         </Box>
          <Box mb={4}>
             <Typography variant="h4" gutterBottom fontWeight="bold">
                Mis Citas Médicas

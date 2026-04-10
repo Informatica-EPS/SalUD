@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../../services/apiClient';
 import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom';
+import { BackButton } from '../../components';
 
 import {
    Box,
@@ -195,6 +196,9 @@ export default function DoctorsPageAdmin() {
          }}
       >
          {/* HEADER */}
+         <Box mb={2}>
+            <BackButton to="/home" />
+         </Box>
          <Box
             sx={{
                display: 'flex',
@@ -215,22 +219,6 @@ export default function DoctorsPageAdmin() {
             </Typography>
 
             <Stack direction="row" spacing={2}>
-               <Button
-                  onClick={() => navigate('/')}
-                  sx={{
-                     px: 2.5,
-                     py: 1,
-                     borderRadius: 2,
-                     fontWeight: 'bold',
-                     color: 'white',
-                     background: '#2c3e50',
-                     textTransform: 'none',
-                     '&:hover': { opacity: 0.9 },
-                  }}
-               >
-                  🏠 Home
-               </Button>
-
                <Button
                   onClick={handleCreateDoctor}
                   sx={{
