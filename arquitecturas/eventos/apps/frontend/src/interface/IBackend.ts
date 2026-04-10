@@ -249,3 +249,55 @@ export interface IClinicalHistoryResponse {
    paciente: IPatient;
    citas: IAppointment[];
 }
+
+// ============================================
+// INTERFACES PARA ÓRDENES MÉDICAS
+// ============================================
+
+// Orden
+export interface IOrder {
+   id: number;
+   idCita: number;
+   fechaVencimiento?: string;
+   estado: 'pendiente' | 'programada' | 'ejecutada' | 'cancelada';
+   entidadDestino: string;
+   especialidad: string;
+   descripcion: string;
+   creadoPor?: number;
+   actualizadoPor?: number;
+   createdAt?: string;
+   updatedAt?: string;
+   cita?: IAppointment;
+   Appointment?: IAppointment;
+}
+
+// Request para crear Orden
+export interface ICreateOrderRequest {
+   idCita: number;
+   fechaVencimiento?: string;
+   estado: 'pendiente' | 'programada' | 'ejecutada' | 'cancelada';
+   entidadDestino: string;
+   especialidad: string;
+   descripcion: string;
+   creadoPor?: number;
+   actualizadoPor?: number;
+}
+
+// Request para actualizar Orden
+export interface IUpdateOrderRequest {
+   idCita?: number;
+   fechaVencimiento?: string;
+   estado?: 'pendiente' | 'programada' | 'ejecutada' | 'cancelada';
+   entidadDestino?: string;
+   especialidad?: string;
+   descripcion?: string;
+   actualizadoPor?: number;
+}
+
+// Response de lista de órdenes con paginación
+export interface IOrdersResponse {
+   totalPages: number;
+   totalItems: number;
+   currentPage: number;
+   ordenes: IOrder[];
+}

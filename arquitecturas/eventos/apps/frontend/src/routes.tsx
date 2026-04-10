@@ -7,8 +7,10 @@ import {
    DoctoresListPage,
    CitasDisponiblesPage,
    MisCitasPage,
+   MisOrdenesPage,
    GestionHorariosPage,
    HistoriaClinicaPage,
+   CrearOrdenPage,
    // Páginas antiguas
    PacientePage,
    MedicoPage,
@@ -84,6 +86,15 @@ const AppRoutes = () => {
                }
             />
 
+            <Route
+               path="/mis-ordenes"
+               element={
+                  <ProtectedRoute>
+                     <MisOrdenesPage />
+                  </ProtectedRoute>
+               }
+            />
+
             {/* Rutas de Gestión de Horarios (Médicos) */}
             <Route
                path="/gestion-horarios"
@@ -109,6 +120,25 @@ const AppRoutes = () => {
                element={
                   <ProtectedRoute>
                      <HistoriaClinicaPage />
+                  </ProtectedRoute>
+               }
+            />
+
+            {/* Ruta de Órdenes Médicas */}
+            <Route
+               path="/crear-orden"
+               element={
+                  <ProtectedRoute>
+                     <CrearOrdenPage />
+                  </ProtectedRoute>
+               }
+            />
+
+            <Route
+               path="/crear-orden/:citaId"
+               element={
+                  <ProtectedRoute>
+                     <CrearOrdenPage />
                   </ProtectedRoute>
                }
             />

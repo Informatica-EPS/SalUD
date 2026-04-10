@@ -24,12 +24,15 @@ import {
    Cancel as CancelIcon,
    Description as DescriptionIcon,
    LocalHospital as HospitalIcon,
+   AssignmentTurnedIn as OrderIcon,
 } from '@mui/icons-material';
 import { usePatientAppointments } from '../../hooks';
 import { getDoctorFullName, getDoctor, getTimeSlot, getAppointmentDetail } from '../../utils';
 import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 export const MisCitasPage = () => {
+   const navigate = useNavigate();
    const { user } = useAuth();
    const pacienteId = user?.idPaciente || 1; // Fallback temporal a 1 para desarrollo
    const {
@@ -128,9 +131,19 @@ export const MisCitasPage = () => {
             <Typography variant="h4" gutterBottom fontWeight="bold">
                Mis Citas Médicas
             </Typography>
-            <Typography variant="body1" color="text.secondary">
-               Gestiona tus citas programadas y revisa tu historial
-            </Typography>
+            <Box display="flex" justifyContent="space-between" alignItems="center">
+               <Typography variant="body1" color="text.secondary">
+                  Gestiona tus citas programadas y revisa tu historial
+               </Typography>
+               <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<OrderIcon />}
+                  onClick={() => navigate('/mis-ordenes')}
+               >
+                  Ver Mis Órdenes
+               </Button>
+            </Box>
          </Box>
 
          {/* Success Alert */}

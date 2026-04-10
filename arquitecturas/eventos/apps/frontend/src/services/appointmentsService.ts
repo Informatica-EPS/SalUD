@@ -169,6 +169,24 @@ export const appointmentsService = {
    },
 
    /**
+    * Iniciar una cita (marcarla como "en_proceso")
+    * PUT /api/appointments/:id
+    */
+   start: async (id: number, actualizadoPor?: number): Promise<IAppointment> => {
+      try {
+         const response = await api.put<IAppointment>(`/appointments/${id}`, {
+            estado: 'en_proceso',
+            actualizadoPor,
+         });
+         console.log(`✅ Cita ${id} iniciada (en proceso)`);
+         return response;
+      } catch (error) {
+         console.error(`Error al iniciar cita ${id}:`, error);
+         throw error;
+      }
+   },
+
+   /**
     * Actualizar una cita existente
     * PUT /api/appointments/:id
     */

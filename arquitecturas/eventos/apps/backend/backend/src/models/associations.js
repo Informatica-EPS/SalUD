@@ -108,4 +108,5 @@ module.exports = {
   TimeSlot,
   Appointment,
   AppointmentDetail,
+  Order,
 };

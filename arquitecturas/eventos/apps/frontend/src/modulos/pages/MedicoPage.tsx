@@ -34,11 +34,13 @@ import {
    LocalHospital as HospitalIcon,
    Description as DescriptionIcon,
    Cancel as CancelIcon,
+   AssignmentTurnedIn as OrderIcon,
 } from '@mui/icons-material';
 import { appointmentsService, appointmentDetailsService } from '../../services';
 import { useAuth } from '../../context/AuthContext';
 import { IAppointment, IAppointmentDetail } from '../../interface';
 import { getPatientFullName } from '../../utils';
+import { useNavigate } from 'react-router-dom';
 
 interface TabPanelProps {
    children?: React.ReactNode;
@@ -56,6 +58,7 @@ function TabPanel(props: TabPanelProps) {
 }
 
 export default function MedicoPage() {
+   const navigate = useNavigate();
    const { user } = useAuth();
    const doctorId = user?.idDoctor || 3; // Fallback temporal
 
@@ -114,6 +117,32 @@ export default function MedicoPage() {
          setError('Error al cargar las citas');
          console.error('Error:', err);
          setAppointments([]);
+      } finally {
+         setLoading(false);
+      }
+   };
+
+   const handleCrearOrden = (appointment: IAppointment) => {
+      navigate('/crear-orden', {
+         state: {
+            citaId: appointment.id,
+            pacienteNombre: getPatientFullName(appointment.paciente) || 'Paciente sin nombre',
+            doctorNombre: user?.primerNombre + ' ' + user?.primerApellido || 'Doctor',
+         },
+      });
+   };
+
+   const handleIniciarCita = async (appointment: IAppointment) => {
+      try {
+         setLoading(true);
+         await appointmentsService.start(appointment.id, doctorId);
+         setSuccess('Cita iniciada exitosamente');
+         await loadAppointments();
+         setTimeout(() => setSuccess(null), 3000);
+      } catch (err) {
+         setError('Error al iniciar la cita');
+         console.error('Error:', err);
+         setTimeout(() => setError(null), 3000);
       } finally {
          setLoading(false);
       }
@@ -210,14 +239,52 @@ export default function MedicoPage() {
       }
 
       try {
-         // Guardar detalles primero
-         await handleSaveDetails();
-
-         // Marcar cita como completada
-         await appointmentsService.complete(selectedAppointment.id, {
-            estado: 'completada',
+         // Primero guardar los detalles
+         const detailData = {
+            motivo,
+            antecedentes,
+            anamnesis,
+            revisionSistemas,
+            examenFisico,
+            diagnostico,
+            planManejo,
+            evolucion,
+            idCita: selectedAppointment.id,
+            creadoPor: doctorId,
             actualizadoPor: doctorId,
-         } as any);
+         };
+
+         if (existingDetail) {
+            await appointmentDetailsService.update(existingDetail.id, detailData);
+         } else {
+            await appointmentDetailsService.create(detailData);
+         }
+
+         // Intentar completar la cita
+         try {
+            // Si la cita está programada, primero iniciarla
+            if (selectedAppointment.estado === 'programada') {
+               await appointmentsService.start(selectedAppointment.id, doctorId);
+            }
+            
+            // Ahora marcar como completada
+            await appointmentsService.complete(selectedAppointment.id, {
+               estado: 'completada',
+               actualizadoPor: doctorId,
+            } as any);
+         } catch (completeError: any) {
+            // Si falla porque no está en curso, actualizar directamente el estado
+            if (completeError?.response?.data?.message?.includes('no está en curso') || 
+                completeError?.message?.includes('no está en curso')) {
+               console.log('Cita no está en curso, actualizando estado directamente...');
+               await appointmentsService.update(selectedAppointment.id, {
+                  estado: 'completada',
+                  actualizadoPor: doctorId,
+               } as any);
+            } else {
+               throw completeError;
+            }
+         }
 
          setSuccess('Cita completada exitosamente');
          handleCloseDetailsDialog();
@@ -252,6 +319,7 @@ export default function MedicoPage() {
    };
 
    const programadas = filterAppointments(['programada']);
+   const enProceso = filterAppointments(['en_proceso']);
    const completadas = filterAppointments(['completada', 'completado']);
    const canceladas = filterAppointments(['cancelada', 'cancelado']);
 
@@ -300,6 +368,16 @@ export default function MedicoPage() {
                </Paper>
             </Grid>
             <Grid item xs={6} sm={3}>
+               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'warning.light' }}>
+                  <Typography variant="h4" fontWeight="bold">
+                     {enProceso.length}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                     En Proceso
+                  </Typography>
+               </Paper>
+            </Grid>
+            <Grid item xs={6} sm={3}>
                <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'success.light' }}>
                   <Typography variant="h4" fontWeight="bold">
                      {completadas.length}
@@ -319,22 +397,13 @@ export default function MedicoPage() {
                   </Typography>
                </Paper>
             </Grid>
-            <Grid item xs={6} sm={3}>
-               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'grey.200' }}>
-                  <Typography variant="h4" fontWeight="bold">
-                     {appointments.length}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                     Total
-                  </Typography>
-               </Paper>
-            </Grid>
          </Grid>
 
          {/* Tabs */}
          <Paper sx={{ mb: 3 }}>
             <Tabs value={tabValue} onChange={(_e, newValue) => setTabValue(newValue)}>
                <Tab icon={<CalendarIcon />} label="Programadas" iconPosition="start" />
+               <Tab icon={<TimeIcon />} label="En Proceso" iconPosition="start" />
                <Tab icon={<CheckIcon />} label="Completadas" iconPosition="start" />
                <Tab icon={<CancelIcon />} label="Canceladas" iconPosition="start" />
             </Tabs>
@@ -371,12 +440,22 @@ export default function MedicoPage() {
                                        />
                                     </Box>
                                  </Box>
-                                 <IconButton
-                                    color="primary"
-                                    onClick={() => handleOpenDetailsDialog(appointment)}
-                                 >
-                                    <EditIcon />
-                                 </IconButton>
+                                 <Box display="flex" gap={1}>
+                                    <IconButton
+                                       color="primary"
+                                       onClick={() => handleOpenDetailsDialog(appointment)}
+                                       title="Editar detalles"
+                                    >
+                                       <EditIcon />
+                                    </IconButton>
+                                    <IconButton
+                                       color="success"
+                                       onClick={() => handleCrearOrden(appointment)}
+                                       title="Crear orden médica"
+                                    >
+                                       <OrderIcon />
+                                    </IconButton>
+                                 </Box>
                               </Box>
 
                               <Divider sx={{ my: 2 }} />
@@ -403,9 +482,32 @@ export default function MedicoPage() {
                                  </Typography>
                               </Box>
 
-                              <Box display="flex" alignItems="center" gap={1}>
+                              <Box display="flex" alignItems="center" gap={1} mb={2}>
                                  <HospitalIcon fontSize="small" color="action" />
                                  <Typography variant="body2">{appointment.tipoCita}</Typography>
+                              </Box>
+
+                              <Box display="flex" flexDirection="column" gap={1}>
+                                 <Button
+                                    variant="contained"
+                                    color="success"
+                                    startIcon={<CheckIcon />}
+                                    onClick={() => handleIniciarCita(appointment)}
+                                    fullWidth
+                                    size="small"
+                                 >
+                                    Iniciar Consulta
+                                 </Button>
+                                 <Button
+                                    variant="contained"
+                                    color="primary"
+                                    startIcon={<OrderIcon />}
+                                    onClick={() => handleCrearOrden(appointment)}
+                                    fullWidth
+                                    size="small"
+                                 >
+                                    Crear Orden Médica
+                                 </Button>
                               </Box>
 
                               {appointment.detalles && (
@@ -425,8 +527,114 @@ export default function MedicoPage() {
             )}
          </TabPanel>
 
-         {/* Tab: Completadas */}
+         {/* Tab: En Proceso */}
          <TabPanel value={tabValue} index={1}>
+            {enProceso.length === 0 ? (
+               <Paper sx={{ p: 6, textAlign: 'center' }}>
+                  <TimeIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+                  <Typography variant="h6" color="text.secondary">
+                     No hay citas en proceso
+                  </Typography>
+               </Paper>
+            ) : (
+               <Grid container spacing={3}>
+                  {enProceso.map((appointment) => (
+                     <Grid item xs={12} md={6} key={appointment.id}>
+                        <Card sx={{ border: 2, borderColor: 'warning.main' }}>
+                           <CardContent>
+                              <Box display="flex" justifyContent="space-between" alignItems="start" mb={2}>
+                                 <Box display="flex" gap={2}>
+                                    <Avatar sx={{ bgcolor: 'warning.main' }}>
+                                       {getPatientFullName(appointment.paciente)?.charAt(0) || 'P'}
+                                    </Avatar>
+                                    <Box>
+                                       <Typography variant="h6">
+                                          {getPatientFullName(appointment.paciente) || 'Paciente sin nombre'}
+                                       </Typography>
+                                       <Chip
+                                          label="En Proceso"
+                                          color="warning"
+                                          size="small"
+                                       />
+                                    </Box>
+                                 </Box>
+                                 <Box display="flex" gap={1}>
+                                    <IconButton
+                                       color="primary"
+                                       onClick={() => handleOpenDetailsDialog(appointment)}
+                                       title="Completar consulta"
+                                    >
+                                       <EditIcon />
+                                    </IconButton>
+                                    <IconButton
+                                       color="success"
+                                       onClick={() => handleCrearOrden(appointment)}
+                                       title="Crear orden médica"
+                                    >
+                                       <OrderIcon />
+                                    </IconButton>
+                                 </Box>
+                              </Box>
+
+                              <Divider sx={{ my: 2 }} />
+
+                              <Box display="flex" alignItems="center" gap={1} mb={1}>
+                                 <CalendarIcon fontSize="small" color="action" />
+                                 <Typography variant="body2">
+                                    {appointment.horario?.fecha &&
+                                       new Date(
+                                          appointment.horario.fecha + 'T00:00:00'
+                                       ).toLocaleDateString('es-ES', {
+                                          year: 'numeric',
+                                          month: 'long',
+                                          day: 'numeric',
+                                       })}
+                                 </Typography>
+                              </Box>
+
+                              <Box display="flex" alignItems="center" gap={1} mb={1}>
+                                 <TimeIcon fontSize="small" color="action" />
+                                 <Typography variant="body2">
+                                    {appointment.horario?.horaInicio?.substring(0, 5)} -{' '}
+                                    {appointment.horario?.horaFin?.substring(0, 5)}
+                                 </Typography>
+                              </Box>
+
+                              <Box display="flex" alignItems="center" gap={1} mb={2}>
+                                 <HospitalIcon fontSize="small" color="action" />
+                                 <Typography variant="body2">{appointment.tipoCita}</Typography>
+                              </Box>
+
+                              <Button
+                                 variant="contained"
+                                 color="success"
+                                 startIcon={<CheckIcon />}
+                                 onClick={() => handleOpenDetailsDialog(appointment)}
+                                 fullWidth
+                                 size="small"
+                              >
+                                 Completar Consulta
+                              </Button>
+
+                              {appointment.detalles && (
+                                 <Chip
+                                    label="Con detalles"
+                                    size="small"
+                                    color="info"
+                                    sx={{ mt: 2 }}
+                                    icon={<DescriptionIcon />}
+                                 />
+                              )}
+                           </CardContent>
+                        </Card>
+                     </Grid>
+                  ))}
+               </Grid>
+            )}
+         </TabPanel>
+
+         {/* Tab: Completadas */}
+         <TabPanel value={tabValue} index={2}>
             {completadas.length === 0 ? (
                <Paper sx={{ p: 6, textAlign: 'center' }}>
                   <CheckIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
@@ -511,6 +719,16 @@ export default function MedicoPage() {
                                  >
                                     Ver detalles completos
                                  </Button>
+                                 <Button
+                                    size="small"
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={() => handleCrearOrden(appointment)}
+                                    startIcon={<OrderIcon />}
+                                    sx={{ ml: 1 }}
+                                 >
+                                    Crear Orden
+                                 </Button>
                               </Box>
                            ) : (
                               <Typography variant="body2" color="text.secondary">
@@ -524,7 +742,7 @@ export default function MedicoPage() {
          </TabPanel>
 
          {/* Tab: Canceladas */}
-         <TabPanel value={tabValue} index={2}>
+         <TabPanel value={tabValue} index={3}>
             {canceladas.length === 0 ? (
                <Paper sx={{ p: 6, textAlign: 'center' }}>
                   <CancelIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
@@ -630,7 +848,11 @@ export default function MedicoPage() {
          {/* Dialog: Detalles de Cita */}
          <Dialog open={openDetailsDialog} onClose={handleCloseDetailsDialog} maxWidth="md" fullWidth>
             <DialogTitle>
-               {existingDetail ? 'Editar Detalles de la Cita' : 'Agregar Detalles de la Cita'}
+               {selectedAppointment?.estado === 'en_proceso' 
+                  ? 'Completar Consulta' 
+                  : existingDetail 
+                     ? 'Editar Detalles de la Cita' 
+                     : 'Agregar Detalles de la Cita'}
             </DialogTitle>
             <DialogContent>
                {selectedAppointment && (
@@ -734,7 +956,7 @@ export default function MedicoPage() {
                <Button onClick={handleSaveDetails} variant="outlined">
                   Guardar Detalles
                </Button>
-               {selectedAppointment?.estado === 'programada' && (
+               {(selectedAppointment?.estado === 'programada' || selectedAppointment?.estado === 'en_proceso') && (
                   <Button onClick={handleCompleteAppointment} variant="contained" color="success">
                      Completar Cita
                   </Button>
