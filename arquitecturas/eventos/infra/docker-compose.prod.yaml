@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # --- BASE DE DATOS (PostgreSQL) ---
+  db:
+    image: postgres:15-alpine
+    container_name: salud-db-prod
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - salud_pg_data:/var/lib/postgresql/data
+    networks:
+      - salud-network
+    # El "Healthcheck" permite que otros servicios sepan cuando la DB ya acepta conexiones
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # --- BACKEND (Node.js) ---
+  backend:
+    build:
+      context: ../apps/backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    container_name: salud-backend-prod
+    restart: always
+    environment:
+      - DATABASE_URL=postgres://user_admin:super_password_123@db:5432/mi_base_de_datos 
+      - NODE_ENV=production
+      - APPOINTMENT_DETAIL_KEY=${APPOINTMENT_DETAIL_KEY}
+    # Aquí configuramos la espera: el backend no arranca hasta que el healthcheck de la DB sea exitoso
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - salud-network
+
+  # --- FRONTEND (Nginx sirviendo React) ---
+  frontend:
+    build:
+      context: ../apps/frontend
+      dockerfile: Dockerfile
+      target: production # Usa la etapa de Nginx del nuevo Dockerfile universal
+    container_name: salud-frontend-prod
+    restart: always
+    ports:
+      - "80:80" # Producción usa el puerto estándar web
+    depends_on:
+      - backend
+    networks:
+      - salud-network
+
+networks:
+  salud-network:
+    driver: bridge
+
+volumes:
+  salud_pg_data:
