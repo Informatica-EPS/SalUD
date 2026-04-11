@@ -27,10 +27,17 @@ class OrderService {
   }
 
   async findAll(queryParams) {
+    console.log("Query Params:", queryParams);
+    let idCita = undefined;
+    if (queryParams.idCita) {
+    idCita = Number(queryParams.idCita, 10);
+    }
+
     const { rows, count, page, totalPages } = await functions.paginate(
       Order,
       queryParams,
       {
+        where: idCita !== undefined ?{ idCita: idCita } : {},
         include: [
           {
             model: AppointmentModel,
