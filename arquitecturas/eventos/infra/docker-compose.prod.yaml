@@ -81,6 +81,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=5001
+      - DB_DIALECT=postgres
       - RABBITMQ_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672
     depends_on:
       rabbitmq:
