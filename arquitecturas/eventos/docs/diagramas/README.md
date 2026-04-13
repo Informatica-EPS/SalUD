@@ -37,3 +37,4 @@ Los diagramas fueron creados con [draw.io](https://app.diagrams.net/).
 
 - [Arquitectura_General.drawio](https://drive.google.com/file/d/18xJmV5yQ_JnhSHtwNuMKE4f9XyK1naLg/view?usp=sharing)
 - [Arquitectura_Evento.drawio](https://drive.google.com/file/d/1WNp4jaYf8Lo2DAN_vGg0A3n7BirIyi7e/view?usp=sharing)
+- [Diagrama de Clases.drawio] (https://drive.google.com/file/d/1LTkIg8STh1PUW2LVS0rkY5eKim7UIhAY/view?usp=sharing)
