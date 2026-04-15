@@ -1,0 +1,30 @@
+name: Deploy SalUD Production
+
+on:
+  push:
+    branches: [ prod ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Azure VM via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # Entrar a la carpeta del proyecto
+            cd ~/SalUD/arquitecturas/cliente-servidor
+            
+            # Traer los últimos cambios de la rama prod
+            git fetch origin prod
+            git checkout prod
+            git pull origin prod
+            
+            # Levantar la infraestructura de producción optimizada
+            docker compose --env-file infra/dev.env -f infra/docker-compose.yaml -f infra/docker-compose.prod.yaml up -d --build
+            
+            # Limpiar imágenes antiguas para no agotar el disco del servidor
+            docker image prune -f
