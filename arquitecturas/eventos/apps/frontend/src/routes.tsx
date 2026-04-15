@@ -14,7 +14,7 @@ import {
    // Páginas antiguas
    PacientePage,
    MedicoPage,
-   DoctorsPage,
+   DoctoresPage,
    DoctoresPageAdmin,
    PacientesPageAdmin,
 } from './modulos/pages';

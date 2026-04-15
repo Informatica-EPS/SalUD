@@ -5,7 +5,7 @@ module.exports = {
    testEnvironmentOptions: {
       customExportConditions: ['node', 'node-addons'],
    },
-   setupFiles: ['<rootDir>/jest.setup.js'],
+   //setupFiles: ['<rootDir>/jest.setup.js'],
    // Configuración de cobertura
    collectCoverage: false,
    coverageDirectory: 'coverage',
