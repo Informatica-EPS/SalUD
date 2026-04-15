@@ -5,7 +5,12 @@
   "scripts": {
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
-    "db:diff:schema": "node ./scripts/sequelize-schema-diff.js --models-path ./src/models --config ./src/config/database/config.js --migrations-path ./src/migrations"
+    "db:diff:schema": "node ./scripts/sequelize-schema-diff.js --models-path ./src/models --config ./src/config/database/config.js --migrations-path ./src/migrations",
+    "db:migrate:test": "cross-env NODE_ENV=test dotenv -e .env.test -- sequelize-cli db:migrate",
+    "db:seed:test": "cross-env NODE_ENV=test dotenv -e .env.test -- sequelize-cli db:seed:all",
+    "db:setup:test": "cross-env NODE_ENV=test dotenv -e .env.test -- sequelize-cli db:migrate && cross-env NODE_ENV=test dotenv -e .env.test -- sequelize-cli db:seed:all",
+    "test": "cross-env NODE_ENV=test jest --runInBand",
+    "test:coverage": "cross-env NODE_ENV=test jest --coverage --runInBand"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -21,6 +26,10 @@
     "yamljs": "^0.3.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.3"
+    "cross-env": "^7.0.3",
+    "dotenv-cli": "^11.0.0",
+    "jest": "^30.2.0",
+    "nodemon": "^3.0.3",
+    "supertest": "^7.0.0"
   }
 }

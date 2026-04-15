@@ -1,0 +1,113 @@
+version: '3.8'
+
+services:
+  # --- BASE DE DATOS (PostgreSQL) ---
+  db:
+    image: postgres:15-alpine
+    container_name: salud-db-prod
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - salud_pg_data:/var/lib/postgresql/data
+    networks:
+      - salud-network
+    # El "Healthcheck" asegura que los backends no arranquen antes que la DB
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # --- MESSAGE BROKER (RabbitMQ) ---
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: salud-rabbitmq-prod
+    restart: always
+    ports:
+      - "5672:5672" # Puerto de comunicación entre microservicios
+      # - "15672:15672" # Descomenta esta línea solo si necesitas ver el panel de admin en Azure
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - salud-network
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # --- BACKEND PRINCIPAL (Node.js) ---
+  backend:
+    build:
+      context: ../apps/backend/backend
+      dockerfile: Dockerfile
+    container_name: salud-backend-prod
+    restart: always
+    ports:
+      - "5000:5000" # ¡El mapeo de puerto corregido para Azure!
+    environment:
+      - DATABASE_URL=postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DIALECT=postgres
+      - APPOINTMENT_DETAIL_KEY=${APPOINTMENT_DETAIL_KEY}
+      - NODE_ENV=production
+      - PORT=5000
+      - RABBITMQ_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - salud-network
+
+  # --- MICROSERVICIO DE NOTIFICACIONES ---
+  notifications-service:
+    build:
+      context: ../apps/backend/notifications
+      dockerfile: Dockerfile
+    container_name: salud-notifications-prod
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - PORT=5001
+      - DB_DIALECT=postgres
+      - RABBITMQ_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - salud-network
+
+  # --- FRONTEND (Nginx sirviendo React) ---
+  frontend:
+    build:
+      context: ../apps/frontend
+      dockerfile: Dockerfile
+      target: production
+    container_name: salud-frontend-prod
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - salud-network
+
+networks:
+  salud-network:
+    driver: bridge
+
+volumes:
+  salud_pg_data:
+  rabbitmq_data:
