@@ -72,5 +72,5 @@ jobs:
             cd infra
             
             # 4. Reconstruir las imágenes y levantar contenedores en segundo plano
-            docker compose -f docker-compose.prod.yaml down
-            docker compose -f docker-compose.prod.yaml up -d --build
+            docker compose --env-file infra/dev.env -f infra/docker-compose.prod.yaml down
+            docker compose --env-file infra/dev.env -f infra/docker-compose.prod.yaml up -d --build
