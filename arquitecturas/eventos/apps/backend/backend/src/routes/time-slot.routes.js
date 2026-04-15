@@ -15,6 +15,11 @@ router.get(
 );
 router.get("/doctor/:id", timeSlotController.getTimeSlotsByDoctor);
 
+// Speciality
+
+// router.get("/speciality/available/:id", timeSlotController.getTimeSlotsBySpecialityAvailable);
+router.get("/speciality/:id", timeSlotController.getTimeSlotsBySpeciality);
+
 router.get("/:id", timeSlotController.getTimeSlotById);
 router.put("/:id", timeSlotController.updateTimeSlot);
 router.delete("/:id", timeSlotController.deleteTimeSlot);

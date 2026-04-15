@@ -28,6 +28,19 @@ router.get(
   appointmentController.getClinicalHistory,
 );
 
+// Especialidad
+
+router.get(
+  "/specialty/:idSpecialty",
+  appointmentController.getAppointmentsBySpecialty,
+);
+
+router.post(
+  "/specialty/:idSpecialty",
+  appointmentController.createAppointmentBySpecialty,
+);
+
+router.get;
 router.put("/:idAppointment", appointmentController.updateAppointment);
 router.get("/:idAppointment", appointmentController.getAppointmentById);
 router.delete("/:idAppointment", appointmentController.deleteAppointment);

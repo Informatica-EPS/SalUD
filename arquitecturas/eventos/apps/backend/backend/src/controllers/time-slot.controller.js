@@ -107,6 +107,18 @@ const deleteTimeSlot = async (req, res, next) => {
   }
 };
 
+const getTimeSlotsBySpeciality = async (req, res, next) => {
+  try {
+    const timeSlots = await timeSlotService.findAllBySpeciality(
+      req.params.id,
+      req.query,
+    );
+    res.json(timeSlots);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createTimeSlot,
   getTimeSlots,
@@ -115,6 +127,7 @@ module.exports = {
   getTimeSlotsByDoctorAvailable,
   getAllAvailableSlots,
   getAllScheduledSlots,
+  getTimeSlotsBySpeciality,
   updateTimeSlot,
   deleteTimeSlot,
 };

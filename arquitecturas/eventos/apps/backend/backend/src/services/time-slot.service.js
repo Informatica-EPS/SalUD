@@ -580,6 +580,75 @@ class TimeSlotService {
     });
     return slot;
   }
+
+  async findAllBySpeciality(specialityId, queryParams) {
+    const nowObj = new Date();
+    const nowDate = nowObj.toLocaleDateString("sv-SE", {
+      timeZone: "America/Bogota",
+    });
+
+    const nowTime = nowObj.toLocaleTimeString("en-GB", {
+      timeZone: "America/Bogota",
+    });
+    const { rows, count, page, totalPages } = await functions.paginate(
+      TimeSlot,
+      queryParams,
+      {
+        where: {
+          estado: timeSlotStatus.AVAILABLE,
+          [Op.or]: [
+            {
+              [Op.and]: [
+                {
+                  fecha: {
+                    [Op.eq]: nowDate,
+                  },
+                },
+                {
+                  horaInicio: {
+                    [Op.gte]: nowTime,
+                  },
+                },
+              ],
+            },
+            {
+              fecha: {
+                [Op.gt]: nowDate,
+              },
+            },
+          ],
+        },
+        order: [["createdAt", "ASC"]],
+        include: [
+          {
+            model: DoctorModel,
+            where: {
+              especialidad: specialityId,
+            },
+            include: [
+              {
+                model: UserModel,
+                attributes: [
+                  "id",
+                  "primer_nombre",
+                  "segundo_nombre",
+                  "primer_apellido",
+                  "segundo_apellido",
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    );
+
+    return {
+      totalPages,
+      totalItems: count,
+      currentPage: page,
+      franjasHorarias: rows,
+    };
+  }
 }
 
 module.exports = new TimeSlotService();

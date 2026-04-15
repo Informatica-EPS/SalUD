@@ -146,10 +146,37 @@ const getClinicalHistory = async (req, res, next) => {
   }
 };
 
+const getAppointmentsBySpecialty = async (req, res, next) => {
+  try {
+    const appointments = await appointmentService.findBySpecialty(
+      req.params.idSpecialty,
+      req.query,
+    );
+    res.json(appointments);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const createAppointmentBySpecialty = async (req, res, next) => {
+  try {
+    const appointment = await appointmentService.createBySpecialty(
+      req.params.idSpecialty,
+      req.body,
+      req.user?.id || null,
+    );
+    res.status(201).json(appointment);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createAppointment,
   getAppointmentById,
   getAppointmentsByDoctor,
+  getAppointmentsByPatient,
+  getAppointmentsBySpecialty,
   getAppointmentsByPatient,
   getAppointments,
   updateAppointment,
@@ -158,4 +185,5 @@ module.exports = {
   updateAppointmentCompleted,
   deleteAppointment,
   getClinicalHistory,
+  createAppointmentBySpecialty,
 };
