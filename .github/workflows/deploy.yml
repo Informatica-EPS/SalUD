@@ -40,8 +40,6 @@ jobs:
 
       - name: Backend - Pruebas
         working-directory: ./arquitecturas/eventos/apps/backend/backend
-        env:
-          NODE_ENV: test
         run: npm run test
 
   # ==========================================
