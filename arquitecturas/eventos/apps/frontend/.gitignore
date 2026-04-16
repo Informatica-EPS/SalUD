@@ -25,4 +25,3 @@ coverage
 *.sw?
 
 yarn.lock
-package-lock.json
