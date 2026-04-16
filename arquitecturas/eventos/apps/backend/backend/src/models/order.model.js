@@ -22,7 +22,7 @@ const Order = sequelize.define(
       type: DataTypes.STRING(100),
     },
     especialidad: {
-      type: DataTypes.STRING(100),
+      type: DataTypes.INTEGER,
     },
     descripcion: {
       type: DataTypes.STRING(200),

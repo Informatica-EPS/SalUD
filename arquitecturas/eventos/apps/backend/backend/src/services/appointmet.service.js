@@ -4,6 +4,7 @@ const UserModel = require("../models/user.model");
 const AppointmentDetailModel = require("../models/appointment-details.model");
 const PatientModel = require("../models/patient.model");
 const TimeSlotModel = require("../models/time-slot.model");
+const SpecialtyModel = require("../models/specialty.model");
 const { appointmentsStatus, timeSlotStatus, functions } = require("../utils");
 const TimeSlotService = require("./time-slot.service");
 const {
@@ -12,6 +13,7 @@ const {
 const timeSlotService = require("./time-slot.service");
 const { getDateFormatUTC } = require("../utils/functions");
 const { Op } = require("sequelize");
+const orderService = require("./order.service");
 
 class AppointmentService {
   async create(data) {
@@ -20,6 +22,7 @@ class AppointmentService {
     await this.validateMustBeFutureDate(idHorario);
     await this.validatePatientHasNoScheduledAppointments(idPaciente, idHorario);
     await this.validateDoctorHasTimeSlot(idDoctor, idHorario);
+    await TimeSlotService.markAsScheduled(idHorario);
 
     return await Appointment.create({
       ...data,
@@ -375,8 +378,6 @@ class AppointmentService {
     if (timeSlot.estado === timeSlotStatus.SCHEDULED) {
       throw new Error("El horario ya está reservado");
     }
-
-    await TimeSlotService.markAsScheduled(idHorario);
   }
 
   async updateRescheduledAppointment(id, data, auditUserId = 1) {
@@ -468,6 +469,10 @@ class AppointmentService {
                 "email",
               ],
             },
+            {
+              model: SpecialtyModel,
+              attributes: ["nombre"],
+            },
           ],
         },
         {
@@ -543,6 +548,9 @@ class AppointmentService {
       doctorNombreCompleto: `${doctor.User.primer_nombre} ${doctor.User.segundo_nombre || ""} ${doctor.User.primer_apellido} ${doctor.User.segundo_apellido || ""}`,
       doctorLicencia: doctor.licencia_medica,
       doctorEmail: doctor.User.email,
+      doctorEspecialidad: doctor.Specialty
+        ? doctor.Specialty.nombre
+        : "General",
     };
   }
 
@@ -588,6 +596,117 @@ class AppointmentService {
   async appointmentExists(id) {
     const appointment = await Appointment.findByPk(id);
     return !!appointment;
+  }
+
+  async findBySpecialty(idSpecialty, queryParams) {
+    const { rows, count, page, totalPages } = await functions.paginate(
+      Appointment,
+      queryParams,
+      {
+        include: [
+          {
+            model: DoctorModel,
+            where: { idEspecialidad: idSpecialty },
+            include: [
+              {
+                model: UserModel,
+                attributes: [
+                  "id",
+                  "primer_nombre",
+                  "segundo_nombre",
+                  "primer_apellido",
+                  "segundo_apellido",
+                ],
+              },
+            ],
+          },
+          {
+            model: PatientModel,
+            include: [
+              {
+                model: UserModel,
+                attributes: [
+                  "id",
+                  "primer_nombre",
+                  "segundo_nombre",
+                  "primer_apellido",
+                  "segundo_apellido",
+                ],
+              },
+            ],
+          },
+          {
+            model: TimeSlotModel,
+          },
+          {
+            model: AppointmentDetailModel,
+          },
+        ],
+        order: [["createdAt", "DESC"]],
+      },
+    );
+
+    return {
+      totalPages,
+      currentPage: page,
+      totalItems: count,
+      citas: rows.map((row) => {
+        const out = row.toJSON ? row.toJSON() : { ...row };
+        if (out.AppointmentDetail) {
+          out.AppointmentDetail = decryptSensitiveFields(out.AppointmentDetail);
+        }
+        return out;
+      }),
+    };
+  }
+
+  async validateHasOrder(idPatient, idSpecialty) {
+    const order = await orderService.validatePatientHasAuthorizedOrders(
+      idPatient,
+      idSpecialty,
+    );
+
+    if (!order) {
+      throw new Error(
+        "El paciente no tiene órdenes autorizadas asociadas para esa especialidad",
+      );
+    }
+
+    await this.validateOrderAvailable(order.dataValues);
+
+    return order;
+  }
+
+  async validateOrderAvailable(order) {
+    console.log("validateOrderAvailable", { order });
+
+    // const [date, time] = order.fechaVencimiento.split(" ");
+    const deadline = new Date(`${order.fechaVencimiento}`); //getDateFormatUTC(date, time, "-05:00"); //
+    const now = new Date();
+
+    if (deadline < now) {
+      throw new Error(
+        "La orden ha vencido y no se puede usar para crear una cita",
+      );
+    }
+  }
+
+  async createBySpecialty(idSpecialty, data, userId) {
+    console.log("Creating appointment with data:", data);
+    const { idDoctor, idHorario, idPaciente } = data;
+
+    await this.validateMustBeFutureDate(idHorario);
+    await this.validatePatientHasNoScheduledAppointments(idPaciente, idHorario);
+    await this.validateDoctorHasTimeSlot(idDoctor, idHorario);
+
+    const order = await this.validateHasOrder(idPaciente, idSpecialty);
+
+    await orderService.setCompletedOrder(order.dataValues.id);
+    await TimeSlotService.markAsScheduled(idHorario);
+
+    return await Appointment.create({
+      ...data,
+    });
   }
 }
 

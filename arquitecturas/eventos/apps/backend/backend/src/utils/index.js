@@ -13,8 +13,15 @@ const timeSlotStatus = {
   CANCELLED: "cancelado",
 };
 
+const ordersStatus = {
+  AUTHORIZED: "autorizada",
+  COMPLETED: "completada",
+  CANCELLED: "cancelada",
+};
+
 module.exports = {
   appointmentsStatus,
   timeSlotStatus,
+  ordersStatus,
   functions,
 };

@@ -84,7 +84,7 @@ class NotificationsConsumer {
     const bodyMesagge = `Se ha creado la orden #${data.id}
 
         Detalles:
-        - Especialidad: ${data.especialidad}
+        - Especialidad: ${data.specialtyName || "N/A"}
         - Descripción: ${data.descripcion}
         - Fecha de vencimiento: ${new Date(data.fechaVencimiento).toLocaleDateString()}
 
@@ -93,7 +93,7 @@ class NotificationsConsumer {
       `;
 
     await notificationService.sendEmailNotification({
-      recipient: email || "afarizal@udistrital.edu.co",
+      recipient: this.concatRecipients([email, "afarizal@udistrital.edu.co"]),
       subject: `${primer_nombre}! Tienes una nueva orden autorizada`,
       content: bodyMesagge.replace(/\n/g, "<br>"),
     });
@@ -106,6 +106,13 @@ class NotificationsConsumer {
 
   async handleAppointmentCanceled(payload) {
     console.log("[appointment.canceled] procesado con éxito.");
+  }
+
+  concatRecipients(recipients) {
+    if (!recipients || recipients.length === 0) {
+      return "";
+    }
+    return recipients.join(", ");
   }
 }
 

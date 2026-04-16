@@ -14,7 +14,8 @@ const Doctor = sequelize.define(
       allowNull: false,
     },
     especialidad: {
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,
+      allowNull: true,
     },
     idUsuario: {
       type: DataTypes.INTEGER,
