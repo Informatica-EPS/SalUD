@@ -278,6 +278,7 @@ export interface IOrder {
    updatedAt?: string;
    cita?: IAppointment;
    Appointment?: IAppointment;
+   Specialty?: ISpecialty;
 }
 
 // Request para crear Orden

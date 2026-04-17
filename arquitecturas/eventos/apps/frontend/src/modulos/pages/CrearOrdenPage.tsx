@@ -27,26 +27,10 @@ import {
    Schedule as ScheduleIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useOrders } from '../../hooks';
+import { useOrders, useSpecialties } from '../../hooks';
 import { useAuth } from '../../context/AuthContext';
 import { BackButton } from '../../components';
 import Swal from 'sweetalert2';
-
-const ESPECIALIDADES = [
-   'Cardiología',
-   'Neurología',
-   'Pediatría',
-   'Ginecología',
-   'Oftalmología',
-   'Dermatología',
-   'Traumatología',
-   'Psiquiatría',
-   'Medicina General',
-   'Radiología',
-   'Laboratorio Clínico',
-   'Fisioterapia',
-   'Otra',
-];
 
 const ESTADOS_ORDEN = [
    { value: 'pendiente', label: 'Pendiente' },
@@ -66,6 +50,7 @@ export const CrearOrdenPage = () => {
    const location = useLocation();
    const { user } = useAuth();
    const { createOrder, loading, fetchOrdersByAppointment, orders } = useOrders();
+   const { specialties, loading: loadingSpecialties } = useSpecialties();
 
    const state = location.state as LocationState;
    const citaIdFromState = state?.citaId;
@@ -263,7 +248,7 @@ export const CrearOrdenPage = () => {
                            primary={
                               <Box display="flex" alignItems="center" gap={1}>
                                  <Typography variant="subtitle1" fontWeight="bold">
-                                    Orden #{orden.id} - {orden.especialidad}
+                                    Orden #{orden.id} - {orden.Specialty?.nombre || orden.especialidad}
                                  </Typography>
                                  <Chip
                                     label={orden.estado}
@@ -356,11 +341,16 @@ export const CrearOrdenPage = () => {
                            value={formData.especialidad}
                            onChange={handleChange}
                            required
-                           helperText="Seleccione la especialidad requerida"
+                           disabled={loadingSpecialties}
+                           helperText={
+                              loadingSpecialties 
+                                 ? 'Cargando especialidades...' 
+                                 : 'Seleccione la especialidad requerida'
+                           }
                         >
-                           {ESPECIALIDADES.map((especialidad) => (
-                              <MenuItem key={especialidad} value={especialidad}>
-                                 {especialidad}
+                           {specialties.map((especialidad) => (
+                              <MenuItem key={especialidad.id} value={especialidad.id.toString()}>
+                                 {especialidad.nombre}
                               </MenuItem>
                            ))}
                         </TextField>
