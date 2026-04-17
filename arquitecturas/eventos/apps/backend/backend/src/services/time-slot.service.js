@@ -6,6 +6,7 @@ const DoctorModel = require("../models/doctor.model");
 const PatientModel = require("../models/patient.model");
 const AppointmentModel = require("../models/appointments.model");
 const UserModel = require("../models/user.model");
+const SpecialtyModel = require("../models/specialty.model");
 const { appointmentsStatus, timeSlotStatus, functions } = require("../utils");
 const { Op } = require("sequelize");
 const { getDateFormatUTC } = require("../utils/functions");
@@ -115,6 +116,10 @@ class TimeSlotService {
                   "segundo_apellido",
                 ],
               },
+              {
+                model: SpecialtyModel,
+                attributes: ["id", "nombre", "descripcion"],
+              },
             ],
           },
         ],
@@ -190,6 +195,10 @@ class TimeSlotService {
                   "segundo_apellido",
                 ],
               },
+              {
+                model: SpecialtyModel,
+                attributes: ["id", "nombre", "descripcion"],
+              },
             ],
           },
         ],
@@ -255,6 +264,10 @@ class TimeSlotService {
                   "primer_apellido",
                   "segundo_apellido",
                 ],
+              },
+              {
+                model: SpecialtyModel,
+                attributes: ["id", "nombre", "descripcion"],
               },
             ],
           },

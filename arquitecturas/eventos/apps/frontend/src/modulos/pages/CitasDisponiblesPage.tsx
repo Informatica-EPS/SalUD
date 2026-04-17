@@ -28,6 +28,7 @@ import {
    Add as AddIcon,
    NavigateBefore as NavigateBeforeIcon,
    NavigateNext as NavigateNextIcon,
+   LocalHospital as SpecialtyIcon,
 } from '@mui/icons-material';
 import { useDoctors, useCreateAppointment } from '../../hooks';
 import { timeSlotsService } from '../../services';
@@ -380,6 +381,16 @@ export const CitasDisponiblesPage = () => {
                            </Typography>
                         </Box>
 
+                        {/* Mostrar especialidad si es una cita de especialidad */}
+                        {slot.Doctor?.Specialty && (
+                           <Box display="flex" alignItems="center" gap={1} mb={1}>
+                              <SpecialtyIcon fontSize="small" color="secondary" />
+                              <Typography variant="body2" color="secondary.main" fontWeight="medium">
+                                 {slot.Doctor.Specialty.nombre}
+                              </Typography>
+                           </Box>
+                        )}
+
                         <Box display="flex" alignItems="center" gap={1} mb={1}>
                            <CalendarIcon fontSize="small" color="action" />
                            <Typography variant="body2" color="text.secondary">
@@ -492,6 +503,11 @@ export const CitasDisponiblesPage = () => {
                         <Typography variant="subtitle2" gutterBottom>
                            {getTimeSlotDoctorFullName(selectedSlot)}
                         </Typography>
+                        {selectedSlot.Doctor?.Specialty && (
+                           <Typography variant="body2" fontWeight="medium" color="secondary.main">
+                              Especialidad: {selectedSlot.Doctor.Specialty.nombre}
+                           </Typography>
+                        )}
                         <Typography variant="body2">
                            {new Date(selectedSlot.fecha + 'T00:00:00').toLocaleDateString('es-ES', {
                               weekday: 'long',
