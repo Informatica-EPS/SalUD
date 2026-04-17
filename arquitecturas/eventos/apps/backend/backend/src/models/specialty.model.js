@@ -5,7 +5,7 @@ const Specialty = sequelize.define(
   "Specialty",
   {
     id: {
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
     },
