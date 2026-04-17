@@ -173,6 +173,56 @@ export const timeSlotsService = {
    },
 
    /**
+    * Obtener horarios disponibles por especialidad
+    * GET /api/time-slots/specialty/:especialidadId
+    */
+   getBySpecialty: async (especialidadId: number, page: number = 1, limit: number = 12): Promise<{
+      franjasHorarias: ITimeSlot[];
+      totalPages: number;
+      totalItems: number;
+      currentPage: number;
+   }> => {
+      try {
+         const response: any = await api.get(
+            `/time-slots/specialty/${especialidadId}?page=${page}&limit=${limit}`
+         );
+         
+         console.log('Response getBySpecialty:', response);
+         
+         if (response.franjasHorarias) {
+            return {
+               franjasHorarias: response.franjasHorarias || [],
+               totalPages: response.totalPages || 1,
+               totalItems: response.totalItems || 0,
+               currentPage: response.currentPage || 1,
+            };
+         } else if (Array.isArray(response)) {
+            return {
+               franjasHorarias: response,
+               totalPages: 1,
+               totalItems: response.length,
+               currentPage: 1,
+            };
+         } else {
+            return {
+               franjasHorarias: [],
+               totalPages: 0,
+               totalItems: 0,
+               currentPage: 1,
+            };
+         }
+      } catch (error) {
+         console.error(`Error al obtener horarios de especialidad ${especialidadId}:`, error);
+         return {
+            franjasHorarias: [],
+            totalPages: 0,
+            totalItems: 0,
+            currentPage: 1,
+         };
+      }
+   },
+
+   /**
     * Crear un nuevo time slot
     * POST /api/time-slots
     */

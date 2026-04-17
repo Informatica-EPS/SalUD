@@ -660,6 +660,10 @@ class TimeSlotService {
                   "segundo_apellido",
                 ],
               },
+              {
+                model: SpecialtyModel,
+                attributes: ["id", "nombre", "descripcion"],
+              },
             ],
           },
         ],

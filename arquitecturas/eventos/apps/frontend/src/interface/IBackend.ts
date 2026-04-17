@@ -268,7 +268,7 @@ export interface IOrder {
    id: number;
    idCita: number;
    fechaVencimiento?: string;
-   estado: 'pendiente' | 'programada' | 'ejecutada' | 'cancelada';
+   estado: 'pendiente' | 'autorizada' | 'programada' | 'ejecutada' | 'cancelada';
    entidadDestino: string;
    especialidad: string;
    descripcion: string;
@@ -285,7 +285,7 @@ export interface IOrder {
 export interface ICreateOrderRequest {
    idCita: number;
    fechaVencimiento?: string;
-   estado: 'pendiente' | 'programada' | 'ejecutada' | 'cancelada';
+   estado: 'pendiente' | 'autorizada' | 'programada' | 'ejecutada' | 'cancelada';
    entidadDestino: string;
    especialidad: string;
    descripcion: string;
@@ -297,7 +297,7 @@ export interface ICreateOrderRequest {
 export interface IUpdateOrderRequest {
    idCita?: number;
    fechaVencimiento?: string;
-   estado?: 'pendiente' | 'programada' | 'ejecutada' | 'cancelada';
+   estado?: 'pendiente' | 'autorizada' | 'programada' | 'ejecutada' | 'cancelada';
    entidadDestino?: string;
    especialidad?: string;
    descripcion?: string;

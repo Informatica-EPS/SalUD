@@ -121,6 +121,32 @@ export const appointmentsService = {
    },
 
    /**
+    * Crear una cita con especialista (requiere orden médica)
+    * POST /api/appointments/specialty/:especialidadId
+    */
+   createAppointmentBySpecialty: async (
+      especialidadId: number,
+      appointmentData: ICreateAppointmentRequest,
+      appointmentDetail?: { motivo: string }
+   ): Promise<IAppointment> => {
+      try {
+         const payload = appointmentDetail 
+            ? { ...appointmentData, appointmentDetail }
+            : appointmentData;
+
+         const response = await api.post<IAppointment>(
+            `/appointments/specialty/${especialidadId}`, 
+            payload
+         );
+         console.log('✅ Cita con especialista creada exitosamente');
+         return response;
+      } catch (error) {
+         console.error('Error al crear cita con especialista:', error);
+         throw error;
+      }
+   },
+
+   /**
     * Reprogramar una cita existente
     * PUT /api/appointments/reschedule/:id
     */
