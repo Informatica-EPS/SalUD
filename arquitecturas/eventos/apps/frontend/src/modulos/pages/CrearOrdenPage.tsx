@@ -18,6 +18,10 @@ import {
    ListItem,
    ListItemText,
    ListItemIcon,
+   Dialog,
+   DialogTitle,
+   DialogContent,
+   DialogActions,
 } from '@mui/material';
 import {
    AssignmentTurnedIn as OrderIcon,
@@ -25,31 +29,18 @@ import {
    Cancel as CancelIcon,
    CheckCircle as CheckIcon,
    Schedule as ScheduleIcon,
+   ThumbUp as AuthorizeIcon,
+   Edit as EditIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useOrders } from '../../hooks';
+import { useOrders, useSpecialties } from '../../hooks';
 import { useAuth } from '../../context/AuthContext';
 import { BackButton } from '../../components';
 import Swal from 'sweetalert2';
 
-const ESPECIALIDADES = [
-   'Cardiología',
-   'Neurología',
-   'Pediatría',
-   'Ginecología',
-   'Oftalmología',
-   'Dermatología',
-   'Traumatología',
-   'Psiquiatría',
-   'Medicina General',
-   'Radiología',
-   'Laboratorio Clínico',
-   'Fisioterapia',
-   'Otra',
-];
-
 const ESTADOS_ORDEN = [
    { value: 'pendiente', label: 'Pendiente' },
+   { value: 'autorizada', label: 'Autorizada' },
    { value: 'programada', label: 'Programada' },
    { value: 'ejecutada', label: 'Ejecutada' },
    { value: 'cancelada', label: 'Cancelada' },
@@ -65,7 +56,8 @@ export const CrearOrdenPage = () => {
    const navigate = useNavigate();
    const location = useLocation();
    const { user } = useAuth();
-   const { createOrder, loading, fetchOrdersByAppointment, orders } = useOrders();
+   const { createOrder, updateOrder, loading, fetchOrdersByAppointment, orders } = useOrders();
+   const { specialties, loading: loadingSpecialties } = useSpecialties();
 
    const state = location.state as LocationState;
    const citaIdFromState = state?.citaId;
@@ -84,6 +76,16 @@ export const CrearOrdenPage = () => {
    const [error, setError] = useState<string | null>(null);
    const [success, setSuccess] = useState<string | null>(null);
    const [existingOrders, setExistingOrders] = useState<any[]>([]);
+   
+   // Estado para edición de órdenes
+   const [editingOrder, setEditingOrder] = useState<any | null>(null);
+   const [openEditDialog, setOpenEditDialog] = useState(false);
+   const [editFormData, setEditFormData] = useState({
+      especialidad: '',
+      entidadDestino: '',
+      descripcion: '',
+      fechaVencimiento: '',
+   });
 
    useEffect(() => {
       if (citaIdFromState) {
@@ -106,6 +108,11 @@ export const CrearOrdenPage = () => {
    useEffect(() => {
       setExistingOrders(orders);
    }, [orders]);
+
+   useEffect(() => {
+      console.log('Estado del diálogo cambió:', openEditDialog);
+      console.log('Orden siendo editada:', editingOrder);
+   }, [openEditDialog, editingOrder]);
 
    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const { name, value } = e.target;
@@ -147,7 +154,7 @@ export const CrearOrdenPage = () => {
          especialidad: formData.especialidad,
          entidadDestino: formData.entidadDestino,
          descripcion: formData.descripcion,
-         estado: formData.estado as 'pendiente' | 'programada' | 'ejecutada' | 'cancelada',
+         estado: formData.estado as 'pendiente' | 'autorizada' | 'programada' | 'ejecutada' | 'cancelada',
          fechaVencimiento: formData.fechaVencimiento || undefined,
          creadoPor: user?.id,
          actualizadoPor: user?.id,
@@ -179,6 +186,166 @@ export const CrearOrdenPage = () => {
 
    const handleCancel = () => {
       navigate(-1);
+   };
+
+   const handleAutorizarOrden = async (ordenId: number) => {
+      const confirmResult = await Swal.fire({
+         title: '¿Autorizar orden?',
+         text: 'Esta acción cambiará el estado de la orden a "Autorizada"',
+         icon: 'question',
+         showCancelButton: true,
+         confirmButtonText: 'Sí, autorizar',
+         cancelButtonText: 'Cancelar',
+         confirmButtonColor: '#4caf50',
+      });
+
+      if (confirmResult.isConfirmed) {
+         const result = await updateOrder(ordenId, {
+            estado: 'autorizada',
+            actualizadoPor: user?.id,
+         });
+
+         if (result.success) {
+            await Swal.fire({
+               title: '¡Éxito!',
+               text: 'Orden autorizada exitosamente',
+               icon: 'success',
+               confirmButtonText: 'Aceptar',
+            });
+            loadExistingOrders();
+         } else {
+            await Swal.fire({
+               title: 'Error',
+               text: result.error || 'No se pudo autorizar la orden',
+               icon: 'error',
+               confirmButtonText: 'Aceptar',
+            });
+         }
+      }
+   };
+
+   const handleCambiarEstadoOrden = async (ordenId: number, nuevoEstado: string) => {
+      const estadoLabels: Record<string, string> = {
+         pendiente: 'Pendiente',
+         autorizada: 'Autorizada',
+         programada: 'Programada',
+         ejecutada: 'Ejecutada',
+         cancelada: 'Cancelada',
+      };
+
+      const confirmResult = await Swal.fire({
+         title: '¿Cambiar estado?',
+         text: `Esta acción cambiará el estado de la orden a "${estadoLabels[nuevoEstado]}"`,
+         icon: 'question',
+         showCancelButton: true,
+         confirmButtonText: 'Sí, cambiar',
+         cancelButtonText: 'Cancelar',
+      });
+
+      if (confirmResult.isConfirmed) {
+         const result = await updateOrder(ordenId, {
+            estado: nuevoEstado as any,
+            actualizadoPor: user?.id,
+         });
+
+         if (result.success) {
+            await Swal.fire({
+               title: '¡Éxito!',
+               text: 'Estado de la orden actualizado exitosamente',
+               icon: 'success',
+               confirmButtonText: 'Aceptar',
+            });
+            loadExistingOrders();
+         } else {
+            await Swal.fire({
+               title: 'Error',
+               text: result.error || 'No se pudo actualizar el estado',
+               icon: 'error',
+               confirmButtonText: 'Aceptar',
+            });
+         }
+      }
+   };
+
+   const handleOpenEditDialog = (orden: any) => {
+      console.log('Abriendo diálogo de edición para orden:', orden);
+      setEditingOrder(orden);
+      setEditFormData({
+         especialidad: orden.especialidad?.toString() || orden.Specialty?.id?.toString() || '',
+         entidadDestino: orden.entidadDestino || '',
+         descripcion: orden.descripcion || '',
+         fechaVencimiento: orden.fechaVencimiento 
+            ? new Date(orden.fechaVencimiento).toISOString().split('T')[0] 
+            : '',
+      });
+      setOpenEditDialog(true);
+      console.log('Estado openEditDialog:', true);
+   };
+
+   const handleCloseEditDialog = () => {
+      setOpenEditDialog(false);
+      setEditingOrder(null);
+      setEditFormData({
+         especialidad: '',
+         entidadDestino: '',
+         descripcion: '',
+         fechaVencimiento: '',
+      });
+   };
+
+   const handleEditChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const { name, value } = e.target;
+      setEditFormData((prev) => ({ ...prev, [name]: value }));
+   };
+
+   const handleSaveEdit = async () => {
+      if (!editingOrder) return;
+
+      if (!editFormData.especialidad.trim()) {
+         setError('Debe seleccionar una especialidad');
+         return;
+      }
+      if (!editFormData.entidadDestino.trim()) {
+         setError('Debe ingresar la entidad de destino');
+         return;
+      }
+      if (!editFormData.descripcion.trim()) {
+         setError('Debe ingresar una descripción');
+         return;
+      }
+
+      console.log('Guardando cambios de orden:', editingOrder.id);
+      
+      const result = await updateOrder(editingOrder.id, {
+         especialidad: editFormData.especialidad,
+         entidadDestino: editFormData.entidadDestino,
+         descripcion: editFormData.descripcion,
+         fechaVencimiento: editFormData.fechaVencimiento || undefined,
+         actualizadoPor: user?.id,
+      });
+
+      console.log('Resultado de actualización:', result);
+
+      // Cerrar el diálogo primero
+      handleCloseEditDialog();
+      
+      // Luego mostrar el mensaje
+      if (result.success) {
+         await loadExistingOrders();
+         await Swal.fire({
+            title: '¡Éxito!',
+            text: 'Orden actualizada exitosamente',
+            icon: 'success',
+            confirmButtonText: 'Aceptar',
+         });
+      } else {
+         await Swal.fire({
+            title: 'Error',
+            text: result.error || 'No se pudo actualizar la orden',
+            icon: 'error',
+            confirmButtonText: 'Aceptar',
+         });
+      }
    };
 
    return (
@@ -254,51 +421,102 @@ export const CrearOrdenPage = () => {
                            borderRadius: 1,
                            border: '1px solid',
                            borderColor: 'divider',
+                           flexDirection: 'column',
+                           alignItems: 'stretch',
                         }}
                      >
-                        <ListItemIcon>
-                           <OrderIcon color="primary" />
-                        </ListItemIcon>
-                        <ListItemText
-                           primary={
-                              <Box display="flex" alignItems="center" gap={1}>
-                                 <Typography variant="subtitle1" fontWeight="bold">
-                                    Orden #{orden.id} - {orden.especialidad}
-                                 </Typography>
-                                 <Chip
-                                    label={orden.estado}
-                                    color={
-                                       orden.estado === 'ejecutada'
-                                          ? 'success'
-                                          : orden.estado === 'programada'
-                                          ? 'primary'
-                                          : orden.estado === 'cancelada'
-                                          ? 'error'
-                                          : 'default'
-                                    }
-                                    size="small"
-                                 />
-                              </Box>
-                           }
-                           secondary={
-                              <Box sx={{ mt: 1 }}>
-                                 <Typography variant="body2" color="text.secondary">
-                                    <strong>Entidad:</strong> {orden.entidadDestino}
-                                 </Typography>
-                                 <Typography variant="body2" color="text.secondary">
-                                    <strong>Descripción:</strong> {orden.descripcion}
-                                 </Typography>
-                                 {orden.fechaVencimiento && (
-                                    <Box display="flex" alignItems="center" gap={0.5} mt={0.5}>
-                                       <ScheduleIcon fontSize="small" />
-                                       <Typography variant="caption" color="text.secondary">
-                                          Vence: {new Date(orden.fechaVencimiento).toLocaleDateString('es-ES')}
-                                       </Typography>
-                                    </Box>
-                                 )}
-                              </Box>
-                           }
-                        />
+                        <Box display="flex" alignItems="flex-start" width="100%">
+                           <ListItemIcon>
+                              <OrderIcon color="primary" />
+                           </ListItemIcon>
+                           <ListItemText
+                              primary={
+                                 <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
+                                    <Typography variant="subtitle1" fontWeight="bold">
+                                       Orden #{orden.id} - {orden.Specialty?.nombre || orden.especialidad}
+                                    </Typography>
+                                    <Chip
+                                       label={orden.estado}
+                                       color={
+                                          orden.estado === 'autorizada'
+                                             ? 'success'
+                                             : orden.estado === 'ejecutada'
+                                             ? 'success'
+                                             : orden.estado === 'programada'
+                                             ? 'primary'
+                                             : orden.estado === 'cancelada'
+                                             ? 'error'
+                                             : 'default'
+                                       }
+                                       size="small"
+                                    />
+                                 </Box>
+                              }
+                              secondary={
+                                 <Box sx={{ mt: 1 }}>
+                                    <Typography variant="body2" color="text.secondary">
+                                       <strong>Entidad:</strong> {orden.entidadDestino}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                       <strong>Descripción:</strong> {orden.descripcion}
+                                    </Typography>
+                                    {orden.fechaVencimiento && (
+                                       <Box display="flex" alignItems="center" gap={0.5} mt={0.5}>
+                                          <ScheduleIcon fontSize="small" />
+                                          <Typography variant="caption" color="text.secondary">
+                                             Vence: {new Date(orden.fechaVencimiento).toLocaleDateString('es-ES')}
+                                          </Typography>
+                                       </Box>
+                                    )}
+                                 </Box>
+                              }
+                           />
+                        </Box>
+                        
+                        {/* Botones de acción */}
+                        <Box display="flex" gap={1} mt={2} justifyContent="flex-end" width="100%" flexWrap="wrap">
+                           {orden.estado !== 'ejecutada' && orden.estado !== 'cancelada' && (
+                              <Button
+                                 size="small"
+                                 variant="outlined"
+                                 color="primary"
+                                 startIcon={<EditIcon />}
+                                 onClick={() => {
+                                    console.log('Click en botón editar, orden:', orden);
+                                    handleOpenEditDialog(orden);
+                                 }}
+                                 disabled={loading}
+                              >
+                                 Editar
+                              </Button>
+                           )}
+                           
+                           {orden.estado !== 'autorizada' && orden.estado !== 'ejecutada' && orden.estado !== 'cancelada' && (
+                              <Button
+                                 size="small"
+                                 variant="contained"
+                                 color="success"
+                                 startIcon={<AuthorizeIcon />}
+                                 onClick={() => handleAutorizarOrden(orden.id)}
+                                 disabled={loading}
+                              >
+                                 Autorizar
+                              </Button>
+                           )}
+                           
+                           {orden.estado !== 'ejecutada' && orden.estado !== 'cancelada' && (
+                              <Button
+                                 size="small"
+                                 variant="outlined"
+                                 color="error"
+                                 startIcon={<CancelIcon />}
+                                 onClick={() => handleCambiarEstadoOrden(orden.id, 'cancelada')}
+                                 disabled={loading}
+                              >
+                                 Cancelar
+                              </Button>
+                           )}
+                        </Box>
                      </ListItem>
                   ))}
                </List>
@@ -356,11 +574,16 @@ export const CrearOrdenPage = () => {
                            value={formData.especialidad}
                            onChange={handleChange}
                            required
-                           helperText="Seleccione la especialidad requerida"
+                           disabled={loadingSpecialties}
+                           helperText={
+                              loadingSpecialties 
+                                 ? 'Cargando especialidades...' 
+                                 : 'Seleccione la especialidad requerida'
+                           }
                         >
-                           {ESPECIALIDADES.map((especialidad) => (
-                              <MenuItem key={especialidad} value={especialidad}>
-                                 {especialidad}
+                           {specialties.map((especialidad) => (
+                              <MenuItem key={especialidad.id} value={especialidad.id.toString()}>
+                                 {especialidad.nombre}
                               </MenuItem>
                            ))}
                         </TextField>
@@ -458,6 +681,115 @@ export const CrearOrdenPage = () => {
                </form>
             </CardContent>
          </Card>
+
+         {/* Diálogo de Edición de Orden */}
+         <Dialog open={openEditDialog} onClose={handleCloseEditDialog} maxWidth="md" fullWidth>
+            <DialogTitle>
+               <Box display="flex" alignItems="center" gap={2}>
+                  <EditIcon color="primary" />
+                  <Typography variant="h6">
+                     Editar Orden #{editingOrder?.id}
+                  </Typography>
+               </Box>
+            </DialogTitle>
+            <DialogContent>
+               <Box sx={{ pt: 2 }}>
+                  {editingOrder && (
+                     <Alert severity="info" sx={{ mb: 3 }}>
+                        <Typography variant="body2">
+                           <strong>Estado actual:</strong> {editingOrder.estado}
+                        </Typography>
+                        <Typography variant="body2">
+                           <strong>Cita asociada:</strong> #{editingOrder.idCita}
+                        </Typography>
+                     </Alert>
+                  )}
+
+                  <Grid container spacing={3}>
+                     <Grid item xs={12}>
+                        <TextField
+                           fullWidth
+                           select
+                           label="Especialidad"
+                           name="especialidad"
+                           value={editFormData.especialidad}
+                           onChange={handleEditChange}
+                           required
+                           disabled={loadingSpecialties}
+                           helperText={
+                              loadingSpecialties 
+                                 ? 'Cargando especialidades...' 
+                                 : 'Seleccione la especialidad requerida'
+                           }
+                        >
+                           {specialties.map((especialidad) => (
+                              <MenuItem key={especialidad.id} value={especialidad.id.toString()}>
+                                 {especialidad.nombre}
+                              </MenuItem>
+                           ))}
+                        </TextField>
+                     </Grid>
+
+                     <Grid item xs={12}>
+                        <TextField
+                           fullWidth
+                           label="Entidad de Destino"
+                           name="entidadDestino"
+                           value={editFormData.entidadDestino}
+                           onChange={handleEditChange}
+                           required
+                           helperText="Institución o centro médico donde se realizará el procedimiento"
+                           placeholder="Ej: Hospital Universitario, Clínica San Rafael..."
+                        />
+                     </Grid>
+
+                     <Grid item xs={12}>
+                        <TextField
+                           fullWidth
+                           label="Fecha de Vencimiento"
+                           name="fechaVencimiento"
+                           type="date"
+                           value={editFormData.fechaVencimiento}
+                           onChange={handleEditChange}
+                           InputLabelProps={{
+                              shrink: true,
+                           }}
+                           helperText="Fecha límite para realizar la orden (opcional)"
+                        />
+                     </Grid>
+
+                     <Grid item xs={12}>
+                        <TextField
+                           fullWidth
+                           multiline
+                           rows={4}
+                           label="Descripción de la Orden"
+                           name="descripcion"
+                           value={editFormData.descripcion}
+                           onChange={handleEditChange}
+                           required
+                           helperText="Detalle los procedimientos, exámenes o tratamientos solicitados"
+                           placeholder="Ej: Examen de sangre completo, radiografía de tórax, ecografía abdominal..."
+                        />
+                     </Grid>
+                  </Grid>
+               </Box>
+            </DialogContent>
+            <DialogActions>
+               <Button onClick={handleCloseEditDialog} disabled={loading}>
+                  Cancelar
+               </Button>
+               <Button
+                  onClick={handleSaveEdit}
+                  variant="contained"
+                  color="primary"
+                  startIcon={loading ? <CircularProgress size={20} /> : <SaveIcon />}
+                  disabled={loading}
+               >
+                  {loading ? 'Guardando...' : 'Guardar Cambios'}
+               </Button>
+            </DialogActions>
+         </Dialog>
       </Container>
    );
 };

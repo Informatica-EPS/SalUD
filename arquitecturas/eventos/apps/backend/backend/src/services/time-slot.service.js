@@ -6,6 +6,7 @@ const DoctorModel = require("../models/doctor.model");
 const PatientModel = require("../models/patient.model");
 const AppointmentModel = require("../models/appointments.model");
 const UserModel = require("../models/user.model");
+const SpecialtyModel = require("../models/specialty.model");
 const { appointmentsStatus, timeSlotStatus, functions } = require("../utils");
 const { Op } = require("sequelize");
 const { getDateFormatUTC } = require("../utils/functions");
@@ -115,6 +116,10 @@ class TimeSlotService {
                   "segundo_apellido",
                 ],
               },
+              {
+                model: SpecialtyModel,
+                attributes: ["id", "nombre", "descripcion"],
+              },
             ],
           },
         ],
@@ -138,6 +143,13 @@ class TimeSlotService {
     const nowTime = nowObj.toLocaleTimeString("en-GB", {
       timeZone: "America/Bogota",
     });
+
+    const doctorWhere = {};
+    if (queryParams.soloGenerales === 'true') {
+      doctorWhere.especialidad = null;
+    } else if (queryParams.soloEspecialistas === 'true') {
+      doctorWhere.especialidad = { [Op.ne]: null };
+    }
 
     const { rows, count, page, totalPages } = await functions.paginate(
       TimeSlot,
@@ -171,6 +183,7 @@ class TimeSlotService {
         include: [
           {
             model: Doctor,
+            where: Object.keys(doctorWhere).length > 0 ? doctorWhere : undefined,
             include: [
               {
                 model: User,
@@ -181,6 +194,10 @@ class TimeSlotService {
                   "primer_apellido",
                   "segundo_apellido",
                 ],
+              },
+              {
+                model: SpecialtyModel,
+                attributes: ["id", "nombre", "descripcion"],
               },
             ],
           },
@@ -247,6 +264,10 @@ class TimeSlotService {
                   "primer_apellido",
                   "segundo_apellido",
                 ],
+              },
+              {
+                model: SpecialtyModel,
+                attributes: ["id", "nombre", "descripcion"],
               },
             ],
           },
@@ -638,6 +659,10 @@ class TimeSlotService {
                   "primer_apellido",
                   "segundo_apellido",
                 ],
+              },
+              {
+                model: SpecialtyModel,
+                attributes: ["id", "nombre", "descripcion"],
               },
             ],
           },
