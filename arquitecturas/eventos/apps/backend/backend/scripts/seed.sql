@@ -55,7 +55,7 @@ CREATE TABLE rol (
 );
 
 CREATE TABLE especialidades (
-    id          VARCHAR PRIMARY KEY,
+    id          SERIAL PRIMARY KEY,
     nombre      VARCHAR(50)  NOT NULL,
     descripcion VARCHAR(200)
 );
@@ -63,7 +63,7 @@ CREATE TABLE especialidades (
 CREATE TABLE doctores (
     id              SERIAL PRIMARY KEY,
     licencia_medica VARCHAR NOT NULL,
-    especialidad    VARCHAR REFERENCES especialidades(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    especialidad    INTEGER REFERENCES especialidades(id) ON DELETE CASCADE ON UPDATE CASCADE,
     id_usuario      BIGINT  UNIQUE REFERENCES usuarios(id) ON DELETE SET NULL ON UPDATE CASCADE,
     creado_por      INTEGER,
     actualizado_por INTEGER,
@@ -133,7 +133,7 @@ CREATE TABLE ordenes (
     fecha_vencimiento TIMESTAMPTZ,
     estado           VARCHAR(50),
     entidad_destino  VARCHAR(100),
-    especialidad     VARCHAR(100) REFERENCES especialidades(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    especialidad     INTEGER REFERENCES especialidades(id) ON DELETE CASCADE ON UPDATE CASCADE,
     descripcion      VARCHAR(200),
     created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -161,8 +161,8 @@ VALUES
 
 INSERT INTO especialidades (id, nombre, descripcion)
 VALUES
-    ('1', 'Cardiología',  'Especialidad del corazón y sistema cardiovascular'),
-    ('2', 'Inmunología',  'Especialidad del sistema inmunológico');
+    (1, 'Cardiología',  'Especialidad del corazón y sistema cardiovascular'),
+    (2, 'Inmunología',  'Especialidad del sistema inmunológico');
 
 -- ---------------------------------------------------------------
 -- 4. Usuarios (5 en total: 3 médicos + 2 pacientes)
@@ -222,8 +222,8 @@ VALUES
 
 INSERT INTO doctores (licencia_medica, especialidad, id_usuario, creado_por, created_at, updated_at)
 VALUES
-    ('LM-10001', '1', (SELECT id FROM usuarios WHERE usuario = 'dr.ramirez'),  1, NOW(), NOW()),
-    ('LM-10002', '2', (SELECT id FROM usuarios WHERE usuario = 'dr.torres'),   1, NOW(), NOW()),
+    ('LM-10001', 1, (SELECT id FROM usuarios WHERE usuario = 'dr.ramirez'),  1, NOW(), NOW()),
+    ('LM-10002', 2, (SELECT id FROM usuarios WHERE usuario = 'dr.torres'),   1, NOW(), NOW()),
     ('LM-10003', NULL,(SELECT id FROM usuarios WHERE usuario = 'dr.morales'),  1, NOW(), NOW());
 
 -- ---------------------------------------------------------------

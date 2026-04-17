@@ -55,24 +55,31 @@ export const CitasDisponiblesPage = () => {
    // Filtros
    const [selectedDoctor, setSelectedDoctor] = useState<string>('todos');
    const [selectedDate, setSelectedDate] = useState<string>('todas');
+   const [tipoCita, setTipoCita] = useState('MEDICINA_GENERAL');
 
    // Dialog para agendar
    const [openDialog, setOpenDialog] = useState(false);
    const [selectedSlot, setSelectedSlot] = useState<ITimeSlot | null>(null);
    const [motivo, setMotivo] = useState('');
-   const [tipoCita, setTipoCita] = useState('MEDICINA_GENERAL');
 
    const pacienteId = user?.idPaciente || 1;
 
    // Cargar cuando cambian los filtros o la página
    useEffect(() => {
       loadAvailableSlots();
-   }, [currentPage, itemsPerPage, selectedDoctor, selectedDate]);
+   }, [currentPage, itemsPerPage, selectedDoctor, selectedDate, tipoCita]);
 
    const loadAvailableSlots = async () => {
       try {
          setLoading(true);
          setError(null);
+         
+         let filtroTipo: 'generales' | 'especialistas' | undefined = undefined;
+         if (tipoCita === 'MEDICINA_GENERAL') {
+            filtroTipo = 'generales';
+         } else if (tipoCita === 'ESPECIALIDAD') {
+            filtroTipo = 'especialistas';
+         }
          
          // Si hay filtro de doctor específico, usar endpoint especializado
          if (selectedDoctor !== 'todos') {
@@ -90,7 +97,11 @@ export const CitasDisponiblesPage = () => {
             setCurrentPage(1);
          } else {
             // Cargar todos los horarios con paginación
-            const data = await timeSlotsService.getAvailable(currentPage, itemsPerPage);
+            const data = await timeSlotsService.getAvailable(
+               currentPage, 
+               itemsPerPage, 
+               filtroTipo
+            );
             
             // Aplicar filtro de fecha si existe
             let finalSlots = data.franjasHorarias;
@@ -132,7 +143,6 @@ export const CitasDisponiblesPage = () => {
       setOpenDialog(false);
       setSelectedSlot(null);
       setMotivo('');
-      setTipoCita('MEDICINA_GENERAL');
    };
 
    const handleAgendarCita = async () => {
@@ -168,12 +178,18 @@ export const CitasDisponiblesPage = () => {
    
    useEffect(() => {
       loadAllDates();
-   }, []);
+   }, [tipoCita]);
 
    const loadAllDates = async () => {
       try {
-         // Cargar una gran cantidad para obtener todas las fechas únicas
-         const data = await timeSlotsService.getAvailable(1, 1000);
+         let filtroTipo: 'generales' | 'especialistas' | undefined = undefined;
+         if (tipoCita === 'MEDICINA_GENERAL') {
+            filtroTipo = 'generales';
+         } else if (tipoCita === 'ESPECIALIDAD') {
+            filtroTipo = 'especialistas';
+         }
+         
+         const data = await timeSlotsService.getAvailable(1, 1000, filtroTipo);
          const dates = Array.from(new Set(data.franjasHorarias.map(slot => slot.fecha))).sort();
          setAllDates(dates);
       } catch (err) {
@@ -223,8 +239,51 @@ export const CitasDisponiblesPage = () => {
             </Alert>
          )}
 
+         {/* Tipo de Cita */}
+         <Paper sx={{ p: 3, mb: 3, bgcolor: 'primary.50', border: '2px solid', borderColor: 'primary.main' }}>
+            <Typography variant="h6" gutterBottom fontWeight="bold" color="primary.main">
+               Tipo de Cita
+            </Typography>
+            <FormControl fullWidth>
+               <InputLabel>Selecciona el tipo de cita</InputLabel>
+               <Select
+                  value={tipoCita}
+                  label="Selecciona el tipo de cita"
+                  onChange={(e) => {
+                     setTipoCita(e.target.value);
+                     setCurrentPage(1);
+                  }}
+               >
+                  <MenuItem value="MEDICINA_GENERAL">Medicina General</MenuItem>
+                  <MenuItem value="ESPECIALIDAD">Especialidad</MenuItem>
+                  {/* Tipos de cita futuros: */}
+                  {/* <MenuItem value="CONTROL">Control</MenuItem> */}
+                  {/* <MenuItem value="URGENCIA">Urgencia</MenuItem> */}
+               </Select>
+            </FormControl>
+            {tipoCita === 'MEDICINA_GENERAL' && (
+               <Alert severity="info" sx={{ mt: 2 }}>
+                  Se mostrarán solo horarios de médicos generales
+               </Alert>
+            )}
+            {tipoCita === 'ESPECIALIDAD' && (
+               <Alert severity="info" sx={{ mt: 2 }}>
+                  Se mostrarán solo horarios de médicos especialistas
+               </Alert>
+            )}
+            {/* Alertas para tipos de cita futuros: */}
+            {/* {(tipoCita === 'CONTROL' || tipoCita === 'URGENCIA') && (
+               <Alert severity="info" sx={{ mt: 2 }}>
+                  Se mostrarán horarios de todos los médicos disponibles
+               </Alert>
+            )} */}
+         </Paper>
+
          {/* Filtros */}
          <Paper sx={{ p: 3, mb: 3 }}>
+            <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+               Filtros Adicionales
+            </Typography>
             <Grid container spacing={2}>
                <Grid item xs={12} sm={4}>
                   <FormControl fullWidth>
@@ -446,19 +505,18 @@ export const CitasDisponiblesPage = () => {
                         </Typography>
                      </Alert>
 
-                     <FormControl fullWidth sx={{ mb: 2 }}>
-                        <InputLabel>Tipo de Cita</InputLabel>
-                        <Select
-                           value={tipoCita}
-                           label="Tipo de Cita"
-                           onChange={(e) => setTipoCita(e.target.value)}
-                        >
-                           <MenuItem value="MEDICINA_GENERAL">Medicina General</MenuItem>
-                           <MenuItem value="CONTROL">Control</MenuItem>
-                           <MenuItem value="URGENCIA">Urgencia</MenuItem>
-                           <MenuItem value="ESPECIALIDAD">Especialidad</MenuItem>
-                        </Select>
-                     </FormControl>
+                     <Alert severity="success" sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" gutterBottom>
+                           Tipo de cita: <strong>{
+                              tipoCita === 'MEDICINA_GENERAL' ? 'Medicina General' :
+                              tipoCita === 'ESPECIALIDAD' ? 'Especialidad' :
+                              // Tipos futuros:
+                              // tipoCita === 'CONTROL' ? 'Control' :
+                              // tipoCita === 'URGENCIA' ? 'Urgencia' :
+                              'Otro'
+                           }</strong>
+                        </Typography>
+                     </Alert>
 
                      <TextField
                         fullWidth

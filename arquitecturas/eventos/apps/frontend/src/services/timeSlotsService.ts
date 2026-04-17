@@ -42,17 +42,24 @@ export const timeSlotsService = {
 
    /**
     * Obtener todos los horarios disponibles con paginación
-    * GET /api/time-slots/available?page=1&limit=10
+    * GET /api/time-slots/available?page=1&limit=10&soloGenerales=true&soloEspecialistas=true
     */
-   getAvailable: async (page: number = 1, limit: number = 10): Promise<{
+   getAvailable: async (page: number = 1, limit: number = 10, filtroTipo?: 'generales' | 'especialistas'): Promise<{
       franjasHorarias: ITimeSlot[];
       totalPages: number;
       totalItems: number;
       currentPage: number;
    }> => {
       try {
+         let queryParams = `page=${page}&limit=${limit}`;
+         if (filtroTipo === 'generales') {
+            queryParams += '&soloGenerales=true';
+         } else if (filtroTipo === 'especialistas') {
+            queryParams += '&soloEspecialistas=true';
+         }
+         
          const response: any = await api.get(
-            `/time-slots/available?page=${page}&limit=${limit}`
+            `/time-slots/available?${queryParams}`
          );
          console.log('Response getAvailable:', response);
          

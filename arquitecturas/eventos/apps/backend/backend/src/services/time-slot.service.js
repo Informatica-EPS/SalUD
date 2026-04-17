@@ -139,6 +139,13 @@ class TimeSlotService {
       timeZone: "America/Bogota",
     });
 
+    const doctorWhere = {};
+    if (queryParams.soloGenerales === 'true') {
+      doctorWhere.especialidad = null;
+    } else if (queryParams.soloEspecialistas === 'true') {
+      doctorWhere.especialidad = { [Op.ne]: null };
+    }
+
     const { rows, count, page, totalPages } = await functions.paginate(
       TimeSlot,
       queryParams,
@@ -171,6 +178,7 @@ class TimeSlotService {
         include: [
           {
             model: Doctor,
+            where: Object.keys(doctorWhere).length > 0 ? doctorWhere : undefined,
             include: [
               {
                 model: User,
