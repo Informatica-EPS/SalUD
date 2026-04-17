@@ -119,7 +119,15 @@ export const HistoriaClinicaPage = () => {
          </Typography>
 
          {/* Información del Paciente */}
-         <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
+         <Paper
+            sx={{
+               p: 3,
+               mb: 4,
+               borderRadius: 3,
+               background: 'linear-gradient(135deg, #e3f2fd, #ffffff)',
+               boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
+            }}
+         >
             <Typography variant="h6" gutterBottom fontWeight="bold" mb={3}>
                Información del Paciente
             </Typography>
@@ -128,10 +136,11 @@ export const HistoriaClinicaPage = () => {
                   <Box display="flex" gap={2}>
                      <Avatar
                         sx={{
-                           width: 80,
-                           height: 80,
+                           width: 72,
+                           height: 72,
                            bgcolor: 'primary.main',
-                           fontSize: '2rem',
+                           fontSize: '1.8rem',
+                           boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                         }}
                      >
                         {datosPaciente.nombreCompleto 
@@ -212,8 +221,21 @@ export const HistoriaClinicaPage = () => {
             </Typography>
             <Grid container spacing={2}>
                <Grid item xs={6} sm={3}>
-                  <Paper variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
-                     <Typography variant="h4" color="primary.main" fontWeight="bold">
+                  <Paper
+                     sx={{
+                        p: 2,
+                        borderRadius: 3,
+                        textAlign: 'center',
+                        background: 'linear-gradient(135deg, #ffe0b2, #ffffff)',
+                        boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                        transform: 'translateY(-5px)',
+                        boxShadow: '0 15px 30px rgba(0,0,0,0.1)',
+                        },
+                     }}
+                  >
+                     <Typography variant="h4" fontWeight="bold">
                         {citas.length}
                      </Typography>
                      <Typography variant="body2" color="text.secondary">
@@ -222,8 +244,21 @@ export const HistoriaClinicaPage = () => {
                   </Paper>
                </Grid>
                <Grid item xs={6} sm={3}>
-                  <Paper variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
-                     <Typography variant="h4" color="success.main" fontWeight="bold">
+                  <Paper
+                     sx={{
+                        p: 2,
+                        borderRadius: 3,
+                        textAlign: 'center',
+                        background: 'linear-gradient(135deg, #c8e6c9, #ffffff)',
+                        boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                        transform: 'translateY(-5px)',
+                        boxShadow: '0 15px 30px rgba(0,0,0,0.1)',
+                        },
+                     }}
+                  >
+                     <Typography variant="h4" fontWeight="bold">
                         {citas.filter((c: any) => c.estado === 'completada' || c.estado === 'completado').length}
                      </Typography>
                      <Typography variant="body2" color="text.secondary">
@@ -232,8 +267,21 @@ export const HistoriaClinicaPage = () => {
                   </Paper>
                </Grid>
                <Grid item xs={6} sm={3}>
-                  <Paper variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
-                     <Typography variant="h4" color="primary.main" fontWeight="bold">
+                  <Paper
+                     sx={{
+                        p: 2,
+                        borderRadius: 3,
+                        textAlign: 'center',
+                        background: 'linear-gradient(135deg, #a6cce7, #ffffff)',
+                        boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                        transform: 'translateY(-5px)',
+                        boxShadow: '0 15px 30px rgba(0,0,0,0.1)',
+                        },
+                     }}
+                  >
+                     <Typography variant="h4" fontWeight="bold">
                         {citas.filter((c: any) => c.estado === 'programada').length}
                      </Typography>
                      <Typography variant="body2" color="text.secondary">
@@ -242,8 +290,21 @@ export const HistoriaClinicaPage = () => {
                   </Paper>
                </Grid>
                <Grid item xs={6} sm={3}>
-                  <Paper variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
-                     <Typography variant="h4" color="error.main" fontWeight="bold">
+                  <Paper
+                     sx={{
+                        p: 2,
+                        borderRadius: 3,
+                        textAlign: 'center',
+                        background: 'linear-gradient(135deg, #ffcdd2, #ffffff)',
+                        boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                        transform: 'translateY(-5px)',
+                        boxShadow: '0 15px 30px rgba(0,0,0,0.1)',
+                        },
+                     }}
+                  >
+                     <Typography variant="h4" fontWeight="bold">
                         {citas.filter((c: any) => c.estado === 'cancelada' || c.estado === 'cancelado').length}
                      </Typography>
                      <Typography variant="body2" color="text.secondary">

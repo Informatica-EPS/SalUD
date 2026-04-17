@@ -165,7 +165,7 @@ export const GestionHorariosPage = () => {
                <Typography variant="h4" gutterBottom fontWeight="bold">
                   Gestión de Horarios
                </Typography>
-               <Typography variant="body1" color="text.secondary">
+               <Typography variant="body1" color="text.secondary" sx={{ opacity: 0.8 }}>
                   Administra tu disponibilidad médica
                </Typography>
             </Box>
@@ -194,7 +194,20 @@ export const GestionHorariosPage = () => {
          {/* Estadísticas */}
          <Grid container spacing={2} mb={4}>
             <Grid item xs={12} sm={6} md={3}>
-               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'success.light' }}>
+               <Paper
+                  sx={{
+                     p: 2,
+                     borderRadius: 3,
+                     textAlign: 'center',
+                     background: 'linear-gradient(135deg, rgba(76,175,80,0.15), #ffffff)',
+                     boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
+                     transition: 'all 0.3s ease',
+                     '&:hover': {
+                     transform: 'translateY(-5px)',
+                     boxShadow: '0 15px 30px rgba(0,0,0,0.1)',
+                     },
+                  }}
+               >
                   <Typography variant="h4" fontWeight="bold">
                      {Array.isArray(availableSlots) ? availableSlots.length : 0}
                   </Typography>
@@ -204,7 +217,20 @@ export const GestionHorariosPage = () => {
                </Paper>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
-               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'primary.light' }}>
+               <Paper
+                  sx={{
+                     p: 2,
+                     borderRadius: 3,
+                     textAlign: 'center',
+                     background: 'linear-gradient(135deg, rgba(33,150,243,0.15), #ffffff)',
+                     boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
+                     transition: 'all 0.3s ease',
+                     '&:hover': {
+                     transform: 'translateY(-5px)',
+                     boxShadow: '0 15px 30px rgba(0,0,0,0.1)',
+                     },
+                  }}
+               >
                   <Typography variant="h4" fontWeight="bold">
                      {Array.isArray(allSlots) ? allSlots.filter((s) => s.estado === 'programado').length : 0}
                   </Typography>
@@ -214,7 +240,20 @@ export const GestionHorariosPage = () => {
                </Paper>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
-               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'grey.200' }}>
+               <Paper
+                  sx={{
+                     p: 2,
+                     borderRadius: 3,
+                     textAlign: 'center',
+                     background: 'linear-gradient(135deg, rgba(158,158,158,0.15), #ffffff)',
+                     boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
+                     transition: 'all 0.3s ease',
+                     '&:hover': {
+                     transform: 'translateY(-5px)',
+                     boxShadow: '0 15px 30px rgba(0,0,0,0.1)',
+                     },
+                  }}
+               >                  
                   <Typography variant="h4" fontWeight="bold">
                      {Array.isArray(allSlots) ? allSlots.filter((s) => s.estado === 'completado').length : 0}
                   </Typography>
@@ -224,7 +263,20 @@ export const GestionHorariosPage = () => {
                </Paper>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
-               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'grey.300' }}>
+               <Paper
+                  sx={{
+                     p: 2,
+                     borderRadius: 3,
+                     textAlign: 'center',
+                     background: 'linear-gradient(135deg, rgba(0,0,0,0.08), #ffffff)',
+                     boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
+                     transition: 'all 0.3s ease',
+                     '&:hover': {
+                     transform: 'translateY(-5px)',
+                     boxShadow: '0 15px 30px rgba(0,0,0,0.1)',
+                     },
+                  }}
+               >
                   <Typography variant="h4" fontWeight="bold">
                      {Array.isArray(allSlots) ? allSlots.length : 0}
                   </Typography>
@@ -236,12 +288,60 @@ export const GestionHorariosPage = () => {
          </Grid>
 
          {/* Tabs */}
-         <Paper sx={{ mb: 3 }}>
-            <Tabs value={tabValue} onChange={(_e, newValue) => setTabValue(newValue)}>
-               <Tab icon={<AvailableIcon />} label="Disponibles" iconPosition="start" />
-               <Tab icon={<CalendarIcon />} label="Todos los Horarios" iconPosition="start" />
-            </Tabs>
-         </Paper>
+         <Paper
+   sx={{
+      mb: 3,
+      borderRadius: 3,
+      p: 1,
+      background: 'rgba(255,255,255,0.8)',
+      backdropFilter: 'blur(6px)',
+      boxShadow: '0 6px 20px rgba(0,0,0,0.06)',
+   }}
+>
+   <Tabs
+      value={tabValue}
+      onChange={(_e, newValue) => setTabValue(newValue)}
+      variant="fullWidth"
+      textColor="inherit"
+      sx={{
+         '& .MuiTabs-indicator': {
+            height: 4,
+            borderRadius: 2,
+            background: 'linear-gradient(90deg, #0e8f9a, #1aa3a8)',
+         },
+      }}
+   >
+      <Tab
+         icon={<AvailableIcon />}
+         label="Disponibles"
+         iconPosition="start"
+         sx={{
+            textTransform: 'none',
+            fontWeight: 600,
+            borderRadius: 2,
+            '&.Mui-selected': {
+               color: '#2e7d32',
+               background: 'rgba(46,125,50,0.1)',
+            },
+         }}
+      />
+
+      <Tab
+         icon={<CalendarIcon />}
+         label="Todos los Horarios"
+         iconPosition="start"
+         sx={{
+            textTransform: 'none',
+            fontWeight: 600,
+            borderRadius: 2,
+            '&.Mui-selected': {
+               color: '#1976d2',
+               background: 'rgba(25,118,210,0.1)',
+            },
+         }}
+      />
+   </Tabs>
+</Paper>
 
          {/* Tab Panel: Disponibles */}
          <TabPanel value={tabValue} index={0}>
