@@ -1,7 +1,8 @@
 -- =============================================================
--- seed.sql  –  Limpia y repopula la base de datos SalUD
+-- seed.sql – Limpia y repobla la base de datos SalUD
 -- Contraseña de todos los usuarios: salud123
 -- SHA-256("salud123") = 444d2690e7413101d5efc5296fc171bb6b6b486e58b52d63531dbf39b83b399b
+-- Los documentos también se guardan en SHA-256 porque el login los busca hasheados
 -- =============================================================
 
 -- ---------------------------------------------------------------
@@ -167,43 +168,51 @@ VALUES
 -- 4. Usuarios (5 en total: 3 médicos + 2 pacientes)
 -- ---------------------------------------------------------------
 
-INSERT INTO usuarios (primer_nombre, segundo_nombre, primer_apellido, segundo_apellido,
-                      fecha_nacimiento, lugar_nacimiento, direccion,
-                      documento, tipo_documento, usuario, email, password,
-                      creado_por, fecha_creacion)
+-- =============================================================
+-- Activar extensión para usar SHA256
+-- =============================================================
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+
+INSERT INTO usuarios (
+    primer_nombre, segundo_nombre, primer_apellido, segundo_apellido,
+    fecha_nacimiento, lugar_nacimiento, direccion,
+    documento, tipo_documento, usuario, email, password,
+    creado_por, fecha_creacion
+)
 VALUES
     -- Médico 1 – Cardiología
     ('Carlos',  'Alberto', 'Ramírez', 'Gómez',
      '1980-03-15', 'Bogotá', 'Cra 7 # 45-12',
-     '10000001', 'CC', 'dr.ramirez', 'dr.ramirez@salud.com',
+     encode(digest('10000001', 'sha256'), 'hex'), 'CC', 'dr.ramirez', 'dr.ramirez@salud.com',
      '444d2690e7413101d5efc5296fc171bb6b6b486e58b52d63531dbf39b83b399b',
      'seed', NOW()),
 
     -- Médico 2 – Inmunología
     ('Laura',   'Sofía',   'Torres',  'Medina',
      '1985-07-22', 'Medellín', 'Av 80 # 10-30',
-     '10000002', 'CC', 'dr.torres', 'dr.torres@salud.com',
+     encode(digest('10000002', 'sha256'), 'hex'), 'CC', 'dr.torres', 'dr.torres@salud.com',
      '444d2690e7413101d5efc5296fc171bb6b6b486e58b52d63531dbf39b83b399b',
      'seed', NOW()),
 
     -- Médico 3 – Sin especialidad
     ('Andrés',  NULL,      'Morales', 'Ríos',
      '1990-11-05', 'Cali', 'Cll 15 # 8-90',
-     '10000003', 'CC', 'dr.morales', 'dr.morales@salud.com',
+     encode(digest('10000003', 'sha256'), 'hex'), 'CC', 'dr.morales', 'dr.morales@salud.com',
      '444d2690e7413101d5efc5296fc171bb6b6b486e58b52d63531dbf39b83b399b',
      'seed', NOW()),
 
     -- Paciente 1
     ('María',   'Camila',  'López',   'Herrera',
      '1995-01-18', 'Bogotá', 'Cll 100 # 15-20',
-     '20000001', 'CC', 'pac.lopez', 'pac.lopez@salud.com',
+     encode(digest('20000001', 'sha256'), 'hex'), 'CC', 'pac.lopez', 'pac.lopez@salud.com',
      '444d2690e7413101d5efc5296fc171bb6b6b486e58b52d63531dbf39b83b399b',
      'seed', NOW()),
 
     -- Paciente 2
     ('Juan',    'Pablo',   'Castro',  'Vargas',
      '2000-06-30', 'Barranquilla', 'Cra 50 # 75-40',
-     '20000002', 'CC', 'pac.castro', 'pac.castro@salud.com',
+     encode(digest('20000002', 'sha256'), 'hex'), 'CC', 'pac.castro', 'pac.castro@salud.com',
      '444d2690e7413101d5efc5296fc171bb6b6b486e58b52d63531dbf39b83b399b',
      'seed', NOW());
 
