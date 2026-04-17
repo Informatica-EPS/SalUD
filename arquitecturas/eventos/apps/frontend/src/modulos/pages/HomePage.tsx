@@ -33,7 +33,13 @@ const HomePage = () => {
    // Opciones para pacientes
    const patientOptions = [
       {
-         icon: <CalendarMonthIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />,
+         icon: <CalendarMonthIcon sx={{
+                  fontSize: 60,
+                  mb: 2,
+                  background: 'rgba(26,163,168,0.1)',
+                  borderRadius: '50%',
+                  p: 2,
+               }} />,
          title: 'Citas Disponibles',
          description: 'Busca y agenda citas con doctores disponibles',
          path: '/citas-disponibles',
@@ -41,7 +47,13 @@ const HomePage = () => {
          color: 'primary',
       },
       {
-         icon: <PersonIcon sx={{ fontSize: 60, color: 'success.main', mb: 2 }} />,
+         icon: <PersonIcon sx={{
+                  fontSize: 60,
+                  mb: 2,
+                  background: 'rgba(26,163,168,0.1)',
+                  borderRadius: '50%',
+                  p: 2,
+               }} />,
          title: 'Mis Citas',
          description: 'Revisa, cancela o reprograma tus citas médicas',
          path: '/mis-citas',
@@ -49,7 +61,13 @@ const HomePage = () => {
          color: 'success',
       },
       {
-         icon: <DescriptionIcon sx={{ fontSize: 60, color: 'info.main', mb: 2 }} />,
+         icon: <DescriptionIcon sx={{
+                  fontSize: 60,
+                  mb: 2,
+                  background: 'rgba(26,163,168,0.1)',
+                  borderRadius: '50%',
+                  p: 2,
+               }} />,
          title: 'Historia Clínica',
          description: 'Consulta tu historial médico completo',
          path: '/historia-clinica',
@@ -61,7 +79,13 @@ const HomePage = () => {
    // Opciones para doctores
    const doctorOptions = [
       {
-         icon: <AccessTimeIcon sx={{ fontSize: 60, color: 'warning.main', mb: 2 }} />,
+         icon: <AccessTimeIcon sx={{
+                  fontSize: 60,
+                  mb: 2,
+                  background: 'rgba(26,163,168,0.1)',
+                  borderRadius: '50%',
+                  p: 2,
+               }} />,
          title: 'Gestión de Horarios',
          description: 'Administra tu disponibilidad y horarios',
          path: '/gestion-horarios',
@@ -69,7 +93,13 @@ const HomePage = () => {
          color: 'warning',
       },
       {
-         icon: <MedicalServicesIcon sx={{ fontSize: 60, color: 'secondary.main', mb: 2 }} />,
+         icon: <MedicalServicesIcon sx={{
+                  fontSize: 60,
+                  mb: 2,
+                  background: 'rgba(26,163,168,0.1)',
+                  borderRadius: '50%',
+                  p: 2,
+               }} />,
          title: 'Mis Pacientes',
          description: 'Revisa las citas programadas con tus pacientes',
          path: '/medico',
@@ -81,7 +111,13 @@ const HomePage = () => {
    // Opciones comunes
    const commonOptions = [
       {
-         icon: <LocalHospitalIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />,
+         icon: <LocalHospitalIcon sx={{
+                  fontSize: 60,
+                  mb: 2,
+                  background: 'rgba(26,163,168,0.1)',
+                  borderRadius: '50%',
+                  p: 2,
+               }} />,
          title: 'Doctores',
          description: 'Directorio completo de doctores disponibles',
          path: '/doctores',
@@ -92,7 +128,13 @@ const HomePage = () => {
 
    const adminOptions = [
       {
-         icon: <LocalHospitalIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />,
+         icon: <LocalHospitalIcon sx={{
+                  fontSize: 60,
+                  mb: 2,
+                  background: 'rgba(26,163,168,0.1)',
+                  borderRadius: '50%',
+                  p: 2,
+               }} />,
          title: 'Gestionar Doctores',
          description: 'Administra el listado de doctores registrados',
          path: '/admin/doctors',
@@ -100,7 +142,13 @@ const HomePage = () => {
          color: 'primary',
       },
       {
-         icon: <PersonIcon sx={{ fontSize: 60, color: 'secondary.main', mb: 2 }} />,
+         icon: <PersonIcon sx={{
+                  fontSize: 60,
+                  mb: 2,
+                  background: 'rgba(26,163,168,0.1)',
+                  borderRadius: '50%',
+                  p: 2,
+               }} />,
          title: 'Gestionar Pacientes',
          description: 'Administra el listado de pacientes registrados',
          path: '/admin/patients',
@@ -114,14 +162,14 @@ const HomePage = () => {
          {/* Header */}
          <Box
             sx={{
-               backgroundColor: 'primary.main',
+               background: 'linear-gradient(135deg, #0e8f9a, #1aa3a8)',
                color: 'white',
                py: 3,
                px: 3,
                display: 'flex',
                justifyContent: 'space-between',
                alignItems: 'center',
-               boxShadow: 3,
+               boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
             }}
          >
             <Box>
@@ -143,7 +191,7 @@ const HomePage = () => {
          </Box>
 
          {/* Contenido Principal */}
-         <Container sx={{ mt: 5, mb: 5 }}>
+         <Container maxWidth="lg" sx={{ mt: 6, mb: 6 }}>
             <Box sx={{ textAlign: 'center', mb: 5 }}>
                <Typography variant="h3" gutterBottom sx={{ fontWeight: 'bold' }}>
                   Panel de Control
@@ -158,7 +206,12 @@ const HomePage = () => {
             {/* Sección de Pacientes - Solo visible para pacientes */}
             {isPatient && (
                <Box sx={{ mb: 5 }}>
-                  <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
+                  <Typography variant="h5" gutterBottom sx={{
+                     fontWeight: 'bold',
+                     mb: 3,
+                     borderLeft: '5px solid #1aa3a8',
+                     pl: 2,
+                  }}>
                      👤 Panel de Paciente
                   </Typography>
                   <Grid container spacing={3}>
@@ -169,10 +222,12 @@ const HomePage = () => {
                                  height: '100%',
                                  display: 'flex',
                                  flexDirection: 'column',
-                                 transition: 'transform 0.3s, box-shadow 0.3s',
+                                 borderRadius: 4,
+                                 transition: 'all 0.3s ease',
+                                 boxShadow: '0 8px 20px rgba(0,0,0,0.08)',
                                  '&:hover': {
-                                    transform: 'translateY(-8px)',
-                                    boxShadow: 6,
+                                    transform: 'translateY(-10px) scale(1.02)',
+                                    boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
                                  },
                               }}
                            >
@@ -209,7 +264,12 @@ const HomePage = () => {
             {/* Sección de Doctores - Solo visible para doctores */}
             {isDoctor && (
                <Box sx={{ mb: 5 }}>
-                  <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
+                  <Typography variant="h5" gutterBottom sx={{
+                     fontWeight: 'bold',
+                     mb: 3,
+                     borderLeft: '5px solid #1aa3a8',
+                     pl: 2,
+                  }}>
                      👨‍⚕️ Panel de Doctor
                   </Typography>
                   <Grid container spacing={3}>
@@ -220,10 +280,12 @@ const HomePage = () => {
                                  height: '100%',
                                  display: 'flex',
                                  flexDirection: 'column',
-                                 transition: 'transform 0.3s, box-shadow 0.3s',
+                                 borderRadius: 4,
+                                 transition: 'all 0.3s ease',
+                                 boxShadow: '0 8px 20px rgba(0,0,0,0.08)',
                                  '&:hover': {
-                                    transform: 'translateY(-8px)',
-                                    boxShadow: 6,
+                                    transform: 'translateY(-10px) scale(1.02)',
+                                    boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
                                  },
                               }}
                            >
@@ -260,7 +322,12 @@ const HomePage = () => {
             {/* Sección admin - Visible para administradores */}
             {isAdmin && (
                <Box sx={{ mt: 4 }}>
-                  <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
+                  <Typography variant="h5" gutterBottom sx={{
+                     fontWeight: 'bold',
+                     mb: 3,
+                     borderLeft: '5px solid #1aa3a8',
+                     pl: 2,
+                  }}>
                      ● Panel de Administración
                   </Typography>
                   <Grid container spacing={3}>
@@ -271,10 +338,12 @@ const HomePage = () => {
                                  height: '100%',
                                  display: 'flex',
                                  flexDirection: 'column',
-                                 transition: 'transform 0.3s, box-shadow 0.3s',
+                                 borderRadius: 4,
+                                 transition: 'all 0.3s ease',
+                                 boxShadow: '0 8px 20px rgba(0,0,0,0.08)',
                                  '&:hover': {
-                                    transform: 'translateY(-8px)',
-                                    boxShadow: 6,
+                                    transform: 'translateY(-10px) scale(1.02)',
+                                    boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
                                  },
                               }}
                            >
@@ -310,7 +379,12 @@ const HomePage = () => {
 
             {/* Sección Común - Visible para todos */}
             <Box>
-               <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
+               <Typography variant="h5" gutterBottom sx={{
+                     fontWeight: 'bold',
+                     mb: 3,
+                     borderLeft: '5px solid #1aa3a8',
+                     pl: 2,
+                  }}>
                   🔍 Recursos Comunes
                </Typography>
                <Grid container spacing={3}>
@@ -318,15 +392,17 @@ const HomePage = () => {
                      <Grid item xs={12} md={6} lg={4} key={index}>
                         <Card
                            sx={{
-                              height: '100%',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              transition: 'transform 0.3s, box-shadow 0.3s',
-                              '&:hover': {
-                                 transform: 'translateY(-8px)',
-                                 boxShadow: 6,
-                              },
-                           }}
+                                 height: '100%',
+                                 display: 'flex',
+                                 flexDirection: 'column',
+                                 borderRadius: 4,
+                                 transition: 'all 0.3s ease',
+                                 boxShadow: '0 8px 20px rgba(0,0,0,0.08)',
+                                 '&:hover': {
+                                    transform: 'translateY(-10px) scale(1.02)',
+                                    boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+                                 },
+                              }}
                         >
                            <CardContent sx={{ flexGrow: 1, textAlign: 'center', p: 3 }}>
                               {option.icon}
@@ -373,12 +449,28 @@ const HomePage = () => {
             )}
 
             {/* Footer Info */}
-            <Box sx={{ mt: 6, p: 3, bgcolor: 'white', borderRadius: 2, boxShadow: 1 }}>
-               <Typography variant="body2" color="text.secondary" align="center">
-                  💡 <strong>Tip:</strong> Todas las páginas están conectadas con el backend real.
-                  Asegúrate de que el backend esté corriendo en http://localhost:5000
-               </Typography>
-            </Box>
+            <Box
+   sx={{
+      mt: 6,
+      p: 3,
+      borderRadius: 3,
+      textAlign: 'center',
+      background: 'linear-gradient(135deg, #e3f2fd, #ffffff)',
+      boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
+   }}
+>
+   <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+      SalUD 🩺
+   </Typography>
+
+   <Typography variant="body2" color="text.secondary">
+      Plataforma para la gestión eficiente de citas médicas y seguimiento clínico
+   </Typography>
+
+   <Typography variant="caption" color="text.secondary" display="block" mt={1}>
+      © {new Date().getFullYear()} SalUD. Todos los derechos reservados.
+   </Typography>
+</Box>
          </Container>
       </Box>
    );

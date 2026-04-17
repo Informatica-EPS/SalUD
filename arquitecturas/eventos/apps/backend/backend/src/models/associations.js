@@ -7,6 +7,7 @@ const TimeSlot = require("./time-slot.model");
 const Appointment = require("./appointments.model");
 const AppointmentDetail = require("./appointment-details.model");
 const Order = require("./order.model");
+const Specialty = require("./specialty.model");
 
 User.belongsToMany(Role, {
   through: RoleUser,
@@ -97,6 +98,26 @@ Appointment.hasMany(Order, {
 
 Order.belongsTo(Appointment, {
   foreignKey: "id_cita",
+  targetKey: "id",
+});
+
+Specialty.hasMany(Doctor, {
+  foreignKey: "especialidad",
+  sourceKey: "id",
+});
+
+Doctor.belongsTo(Specialty, {
+  foreignKey: "especialidad",
+  targetKey: "id",
+});
+
+Specialty.hasMany(Order, {
+  foreignKey: "especialidad",
+  sourceKey: "id",
+});
+
+Order.belongsTo(Specialty, {
+  foreignKey: "especialidad",
   targetKey: "id",
 });
 

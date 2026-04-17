@@ -8,6 +8,7 @@ const appointmentRoutes = require("./appointment.routes");
 const appointmentDetailRoutes = require("./appointment-detail.routes");
 const timeSlotsRoutes = require("./time-slot.routes");
 const ordersRoutes = require("./orders.routes");
+const specialtiesRoutes = require("./specialties.routes");
 
 router.use("/users", userRoutes);
 router.use("/doctors", doctorRoutes);
@@ -16,5 +17,6 @@ router.use("/appointment-details", appointmentDetailRoutes);
 router.use("/appointments", appointmentRoutes);
 router.use("/time-slots", timeSlotsRoutes);
 router.use("/orders", ordersRoutes);
+router.use("/specialties", specialtiesRoutes);
 
 module.exports = router;

@@ -342,7 +342,7 @@ export default function MedicoPage() {
             <Typography variant="h4" gutterBottom fontWeight="bold">
                👨‍⚕️ Panel de Doctor
             </Typography>
-            <Typography variant="body1" color="text.secondary">
+            <Typography variant="body1" color="text.secondary" sx={{ opacity: 0.8 }}>
                Gestiona tus citas y pacientes
             </Typography>
          </Box>
@@ -362,7 +362,20 @@ export default function MedicoPage() {
          {/* Estadísticas */}
          <Grid container spacing={2} mb={4}>
             <Grid item xs={6} sm={3}>
-               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'primary.light' }}>
+               <Paper
+                  sx={{
+                     p: 2,
+                     borderRadius: 3,
+                     textAlign: 'center',
+                     background: 'linear-gradient(135deg, #a6cce7, #ffffff)',
+                     boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
+                     transition: 'all 0.3s ease',
+                     '&:hover': {
+                     transform: 'translateY(-5px)',
+                     boxShadow: '0 15px 30px rgba(0,0,0,0.1)',
+                     },
+                  }}
+               >
                   <Typography variant="h4" fontWeight="bold">
                      {programadas.length}
                   </Typography>
@@ -372,7 +385,20 @@ export default function MedicoPage() {
                </Paper>
             </Grid>
             <Grid item xs={6} sm={3}>
-               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'warning.light' }}>
+               <Paper
+                  sx={{
+                     p: 2,
+                     borderRadius: 3,
+                     textAlign: 'center',
+                     background: 'linear-gradient(135deg, #ffe0b2, #ffffff)',
+                     boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
+                     transition: 'all 0.3s ease',
+                     '&:hover': {
+                     transform: 'translateY(-5px)',
+                     boxShadow: '0 15px 30px rgba(0,0,0,0.1)',
+                     },
+                  }}
+               >
                   <Typography variant="h4" fontWeight="bold">
                      {enProceso.length}
                   </Typography>
@@ -382,7 +408,20 @@ export default function MedicoPage() {
                </Paper>
             </Grid>
             <Grid item xs={6} sm={3}>
-               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'success.light' }}>
+               <Paper
+                  sx={{
+                     p: 2,
+                     borderRadius: 3,
+                     textAlign: 'center',
+                     background: 'linear-gradient(135deg, #c8e6c9, #ffffff)',
+                     boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
+                     transition: 'all 0.3s ease',
+                     '&:hover': {
+                     transform: 'translateY(-5px)',
+                     boxShadow: '0 15px 30px rgba(0,0,0,0.1)',
+                     },
+                  }}
+               >
                   <Typography variant="h4" fontWeight="bold">
                      {completadas.length}
                   </Typography>
@@ -392,7 +431,20 @@ export default function MedicoPage() {
                </Paper>
             </Grid>
             <Grid item xs={6} sm={3}>
-               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'error.light' }}>
+               <Paper
+                  sx={{
+                     p: 2,
+                     borderRadius: 3,
+                     textAlign: 'center',
+                     background: 'linear-gradient(135deg, #ffcdd2, #ffffff)',
+                     boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
+                     transition: 'all 0.3s ease',
+                     '&:hover': {
+                     transform: 'translateY(-5px)',
+                     boxShadow: '0 15px 30px rgba(0,0,0,0.1)',
+                     },
+                  }}
+               >
                   <Typography variant="h4" fontWeight="bold">
                      {canceladas.length}
                   </Typography>
@@ -404,12 +456,92 @@ export default function MedicoPage() {
          </Grid>
 
          {/* Tabs */}
-         <Paper sx={{ mb: 3 }}>
-            <Tabs value={tabValue} onChange={(_e, newValue) => setTabValue(newValue)}>
-               <Tab icon={<CalendarIcon />} label="Programadas" iconPosition="start" />
-               <Tab icon={<TimeIcon />} label="En Proceso" iconPosition="start" />
-               <Tab icon={<CheckIcon />} label="Completadas" iconPosition="start" />
-               <Tab icon={<CancelIcon />} label="Canceladas" iconPosition="start" />
+         <Paper
+            sx={{
+               mb: 3,
+               borderRadius: 3,
+               p: 1,
+               boxShadow: '0 6px 20px rgba(0,0,0,0.06)',
+               background: 'rgba(255,255,255,0.8)',
+               backdropFilter: 'blur(6px)',
+            }}
+         >
+            <Tabs
+               value={tabValue}
+               onChange={(_e, newValue) => setTabValue(newValue)}
+               variant="fullWidth"
+               sx={{
+                  minHeight: 60,
+                  '& .MuiTabs-indicator': {
+                     height: 4,
+                     borderRadius: 2,
+                     background: 'linear-gradient(90deg, #0e8f9a, #1aa3a8)',
+                  },
+               }}
+            >
+               <Tab
+                  icon={<CalendarIcon />}
+                  label="Programadas"
+                  iconPosition="start"
+                  sx={{
+                     textTransform: 'none',
+                     fontWeight: 600,
+                     borderRadius: 2,
+                     minHeight: 60,
+                     '&.Mui-selected': {
+                        color: '#0e8f9a',
+                        background: 'rgba(14,143,154,0.08)',
+                     },
+                  }}
+               />
+
+               <Tab
+                  icon={<TimeIcon />}
+                  label="En Proceso"
+                  iconPosition="start"
+                  sx={{
+                     textTransform: 'none',
+                     fontWeight: 600,
+                     borderRadius: 2,
+                     minHeight: 60,
+                     '&.Mui-selected': {
+                        color: '#f57c00',
+                        background: 'rgba(245,124,0,0.1)',
+                     },
+                  }}
+               />
+
+               <Tab
+                  icon={<CheckIcon />}
+                  label="Completadas"
+                  iconPosition="start"
+                  sx={{
+                     textTransform: 'none',
+                     fontWeight: 600,
+                     borderRadius: 2,
+                     minHeight: 60,
+                     '&.Mui-selected': {
+                        color: '#2e7d32',
+                        background: 'rgba(46,125,50,0.1)',
+                     },
+                  }}
+               />
+
+               <Tab
+                  icon={<CancelIcon />}
+                  label="Canceladas"
+                  iconPosition="start"
+                  sx={{
+                     textTransform: 'none',
+                     fontWeight: 600,
+                     borderRadius: 2,
+                     minHeight: 60,
+                     '&.Mui-selected': {
+                        color: '#c62828',
+                        background: 'rgba(198,40,40,0.1)',
+                     },
+                  }}
+               />
             </Tabs>
          </Paper>
 
