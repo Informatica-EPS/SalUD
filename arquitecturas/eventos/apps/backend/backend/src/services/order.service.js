@@ -5,8 +5,9 @@ const TimeSlotModel = require("../models/time-slot.model");
 const PatientModel = require("../models/patient.model");
 const DoctorModel = require("../models/doctor.model");
 const UserModel = require("../models/user.model");
-const { functions } = require("../utils");
+const { functions, ordersStatus } = require("../utils");
 const RabbitMQService = require("./rabbitMqService/rabbitmq.service");
+const specialtyService = require("./specialty.service");
 
 class OrderService {
   async create(data, auditUserId) {
@@ -16,9 +17,24 @@ class OrderService {
       actualizadoPor: auditUserId,
     });
 
+    const { dataValues: specialty } = await specialtyService.getSpecialty(
+      order.especialidad,
+    );
+
+    console.log({ specialty });
+
+    if (!specialty) {
+      throw new Error("Especialidad no encontrada");
+    }
+
+    order.dataValues.specialtyName = specialty.nombre;
+
+    console.log({ order });
+
     const rabbitService = new RabbitMQService();
     const publisher = rabbitService.getPublisherService();
     await publisher.setUp("clinic_events");
+
     await publisher.publishEvent("order.created", {
       ...order,
     });
@@ -27,10 +43,17 @@ class OrderService {
   }
 
   async findAll(queryParams) {
+    console.log("Query Params:", queryParams);
+    let idCita = undefined;
+    if (queryParams.idCita) {
+      idCita = Number(queryParams.idCita, 10);
+    }
+
     const { rows, count, page, totalPages } = await functions.paginate(
       Order,
       queryParams,
       {
+        where: idCita !== undefined ? { idCita: idCita } : {},
         include: [
           {
             model: AppointmentModel,
@@ -164,6 +187,79 @@ class OrderService {
 
     await order.destroy();
     return true;
+  }
+
+  async setCompletedOrder(idOrder) {
+    const order = await Order.findByPk(idOrder);
+    if (!order) return false;
+
+    await order.update({
+      estado: ordersStatus.COMPLETED,
+    });
+    return order;
+  }
+
+  async validatePatientHasAuthorizedOrders(idPatient, isSpeciality) {
+    console.log("validatePatientHasAuthorizedOrders", {
+      idPatient,
+      isSpeciality,
+    });
+
+    const order = await Order.findOne({
+      where: { estado: ordersStatus.AUTHORIZED, especialidad: isSpeciality },
+      include: [
+        {
+          model: AppointmentModel,
+          where: { idPaciente: idPatient },
+        },
+      ],
+    });
+    return order;
+  }
+
+  async getOrdersByPatient(idPaciente, queryParams) {
+    const { rows, count, page, totalPages } = await functions.paginate(
+      Order,
+      queryParams,
+      {
+        include: [
+          {
+            model: AppointmentModel,
+            where: { idPaciente },
+            attributes: ["id", "tipoCita", "estado"],
+            include: [
+              {
+                model: TimeSlotModel,
+                attributes: ["id", "fecha", "horaInicio", "horaFin"],
+              },
+              {
+                model: DoctorModel,
+                attributes: ["id", "licenciaMedica"],
+                include: [
+                  {
+                    model: UserModel,
+                    attributes: [
+                      "id",
+                      "primer_nombre",
+                      "segundo_nombre",
+                      "primer_apellido",
+                      "segundo_apellido",
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    );
+
+    return {
+      totalPages,
+      totalItems: count,
+      currentPage: page,
+      ordenes: rows,
+    };
   }
 }
 
