@@ -19,6 +19,7 @@ class AppointmentService {
   async create(data) {
     const { idDoctor, idHorario, idPaciente } = data;
 
+    await this.validateIsGeneralSpecialty(idDoctor);
     await this.validateMustBeFutureDate(idHorario);
     await this.validatePatientHasNoScheduledAppointments(idPaciente, idHorario);
     await this.validateDoctorHasTimeSlot(idDoctor, idHorario);
@@ -691,10 +692,34 @@ class AppointmentService {
     }
   }
 
+  async validateIsGeneralSpecialty(idDoctor) {
+    const doctor = await DoctorModel.findByPk(idDoctor);
+    if (!doctor) {
+      throw new Error("Doctor no encontrado");
+    }
+    const specialty = await SpecialtyModel.findByPk(doctor.especialidad);
+    if (specialty !== null) {
+      throw new Error(
+        "El paciente no puede agendar una cita general con un médico especialista",
+      );
+    }
+  }
+
+  async validateDoctorSpecialty(idDoctor, idSpecialty) {
+    const doctor = await DoctorModel.findByPk(idDoctor);
+    if (!doctor) {
+      throw new Error("Doctor no encontrado");
+    }
+    if (doctor.especialidad !== idSpecialty) {
+      throw new Error("El médico no pertenece a la especialidad seleccionada");
+    }
+  }
+
   async createBySpecialty(idSpecialty, data, userId) {
     console.log("Creating appointment with data:", data);
     const { idDoctor, idHorario, idPaciente } = data;
 
+    await this.validateDoctorSpecialty(idDoctor, idSpecialty);
     await this.validateMustBeFutureDate(idHorario);
     await this.validatePatientHasNoScheduledAppointments(idPaciente, idHorario);
     await this.validateDoctorHasTimeSlot(idDoctor, idHorario);

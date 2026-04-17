@@ -378,6 +378,9 @@ class TimeSlotService {
         include: [
           {
             model: Doctor,
+            where: {
+              especialidad: null,
+            },
             include: [
               {
                 model: User,

@@ -39,7 +39,10 @@ const bootstrap = async () => {
 
     const gracefulShutdown = async () => {
       console.log("🔌 Cerrando conexión a RabbitMQ...");
-      await rabbitMQ.disconnect();
+      // Nota: Si rabbitMQ no estaba importado globalmente, puede que aquí quisieras llamar a connectionService
+      if (connectionService.disconnect) {
+          await connectionService.disconnect();
+      }
       process.exit(0);
     };
 
@@ -52,4 +55,14 @@ const bootstrap = async () => {
   }
 };
 
-bootstrap();
+// ---------------------------------------------------------
+// MODIFICACIÓN PARA PRUEBAS:
+// Solo arranca el servidor real y las conexiones si NO 
+// estamos ejecutando los tests.
+// ---------------------------------------------------------
+if (process.env.NODE_ENV !== "test") {
+  bootstrap();
+}
+
+// Exportamos 'app' para que Jest/Supertest la consuman
+module.exports = app;
