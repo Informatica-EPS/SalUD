@@ -76,7 +76,7 @@ const DoctoresPage: React.FC = () => {
             <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold' }}>
                👨‍⚕️ Nuestros Doctores
             </Typography>
-            <Typography variant="body1" color="text.secondary">
+            <Typography variant="body1" color="text.secondary" sx={{ opacity: 0.8 }}>
                {doctors.length} doctores disponibles para atenderte
             </Typography>
          </Box>

@@ -24,17 +24,14 @@ import {
    Description as DescriptionIcon,
    Business as BusinessIcon,
    Schedule as ScheduleIcon,
-   EventAvailable as AgendarIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
 import { ordersService } from '../../services';
 import { IOrder } from '../../interface';
 import { BackButton } from '../../components';
-import { useNavigate } from 'react-router-dom';
 
 export const MisOrdenesPage = () => {
    const { user } = useAuth();
-   const navigate = useNavigate();
    const [orders, setOrders] = useState<IOrder[]>([]);
    const [loading, setLoading] = useState(true);
    const [error, setError] = useState<string | null>(null);
@@ -63,8 +60,6 @@ export const MisOrdenesPage = () => {
 
    const getStatusColor = (estado: string) => {
       switch (estado) {
-         case 'autorizada':
-            return 'success';
          case 'ejecutada':
             return 'success';
          case 'programada':
@@ -81,8 +76,6 @@ export const MisOrdenesPage = () => {
       switch (estado) {
          case 'pendiente':
             return 'Pendiente';
-         case 'autorizada':
-            return 'Autorizada';
          case 'programada':
             return 'Programada';
          case 'ejecutada':
@@ -106,6 +99,15 @@ export const MisOrdenesPage = () => {
          },
       });
    };
+
+   const statCard = (gradient: string) => ({
+      p: 2,
+      borderRadius: 3,
+      textAlign: 'center',
+      background: gradient,
+      boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
+      '&:hover': { boxShadow: '0 15px 30px rgba(0,0,0,0.1)'},
+   });
 
    // Órdenes autorizadas son las que están listas para agendar cita
    const autorizadas = filterOrders(['autorizada']);
@@ -134,7 +136,7 @@ export const MisOrdenesPage = () => {
       <Container maxWidth="lg" sx={{ py: 4 }}>
          {/* Header */}
          <Box mb={2}>
-            <BackButton to="/home" />
+            <BackButton to="/mis-citas" />
          </Box>
          <Box mb={4}>
             <Box display="flex" alignItems="center" gap={2} mb={2}>
@@ -143,15 +145,15 @@ export const MisOrdenesPage = () => {
                   Mis Órdenes Médicas
                </Typography>
             </Box>
-            <Typography variant="body1" color="text.secondary">
+            <Typography variant="body1" color="text.secondary" sx={{ opacity: 0.8 }}>
                Consulta todas tus órdenes médicas y su estado actual
             </Typography>
          </Box>
 
          {/* Estadísticas */}
-         <Grid container spacing={2} mb={4}>
-            <Grid item xs={6} sm={3}>
-               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'success.light' }}>
+         <Grid container spacing={2} mb={4} wrap="nowrap" sx={{ overflowX: 'auto' }}>
+            <Grid item sx={{ minWidth: 180, flex: '1 1 0' }}>
+               <Paper sx={statCard('linear-gradient(135deg, #c8e6c9, #ffffff)')}>
                   <Typography variant="h4" fontWeight="bold">
                      {autorizadas.length}
                   </Typography>
@@ -160,8 +162,8 @@ export const MisOrdenesPage = () => {
                   </Typography>
                </Paper>
             </Grid>
-            <Grid item xs={6} sm={3}>
-               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'grey.200' }}>
+            <Grid item sx={{ minWidth: 180, flex: '1 1 0' }}>
+               <Paper sx={statCard('linear-gradient(135deg, #eeeeee, #ffffff)')}>
                   <Typography variant="h4" fontWeight="bold">
                      {pendientes.length}
                   </Typography>
@@ -170,8 +172,8 @@ export const MisOrdenesPage = () => {
                   </Typography>
                </Paper>
             </Grid>
-            <Grid item xs={6} sm={3}>
-               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'primary.light' }}>
+            <Grid item sx={{ minWidth: 180, flex: '1 1 0' }}>
+               <Paper sx={statCard('linear-gradient(135deg, #bbdefb, #ffffff)')}>
                   <Typography variant="h4" fontWeight="bold">
                      {programadas.length}
                   </Typography>
@@ -180,8 +182,8 @@ export const MisOrdenesPage = () => {
                   </Typography>
                </Paper>
             </Grid>
-            <Grid item xs={6} sm={3}>
-               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'info.light' }}>
+            <Grid item sx={{ minWidth: 180, flex: '1 1 0' }}>
+               <Paper sx={statCard('linear-gradient(135deg, #b3e5fc, #ffffff)')}>
                   <Typography variant="h4" fontWeight="bold">
                      {ejecutadas.length}
                   </Typography>
@@ -190,113 +192,17 @@ export const MisOrdenesPage = () => {
                   </Typography>
                </Paper>
             </Grid>
+            <Grid item sx={{ minWidth: 180, flex: '1 1 0' }}>
+               <Paper sx={statCard('linear-gradient(135deg, #ffcdd2, #ffffff)')}>
+                  <Typography variant="h4" fontWeight="bold">
+                     {canceladas.length}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                     Canceladas
+                  </Typography>
+               </Paper>
+            </Grid>
          </Grid>
-
-         {/* Órdenes Autorizadas - Listas para agendar */}
-         {autorizadas.length > 0 && (
-            <>
-               <Alert severity="success" sx={{ mb: 2 }}>
-                  <Typography variant="subtitle2" fontWeight="bold">
-                     ¡Tienes {autorizadas.length} orden(es) autorizada(s)!
-                  </Typography>
-                  <Typography variant="body2">
-                     Puedes agendar tu cita con especialista haciendo clic en el botón "Agendar Cita"
-                  </Typography>
-               </Alert>
-               <Typography variant="h5" gutterBottom fontWeight="bold" mb={2}>
-                  Órdenes Autorizadas
-               </Typography>
-               <Grid container spacing={3} mb={4}>
-                  {autorizadas.map((order) => (
-                     <Grid item xs={12} md={6} key={order.id}>
-                        <Card elevation={3} sx={{ border: 2, borderColor: 'success.main' }}>
-                           <CardContent>
-                              <Box display="flex" justifyContent="space-between" alignItems="start" mb={2}>
-                                 <Box>
-                                    <Typography variant="h6" fontWeight="bold">
-                                       Orden #{order.id}
-                                    </Typography>
-                                    <Chip
-                                       label="Autorizada"
-                                       color="success"
-                                       size="small"
-                                       sx={{ mt: 1 }}
-                                    />
-                                 </Box>
-                                 <OrderIcon color="success" sx={{ fontSize: 32 }} />
-                              </Box>
-
-                              <Divider sx={{ my: 2 }} />
-
-                              <Box display="flex" alignItems="start" gap={1} mb={1}>
-                                 <HospitalIcon fontSize="small" color="action" />
-                                 <Box>
-                                    <Typography variant="body2" color="text.secondary">
-                                       Especialidad
-                                    </Typography>
-                                    <Typography variant="body1" fontWeight="bold">
-                                       {order.Specialty?.nombre || order.especialidad}
-                                    </Typography>
-                                 </Box>
-                              </Box>
-
-                              <Box display="flex" alignItems="start" gap={1} mb={1}>
-                                 <BusinessIcon fontSize="small" color="action" />
-                                 <Box>
-                                    <Typography variant="body2" color="text.secondary">
-                                       Entidad de Destino
-                                    </Typography>
-                                    <Typography variant="body1">
-                                       {order.entidadDestino}
-                                    </Typography>
-                                 </Box>
-                              </Box>
-
-                              {order.fechaVencimiento && (
-                                 <Box display="flex" alignItems="center" gap={1} mb={1}>
-                                    <ScheduleIcon fontSize="small" color="action" />
-                                    <Typography variant="body2" color="text.secondary">
-                                       Vence:{' '}
-                                       {new Date(order.fechaVencimiento).toLocaleDateString('es-ES', {
-                                          year: 'numeric',
-                                          month: 'long',
-                                          day: 'numeric',
-                                       })}
-                                    </Typography>
-                                 </Box>
-                              )}
-
-                              <Box display="flex" alignItems="start" gap={1} mt={2} mb={2}>
-                                 <DescriptionIcon fontSize="small" color="action" />
-                                 <Box>
-                                    <Typography variant="body2" color="text.secondary">
-                                       Descripción
-                                    </Typography>
-                                    <Typography variant="body2">
-                                       {order.descripcion}
-                                    </Typography>
-                                 </Box>
-                              </Box>
-
-                              <Divider sx={{ my: 2 }} />
-
-                              <Button
-                                 fullWidth
-                                 variant="contained"
-                                 color="success"
-                                 startIcon={<AgendarIcon />}
-                                 size="large"
-                                 onClick={() => handleAgendarCita(order)}
-                              >
-                                 Agendar Cita con Especialista
-                              </Button>
-                           </CardContent>
-                        </Card>
-                     </Grid>
-                  ))}
-               </Grid>
-            </>
-         )}
 
          {/* Órdenes Pendientes */}
          {pendientes.length > 0 && (
@@ -333,7 +239,7 @@ export const MisOrdenesPage = () => {
                                        Especialidad
                                     </Typography>
                                     <Typography variant="body1" fontWeight="bold">
-                                       {order.Specialty?.nombre || order.especialidad}
+                                       {order.especialidad}
                                     </Typography>
                                  </Box>
                               </Box>
@@ -429,7 +335,7 @@ export const MisOrdenesPage = () => {
                                        Especialidad
                                     </Typography>
                                     <Typography variant="body1" fontWeight="bold">
-                                       {order.Specialty?.nombre || order.especialidad}
+                                       {order.especialidad}
                                     </Typography>
                                  </Box>
                               </Box>
@@ -500,7 +406,7 @@ export const MisOrdenesPage = () => {
                               <OrderIcon color="action" />
                               <Box flex={1}>
                                  <Typography variant="subtitle1" fontWeight="bold">
-                                    Orden #{order.id} - {order.Specialty?.nombre || order.especialidad}
+                                    Orden #{order.id} - {order.especialidad}
                                  </Typography>
                                  <Typography variant="body2" color="text.secondary">
                                     {order.entidadDestino}
@@ -520,7 +426,7 @@ export const MisOrdenesPage = () => {
                                     Especialidad
                                  </Typography>
                                  <Typography variant="body1" fontWeight="bold">
-                                    {order.Specialty?.nombre || order.especialidad}
+                                    {order.especialidad}
                                  </Typography>
                               </Grid>
                               <Grid item xs={12} sm={6}>

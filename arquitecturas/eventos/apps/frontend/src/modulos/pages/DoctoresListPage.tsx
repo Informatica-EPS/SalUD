@@ -54,8 +54,8 @@ export const DoctoresPage = () => {
             <BackButton to="/home" />
          </Box>
          <Box mb={4}>
-            <Typography variant="h4" gutterBottom fontWeight="bold">
-               Nuestros Médicos
+            <Typography variant="h4" fontWeight="bold">
+               👨‍⚕️ Nuestros Médicos
             </Typography>
             <Typography variant="body1" color="text.secondary">
                {doctors.length} profesionales de la salud disponibles
@@ -72,9 +72,11 @@ export const DoctoresPage = () => {
                         height: '100%',
                         display: 'flex',
                         flexDirection: 'column',
-                        transition: 'transform 0.2s, box-shadow 0.2s',
+                        borderRadius: 3,
+                        background: 'linear-gradient(135deg, #f8fafc, #ffffff)',
+                        transition: 'all 0.25s ease',
                         '&:hover': {
-                           transform: 'translateY(-8px)',
+                           transform: 'translateY(-6px)',
                            boxShadow: 6,
                         },
                      }}
@@ -86,8 +88,9 @@ export const DoctoresPage = () => {
                               width: 100,
                               height: 100,
                               margin: '0 auto 16px',
-                              bgcolor: 'primary.main',
+                              background: 'linear-gradient(135deg, #1976d2, #42a5f5)',
                               fontSize: '2.5rem',
+                              boxShadow: 3,
                            }}
                         >
                            {((doctor.User || doctor.usuario)?.primer_nombre || (doctor.User || doctor.usuario)?.primerNombre)?.charAt(0)}
@@ -100,12 +103,15 @@ export const DoctoresPage = () => {
                         </Typography>
 
                         {/* Especialidad - Simulada */}
-                        <Chip
+                       <Chip
                            icon={<HospitalIcon />}
                            label="Medicina General"
-                           color="primary"
-                           variant="outlined"
-                           sx={{ mb: 2 }}
+                           size="small"
+                           sx={{
+                              mb: 2,
+                              fontWeight: 500,
+                              backgroundColor: 'rgba(25,118,210,0.1)',
+                           }}
                         />
 
                         {/* Información */}
@@ -138,8 +144,18 @@ export const DoctoresPage = () => {
                            </Box>
                         </Box>
 
+                        <Box mt={3} pt={2} borderTop="1px solid" borderColor="divider"></Box>
+
                         {/* Botones de Acción */}
-                        <Box mt={3} display="flex" gap={1}>
+                        <Box fullWidth
+                           variant="contained"
+                           size="large"
+                           sx={{
+                              borderRadius: 2,
+                              textTransform: 'none',
+                              fontWeight: 'bold',
+                           }}
+                        >
                            <Button
                               fullWidth
                               variant="contained"

@@ -68,6 +68,10 @@ export const GestionHorariosPage = () => {
    const [horaInicio, setHoraInicio] = useState('08:00');
    const [horaFin, setHoraFin] = useState('08:30');
 
+   const hoy = new Date().toISOString().split('T')[0];
+   const fechaInvalida = fecha && fecha < hoy;
+   const horaInvalida = horaInicio && horaFin && horaInicio >= horaFin;
+
    React.useEffect(() => {
       if (tabValue === 1) {
          refetchAll(100);
@@ -89,8 +93,18 @@ export const GestionHorariosPage = () => {
    };
 
    const handleCrearHorario = async () => {
+      if (fechaInvalida) {
+         setSuccess('La fecha no puede ser anterior a hoy');
+         return;
+      }
+
+      if (horaInvalida) {
+         setSuccess('La hora inicio no puede ser mayor o igual a la hora fin');
+         return;
+      }
+
       const result = await createTimeSlot(fecha, horaInicio + ':00', horaFin + ':00');
-      
+
       if (result.success) {
          setSuccess('Horario creado exitosamente');
          handleCloseDialog();
@@ -203,7 +217,6 @@ export const GestionHorariosPage = () => {
                      boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
                      transition: 'all 0.3s ease',
                      '&:hover': {
-                     transform: 'translateY(-5px)',
                      boxShadow: '0 15px 30px rgba(0,0,0,0.1)',
                      },
                   }}
@@ -226,7 +239,6 @@ export const GestionHorariosPage = () => {
                      boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
                      transition: 'all 0.3s ease',
                      '&:hover': {
-                     transform: 'translateY(-5px)',
                      boxShadow: '0 15px 30px rgba(0,0,0,0.1)',
                      },
                   }}
@@ -249,7 +261,6 @@ export const GestionHorariosPage = () => {
                      boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
                      transition: 'all 0.3s ease',
                      '&:hover': {
-                     transform: 'translateY(-5px)',
                      boxShadow: '0 15px 30px rgba(0,0,0,0.1)',
                      },
                   }}
@@ -272,7 +283,6 @@ export const GestionHorariosPage = () => {
                      boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
                      transition: 'all 0.3s ease',
                      '&:hover': {
-                     transform: 'translateY(-5px)',
                      boxShadow: '0 15px 30px rgba(0,0,0,0.1)',
                      },
                   }}
@@ -474,8 +484,14 @@ export const GestionHorariosPage = () => {
                      onChange={(e) => setFecha(e.target.value)}
                      InputLabelProps={{ shrink: true }}
                      inputProps={{
-                        min: new Date().toISOString().split('T')[0],
+                        min: hoy,
                      }}
+                     error={!!fechaInvalida}
+                     helperText={
+                        fechaInvalida
+                           ? 'No puede ser menor a hoy'
+                           : ''
+                     }
                   />
                   <TextField
                      fullWidth
@@ -484,6 +500,7 @@ export const GestionHorariosPage = () => {
                      value={horaInicio}
                      onChange={(e) => setHoraInicio(e.target.value)}
                      InputLabelProps={{ shrink: true }}
+                     error={!!horaInvalida}
                   />
                   <TextField
                      fullWidth
@@ -492,10 +509,25 @@ export const GestionHorariosPage = () => {
                      value={horaFin}
                      onChange={(e) => setHoraFin(e.target.value)}
                      InputLabelProps={{ shrink: true }}
+                     error={!!horaInvalida}
+                     helperText={
+                        horaInvalida
+                           ? 'La hora fin debe ser mayor que la hora inicio'
+                           : ''
+                     }
                   />
-                  <Alert severity="info">
-                     Este horario quedará disponible para que los pacientes puedan agendar citas
-                  </Alert>
+                  {(fechaInvalida || horaInvalida) && (
+                     <Alert severity="warning">
+                        {fechaInvalida && 'La fecha no puede ser anterior a hoy'}
+                        {horaInvalida && 'La hora inicio debe ser menor que la hora fin'}
+                     </Alert>
+                  )}
+
+                  {!fechaInvalida && !horaInvalida && (
+                     <Alert severity="info">
+                        Este horario quedará disponible para que los pacientes puedan agendar citas
+                     </Alert>
+                  )}
                </Box>
             </DialogContent>
             <DialogActions>

@@ -22,6 +22,7 @@ import {
    DialogTitle,
    DialogContent,
    DialogActions,
+   Avatar,
 } from '@mui/material';
 import {
    AssignmentTurnedIn as OrderIcon,
@@ -29,18 +30,33 @@ import {
    Cancel as CancelIcon,
    CheckCircle as CheckIcon,
    Schedule as ScheduleIcon,
-   ThumbUp as AuthorizeIcon,
-   Edit as EditIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useOrders, useSpecialties } from '../../hooks';
 import { useAuth } from '../../context/AuthContext';
 import { BackButton } from '../../components';
 import Swal from 'sweetalert2';
+import EditIcon from '@mui/icons-material/Edit';
+import VerifiedIcon from '@mui/icons-material/Verified';
+
+const ESPECIALIDADES = [
+   'Cardiología',
+   'Neurología',
+   'Pediatría',
+   'Ginecología',
+   'Oftalmología',
+   'Dermatología',
+   'Traumatología',
+   'Psiquiatría',
+   'Medicina General',
+   'Radiología',
+   'Laboratorio Clínico',
+   'Fisioterapia',
+   'Otra',
+];
 
 const ESTADOS_ORDEN = [
    { value: 'pendiente', label: 'Pendiente' },
-   { value: 'autorizada', label: 'Autorizada' },
    { value: 'programada', label: 'Programada' },
    { value: 'ejecutada', label: 'Ejecutada' },
    { value: 'cancelada', label: 'Cancelada' },
@@ -63,6 +79,9 @@ export const CrearOrdenPage = () => {
    const citaIdFromState = state?.citaId;
    const pacienteNombre = state?.pacienteNombre;
    const doctorNombre = state?.doctorNombre;
+   const nombreDoctor = `${user?.primerNombre || ''} ${user?.primerApellido || ''}`.trim();
+
+   console.log(state);
 
    const [formData, setFormData] = useState({
       idCita: citaIdFromState || 0,
@@ -76,8 +95,7 @@ export const CrearOrdenPage = () => {
    const [error, setError] = useState<string | null>(null);
    const [success, setSuccess] = useState<string | null>(null);
    const [existingOrders, setExistingOrders] = useState<any[]>([]);
-   
-   // Estado para edición de órdenes
+
    const [editingOrder, setEditingOrder] = useState<any | null>(null);
    const [openEditDialog, setOpenEditDialog] = useState(false);
    const [editFormData, setEditFormData] = useState({
@@ -86,6 +104,7 @@ export const CrearOrdenPage = () => {
       descripcion: '',
       fechaVencimiento: '',
    });
+   const [fechaInvalida, setFechaInvalida] = useState(false);
 
    useEffect(() => {
       if (citaIdFromState) {
@@ -137,6 +156,15 @@ export const CrearOrdenPage = () => {
          setError('Debe ingresar una descripción de la orden');
          return false;
       }
+      if (formData.fechaVencimiento) {
+         const hoy = new Date().setHours(0, 0, 0, 0);
+         const fecha = new Date(formData.fechaVencimiento).setHours(0, 0, 0, 0);
+
+         if (fecha < hoy) {
+            setError('La fecha de vencimiento no puede ser anterior a hoy');
+            return false;
+         }
+      }
       return true;
    };
 
@@ -154,7 +182,7 @@ export const CrearOrdenPage = () => {
          especialidad: formData.especialidad,
          entidadDestino: formData.entidadDestino,
          descripcion: formData.descripcion,
-         estado: formData.estado as 'pendiente' | 'autorizada' | 'programada' | 'ejecutada' | 'cancelada',
+         estado: formData.estado as 'pendiente' | 'programada' | 'ejecutada' | 'cancelada',
          fechaVencimiento: formData.fechaVencimiento || undefined,
          creadoPor: user?.id,
          actualizadoPor: user?.id,
@@ -296,6 +324,11 @@ export const CrearOrdenPage = () => {
    const handleEditChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const { name, value } = e.target;
       setEditFormData((prev) => ({ ...prev, [name]: value }));
+
+      if (name === 'fechaVencimiento') {
+      const hoy = new Date().toISOString().split('T')[0];
+      setFechaInvalida(value < hoy);
+   }
    };
 
    const handleSaveEdit = async () => {
@@ -312,6 +345,26 @@ export const CrearOrdenPage = () => {
       if (!editFormData.descripcion.trim()) {
          setError('Debe ingresar una descripción');
          return;
+      }
+      if (fechaInvalida) {
+         const hoy = new Date().setHours(0,0,0,0);
+         const fecha = new Date(editFormData.fechaVencimiento).setHours(0,0,0,0);
+
+         if (fecha < hoy) {
+            await Swal.fire({
+               title: 'Fecha inválida',
+               text: 'La fecha de vencimiento no puede ser anterior a hoy',
+               icon: 'warning',
+               confirmButtonText: 'Aceptar',
+               didOpen: () => {
+                  const swal = document.querySelector('.swal2-container') as HTMLElement;
+                  if (swal) {
+                     swal.style.zIndex = '2000';
+                  }
+               }
+            });
+            return;
+         }
       }
 
       console.log('Guardando cambios de orden:', editingOrder.id);
@@ -364,164 +417,219 @@ export const CrearOrdenPage = () => {
          </Box>
 
          {citaIdFromState && (
-            <Paper sx={{ p: 3, mb: 3, bgcolor: 'primary.light' }}>
-               <Typography variant="h6" gutterBottom>
-                  Información de la Cita
-               </Typography>
+            <Paper
+               sx={{
+                  p: 3,
+                  mb: 3,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 3,
+               }}
+            >
+               <Box display="flex" alignItems="center" gap={2} mb={2}>
+                  <Avatar sx={{ bgcolor: 'primary.main' }}>
+                     <OrderIcon />
+                  </Avatar>
+                  <Typography variant="h6" fontWeight="bold">
+                     Información de la Cita
+                  </Typography>
+               </Box>
+
                <Grid container spacing={2}>
                   <Grid item xs={12} sm={4}>
-                     <Typography variant="body2" color="text.secondary">
-                        ID Cita:
+                     <Typography variant="caption" color="text.secondary">
+                        ID Cita
                      </Typography>
                      <Typography variant="body1" fontWeight="bold">
                         #{citaIdFromState}
                      </Typography>
                   </Grid>
+
                   {pacienteNombre && (
                      <Grid item xs={12} sm={4}>
-                        <Typography variant="body2" color="text.secondary">
-                           Paciente:
+                        <Typography variant="caption" color="text.secondary">
+                           Paciente
                         </Typography>
                         <Typography variant="body1" fontWeight="bold">
                            {pacienteNombre}
                         </Typography>
                      </Grid>
                   )}
-                  {doctorNombre && (
-                     <Grid item xs={12} sm={4}>
-                        <Typography variant="body2" color="text.secondary">
-                           Médico:
-                        </Typography>
-                        <Typography variant="body1" fontWeight="bold">
-                           {doctorNombre}
-                        </Typography>
-                     </Grid>
-                  )}
+
+                  <Grid item xs={12} sm={4}>
+                     <Typography variant="caption" color="text.secondary">
+                        Médico
+                     </Typography>
+                     <Typography variant="body1" fontWeight="bold">
+                        {nombreDoctor || doctorNombre || 'Médico actual'}
+                     </Typography>
+                  </Grid>
                </Grid>
             </Paper>
          )}
 
          {/* Órdenes Existentes */}
          {existingOrders.length > 0 && (
-            <Paper sx={{ p: 3, mb: 3, bgcolor: 'success.light' }}>
+            <Paper
+               sx={{
+                  p: 3,
+                  mb: 3,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 3,
+               }}
+            >
+               {/* HEADER */}
                <Box display="flex" alignItems="center" gap={2} mb={2}>
-                  <CheckIcon color="success" />
-                  <Typography variant="h6">
-                     Órdenes Existentes para esta Cita ({existingOrders.length})
-                  </Typography>
+                  <Avatar sx={{ bgcolor: 'success.main' }}>
+                     <CheckIcon />
+                  </Avatar>
+
+                  <Box>
+                     <Typography variant="h6" fontWeight="bold">
+                        Órdenes de la Cita
+                     </Typography>
+                     <Typography variant="body2" color="text.secondary">
+                        {existingOrders.length} orden(es) registradas
+                     </Typography>
+                  </Box>
                </Box>
-               <Divider sx={{ mb: 2 }} />
-               <List>
-                  {existingOrders.map((orden, index) => (
-                     <ListItem
-                        key={orden.id}
-                        sx={{
-                           bgcolor: 'white',
-                           mb: 1,
-                           borderRadius: 1,
-                           border: '1px solid',
-                           borderColor: 'divider',
-                           flexDirection: 'column',
-                           alignItems: 'stretch',
-                        }}
-                     >
-                        <Box display="flex" alignItems="flex-start" width="100%">
-                           <ListItemIcon>
-                              <OrderIcon color="primary" />
-                           </ListItemIcon>
-                           <ListItemText
-                              primary={
-                                 <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
-                                    <Typography variant="subtitle1" fontWeight="bold">
-                                       Orden #{orden.id} - {orden.Specialty?.nombre || orden.especialidad}
+
+               <Divider sx={{ mb: 3 }} />
+
+               {/* LISTA */}
+               <Grid container spacing={2}>
+                  {existingOrders.map((orden) => (
+                     <Grid item xs={12} key={orden.id}>
+                        <Card
+                           variant="outlined"
+                           sx={{
+                              borderRadius: 2,
+                              transition: '0.2s',
+                              '&:hover': {
+                                 boxShadow: 3,
+                              },
+                           }}
+                        >
+                           <CardContent>
+
+                              {/* HEADER ORDEN */}
+                              <Box display="flex" justifyContent="space-between" flexWrap="wrap" gap={1}>
+                                 <Typography fontWeight="bold">
+                                    Orden #{orden.id}
+                                 </Typography>
+
+                                 <Chip
+                                    label={orden.estado}
+                                    color={
+                                       orden.estado === 'autorizada' || orden.estado === 'ejecutada'
+                                          ? 'success'
+                                          : orden.estado === 'programada'
+                                          ? 'primary'
+                                          : orden.estado === 'cancelada'
+                                          ? 'error'
+                                          : 'default'
+                                    }
+                                    size="small"
+                                 />
+                              </Box>
+
+                              {/* ESPECIALIDAD */}
+                              <Typography variant="body2" color="text.secondary" mt={1}>
+                                 {orden.Specialty?.nombre || orden.especialidad}
+                              </Typography>
+
+                              <Divider sx={{ my: 2 }} />
+
+                              {/* INFO */}
+                              <Grid container spacing={2}>
+                                 <Grid item xs={12} sm={6}>
+                                    <Typography variant="caption" color="text.secondary">
+                                       Entidad
                                     </Typography>
-                                    <Chip
-                                       label={orden.estado}
-                                       color={
-                                          orden.estado === 'autorizada'
-                                             ? 'success'
-                                             : orden.estado === 'ejecutada'
-                                             ? 'success'
-                                             : orden.estado === 'programada'
-                                             ? 'primary'
-                                             : orden.estado === 'cancelada'
-                                             ? 'error'
-                                             : 'default'
-                                       }
+                                    <Typography variant="body2">
+                                       {orden.entidadDestino}
+                                    </Typography>
+                                 </Grid>
+
+                                 {orden.fechaVencimiento && (
+                                    <Grid item xs={12} sm={6}>
+                                       <Typography variant="caption" color="text.secondary">
+                                          Fecha de vencimiento
+                                       </Typography>
+                                       <Typography variant="body2">
+                                          {new Date(orden.fechaVencimiento).toLocaleDateString('es-ES')}
+                                       </Typography>
+                                    </Grid>
+                                 )}
+
+                                 <Grid item xs={12}>
+                                    <Typography variant="caption" color="text.secondary">
+                                       Descripción
+                                    </Typography>
+                                    <Typography variant="body2">
+                                       {orden.descripcion}
+                                    </Typography>
+                                 </Grid>
+                              </Grid>
+
+                              {/* ACCIONES */}
+                              <Box
+                                 display="flex"
+                                 gap={1}
+                                 mt={3}
+                                 justifyContent="flex-end"
+                                 flexWrap="wrap"
+                              >
+                                 {orden.estado !== 'ejecutada' && orden.estado !== 'cancelada' && (
+                                    <Button
                                        size="small"
-                                    />
-                                 </Box>
-                              }
-                              secondary={
-                                 <Box sx={{ mt: 1 }}>
-                                    <Typography variant="body2" color="text.secondary">
-                                       <strong>Entidad:</strong> {orden.entidadDestino}
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary">
-                                       <strong>Descripción:</strong> {orden.descripcion}
-                                    </Typography>
-                                    {orden.fechaVencimiento && (
-                                       <Box display="flex" alignItems="center" gap={0.5} mt={0.5}>
-                                          <ScheduleIcon fontSize="small" />
-                                          <Typography variant="caption" color="text.secondary">
-                                             Vence: {new Date(orden.fechaVencimiento).toLocaleDateString('es-ES')}
-                                          </Typography>
-                                       </Box>
+                                       variant="outlined"
+                                       startIcon={<EditIcon />}
+                                       onClick={() => handleOpenEditDialog(orden)}
+                                    >
+                                       Editar
+                                    </Button>
+                                 )}
+
+                                 {orden.estado !== 'autorizada' &&
+                                    orden.estado !== 'ejecutada' &&
+                                    orden.estado !== 'cancelada' && (
+                                       <Button
+                                          size="small"
+                                          variant="contained"
+                                          color="success"
+                                          startIcon={<VerifiedIcon />}
+                                          onClick={() => handleAutorizarOrden(orden.id)}
+                                       >
+                                          Autorizar
+                                       </Button>
                                     )}
-                                 </Box>
-                              }
-                           />
-                        </Box>
-                        
-                        {/* Botones de acción */}
-                        <Box display="flex" gap={1} mt={2} justifyContent="flex-end" width="100%" flexWrap="wrap">
-                           {orden.estado !== 'ejecutada' && orden.estado !== 'cancelada' && (
-                              <Button
-                                 size="small"
-                                 variant="outlined"
-                                 color="primary"
-                                 startIcon={<EditIcon />}
-                                 onClick={() => {
-                                    console.log('Click en botón editar, orden:', orden);
-                                    handleOpenEditDialog(orden);
-                                 }}
-                                 disabled={loading}
-                              >
-                                 Editar
-                              </Button>
-                           )}
-                           
-                           {orden.estado !== 'autorizada' && orden.estado !== 'ejecutada' && orden.estado !== 'cancelada' && (
-                              <Button
-                                 size="small"
-                                 variant="contained"
-                                 color="success"
-                                 startIcon={<AuthorizeIcon />}
-                                 onClick={() => handleAutorizarOrden(orden.id)}
-                                 disabled={loading}
-                              >
-                                 Autorizar
-                              </Button>
-                           )}
-                           
-                           {orden.estado !== 'ejecutada' && orden.estado !== 'cancelada' && (
-                              <Button
-                                 size="small"
-                                 variant="outlined"
-                                 color="error"
-                                 startIcon={<CancelIcon />}
-                                 onClick={() => handleCambiarEstadoOrden(orden.id, 'cancelada')}
-                                 disabled={loading}
-                              >
-                                 Cancelar
-                              </Button>
-                           )}
-                        </Box>
-                     </ListItem>
+
+                                 {orden.estado !== 'ejecutada' &&
+                                    orden.estado !== 'cancelada' && (
+                                       <Button
+                                          size="small"
+                                          variant="text"
+                                          color="error"
+                                          startIcon={<CancelIcon />}
+                                          onClick={() =>
+                                             handleCambiarEstadoOrden(orden.id, 'cancelada')
+                                          }
+                                       >
+                                          Cancelar
+                                       </Button>
+                                    )}
+                              </Box>
+                           </CardContent>
+                        </Card>
+                     </Grid>
                   ))}
-               </List>
-               <Alert severity="info" sx={{ mt: 2 }}>
-                  Esta cita ya tiene {existingOrders.length} orden(es) creada(s). Puedes crear una orden adicional si es necesario.
+               </Grid>
+
+               {/* INFO */}
+               <Alert severity="info" sx={{ mt: 3 }}>
+                  Puedes crear órdenes adicionales para esta cita si es necesario.
                </Alert>
             </Paper>
          )}
@@ -538,149 +646,177 @@ export const CrearOrdenPage = () => {
             </Alert>
          )}
 
-         <Card elevation={3}>
-            <CardContent>
-               <Typography variant="h6" gutterBottom sx={{ mb: 3 }}>
-                  {existingOrders.length > 0 
-                     ? 'Crear Orden Adicional' 
-                     : 'Formulario de Nueva Orden'}
+         <Card
+   elevation={0}
+   sx={{
+      border: '1px solid',
+      borderColor: 'divider',
+      borderRadius: 3,
+   }}
+>
+   <CardContent>
+      {/* HEADER */}
+      <Box display="flex" alignItems="center" gap={2} mb={3}>
+         <Avatar sx={{ bgcolor: 'primary.main' }}>
+            <OrderIcon />
+         </Avatar>
+
+         <Box>
+            <Typography variant="h6" fontWeight="bold">
+               {existingOrders.length > 0
+                  ? 'Nueva Orden Adicional'
+                  : 'Nueva Orden Médica'}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+               Completa la información requerida
+            </Typography>
+         </Box>
+      </Box>
+
+      <form onSubmit={handleSubmit}>
+         <Grid container spacing={3}>
+            
+            {/* 🔹 SECCIÓN: INFORMACIÓN GENERAL */}
+            <Grid item xs={12}>
+               <Typography variant="subtitle2" color="text.secondary" mb={1}>
+                  Información General
                </Typography>
-               <form onSubmit={handleSubmit}>
-                  <Grid container spacing={3}>
-                     <Grid item xs={12}>
-                        <TextField
-                           fullWidth
-                           label="ID de Cita"
-                           name="idCita"
-                           type="number"
-                           value={formData.idCita}
-                           onChange={handleChange}
-                           required
-                           disabled={!!citaIdFromState}
-                           helperText={
-                              citaIdFromState
-                                 ? 'ID de cita asignado automáticamente'
-                                 : 'Ingrese el ID de la cita asociada'
-                           }
-                        />
-                     </Grid>
+               <Divider />
+            </Grid>
 
-                     <Grid item xs={12} sm={6}>
-                        <TextField
-                           fullWidth
-                           select
-                           label="Especialidad"
-                           name="especialidad"
-                           value={formData.especialidad}
-                           onChange={handleChange}
-                           required
-                           disabled={loadingSpecialties}
-                           helperText={
-                              loadingSpecialties 
-                                 ? 'Cargando especialidades...' 
-                                 : 'Seleccione la especialidad requerida'
-                           }
-                        >
-                           {specialties.map((especialidad) => (
-                              <MenuItem key={especialidad.id} value={especialidad.id.toString()}>
-                                 {especialidad.nombre}
-                              </MenuItem>
-                           ))}
-                        </TextField>
-                     </Grid>
+            <Grid item xs={12}>
+               <TextField
+                  fullWidth
+                  label="ID de Cita"
+                  name="idCita"
+                  type="number"
+                  value={formData.idCita}
+                  onChange={handleChange}
+                  required
+                  disabled={!!citaIdFromState}
+                  helperText={
+                     citaIdFromState
+                        ? 'Asignado automáticamente'
+                        : 'Ingrese el ID de la cita'
+                  }
+               />
+            </Grid>
 
-                     <Grid item xs={12} sm={6}>
-                        <TextField
-                           fullWidth
-                           select
-                           label="Estado"
-                           name="estado"
-                           value={formData.estado}
-                           onChange={handleChange}
-                           required
-                           helperText="Estado actual de la orden"
-                        >
-                           {ESTADOS_ORDEN.map((estado) => (
-                              <MenuItem key={estado.value} value={estado.value}>
-                                 {estado.label}
-                              </MenuItem>
-                           ))}
-                        </TextField>
-                     </Grid>
+            <Grid item xs={12} sm={6}>
+               <TextField
+                  fullWidth
+                  select
+                  label="Especialidad"
+                  name="especialidad"
+                  value={formData.especialidad}
+                  onChange={handleChange}
+                  required
+                  disabled={loadingSpecialties}
+               >
+                  {specialties.map((esp) => (
+                     <MenuItem key={esp.id} value={esp.id.toString()}>
+                        {esp.nombre}
+                     </MenuItem>
+                  ))}
+               </TextField>
+            </Grid>
 
-                     <Grid item xs={12}>
-                        <TextField
-                           fullWidth
-                           label="Entidad de Destino"
-                           name="entidadDestino"
-                           value={formData.entidadDestino}
-                           onChange={handleChange}
-                           required
-                           helperText="Institución o centro médico donde se realizará el procedimiento"
-                           placeholder="Ej: Hospital Universitario, Clínica San Rafael..."
-                        />
-                     </Grid>
+            <Grid item xs={12} sm={6}>
+               <TextField
+                  fullWidth
+                  select
+                  label="Estado"
+                  name="estado"
+                  value={formData.estado}
+                  onChange={handleChange}
+                  required
+               >
+                  {ESTADOS_ORDEN.map((estado) => (
+                     <MenuItem key={estado.value} value={estado.value}>
+                        {estado.label}
+                     </MenuItem>
+                  ))}
+               </TextField>
+            </Grid>
 
-                     <Grid item xs={12}>
-                        <TextField
-                           fullWidth
-                           label="Fecha de Vencimiento"
-                           name="fechaVencimiento"
-                           type="date"
-                           value={formData.fechaVencimiento}
-                           onChange={handleChange}
-                           InputLabelProps={{
-                              shrink: true,
-                           }}
-                           helperText="Fecha límite para realizar la orden (opcional)"
-                        />
-                     </Grid>
+            {/* 🔹 SECCIÓN: DETALLES */}
+            <Grid item xs={12} mt={2}>
+               <Typography variant="subtitle2" color="text.secondary" mb={1}>
+                  Detalles de la Orden
+               </Typography>
+               <Divider />
+            </Grid>
 
-                     <Grid item xs={12}>
-                        <TextField
-                           fullWidth
-                           multiline
-                           rows={4}
-                           label="Descripción de la Orden"
-                           name="descripcion"
-                           value={formData.descripcion}
-                           onChange={handleChange}
-                           required
-                           helperText="Detalle los procedimientos, exámenes o tratamientos solicitados"
-                           placeholder="Ej: Examen de sangre completo, radiografía de tórax, ecografía abdominal..."
-                        />
-                     </Grid>
+            <Grid item xs={12}>
+               <TextField
+                  fullWidth
+                  label="Entidad de Destino"
+                  name="entidadDestino"
+                  value={formData.entidadDestino}
+                  onChange={handleChange}
+                  required
+               />
+            </Grid>
 
-                     <Grid item xs={12}>
-                        <Divider sx={{ my: 2 }} />
-                     </Grid>
+            <Grid item xs={12} sm={6}>
+               <TextField
+                  fullWidth
+                  type="date"
+                  label="Fecha de Vencimiento"
+                  name="fechaVencimiento"
+                  value={formData.fechaVencimiento}
+                  onChange={handleChange}
+                  InputLabelProps={{ shrink: true }}
+                  inputProps={{
+                     min: new Date().toISOString().split('T')[0],
+                  }}
+               />
+            </Grid>
 
-                     <Grid item xs={12}>
-                        <Box display="flex" gap={2} justifyContent="flex-end">
-                           <Button
-                              variant="outlined"
-                              color="secondary"
-                              startIcon={<CancelIcon />}
-                              onClick={handleCancel}
-                              disabled={loading}
-                           >
-                              Cancelar
-                           </Button>
-                           <Button
-                              type="submit"
-                              variant="contained"
-                              color="primary"
-                              startIcon={loading ? <CircularProgress size={20} /> : <SaveIcon />}
-                              disabled={loading}
-                           >
-                              {loading ? 'Guardando...' : 'Guardar Orden'}
-                           </Button>
-                        </Box>
-                     </Grid>
-                  </Grid>
-               </form>
-            </CardContent>
-         </Card>
+            <Grid item xs={12}>
+               <TextField
+                  fullWidth
+                  multiline
+                  rows={4}
+                  label="Descripción"
+                  name="descripcion"
+                  value={formData.descripcion}
+                  onChange={handleChange}
+                  required
+               />
+            </Grid>
+
+            {/* BOTONES */}
+            <Grid item xs={12}>
+               <Box
+                  display="flex"
+                  justifyContent="flex-end"
+                  gap = {2}
+                  alignItems="center"
+                  mt={2}
+               >
+                  <Button variant="outlined" color="secondary" startIcon={<CancelIcon />} onClick={handleCancel} disabled={loading} > Cancelar </Button>
+
+                  <Button
+                     type="submit"
+                     variant="contained"
+                     startIcon={
+                        loading ? (
+                           <CircularProgress size={20} color="inherit" />
+                        ) : (
+                           <SaveIcon />
+                        )
+                     }
+                     disabled={loading}
+                  >
+                     {loading ? 'Guardando...' : 'Guardar Orden'}
+                  </Button>
+               </Box>
+            </Grid>
+         </Grid>
+      </form>
+   </CardContent>
+</Card>
 
          {/* Diálogo de Edición de Orden */}
          <Dialog open={openEditDialog} onClose={handleCloseEditDialog} maxWidth="md" fullWidth>
@@ -754,7 +890,11 @@ export const CrearOrdenPage = () => {
                            InputLabelProps={{
                               shrink: true,
                            }}
+                           inputProps={{
+                              min: new Date().toISOString().split('T')[0],
+                           }}
                            helperText="Fecha límite para realizar la orden (opcional)"
+                           error={!!fechaInvalida}
                         />
                      </Grid>
 
