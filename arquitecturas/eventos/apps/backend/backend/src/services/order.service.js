@@ -5,6 +5,7 @@ const TimeSlotModel = require("../models/time-slot.model");
 const PatientModel = require("../models/patient.model");
 const DoctorModel = require("../models/doctor.model");
 const UserModel = require("../models/user.model");
+const SpecialtyModel = require("../models/specialty.model");
 const { functions, ordersStatus } = require("../utils");
 const RabbitMQService = require("./rabbitMqService/rabbitmq.service");
 const specialtyService = require("./specialty.service");
@@ -55,6 +56,10 @@ class OrderService {
       {
         where: idCita !== undefined ? { idCita: idCita } : {},
         include: [
+          {
+            model: SpecialtyModel,
+            attributes: ["id", "nombre", "descripcion"],
+          },
           {
             model: AppointmentModel,
             attributes: ["id", "tipoCita", "estado"],
@@ -118,6 +123,10 @@ class OrderService {
   async findById(id) {
     return await Order.findByPk(id, {
       include: [
+        {
+          model: SpecialtyModel,
+          attributes: ["id", "nombre", "descripcion"],
+        },
         {
           model: AppointmentModel,
           attributes: ["id", "tipoCita", "estado"],
@@ -223,6 +232,10 @@ class OrderService {
       queryParams,
       {
         include: [
+          {
+            model: SpecialtyModel,
+            attributes: ["id", "nombre", "descripcion"],
+          },
           {
             model: AppointmentModel,
             where: { idPaciente },

@@ -90,6 +90,10 @@ class AppointmentService {
                   "email",
                 ],
               },
+              {
+                model: SpecialtyModel,
+                attributes: ["id", "nombre", "descripcion"],
+              },
             ],
           },
           {
@@ -168,6 +172,10 @@ class AppointmentService {
                   "segundo_apellido",
                 ],
               },
+              {
+                model: SpecialtyModel,
+                attributes: ["id", "nombre", "descripcion"],
+              },
             ],
           },
           {
@@ -218,6 +226,25 @@ class AppointmentService {
             ],
           },
           {
+            model: DoctorModel,
+            include: [
+              {
+                model: UserModel,
+                attributes: [
+                  "id",
+                  "primer_nombre",
+                  "segundo_nombre",
+                  "primer_apellido",
+                  "segundo_apellido",
+                ],
+              },
+              {
+                model: SpecialtyModel,
+                attributes: ["id", "nombre", "descripcion"],
+              },
+            ],
+          },
+          {
             model: TimeSlotModel,
           },
           {
@@ -258,6 +285,10 @@ class AppointmentService {
                 "segundo_apellido",
                 "email",
               ],
+            },
+            {
+              model: SpecialtyModel,
+              attributes: ["id", "nombre", "descripcion"],
             },
           ],
         },
@@ -710,14 +741,28 @@ class AppointmentService {
     if (!doctor) {
       throw new Error("Doctor no encontrado");
     }
-    if (doctor.especialidad !== idSpecialty) {
+    
+    console.log("validateDoctorSpecialty - idDoctor:", idDoctor, "tipo:", typeof idDoctor);
+    console.log("validateDoctorSpecialty - idSpecialty:", idSpecialty, "tipo:", typeof idSpecialty);
+    console.log("validateDoctorSpecialty - doctor.especialidad:", doctor.especialidad, "tipo:", typeof doctor.especialidad);
+    
+    // Convertir ambos a número para comparar correctamente
+    if (Number(doctor.especialidad) !== Number(idSpecialty)) {
       throw new Error("El médico no pertenece a la especialidad seleccionada");
     }
   }
 
   async createBySpecialty(idSpecialty, data, userId) {
-    console.log("Creating appointment with data:", data);
+    console.log("==== createBySpecialty ====");
+    console.log("idSpecialty:", idSpecialty, "tipo:", typeof idSpecialty);
+    console.log("data:", data);
+    console.log("userId:", userId);
+    
     const { idDoctor, idHorario, idPaciente } = data;
+    
+    console.log("idDoctor:", idDoctor, "tipo:", typeof idDoctor);
+    console.log("idHorario:", idHorario, "tipo:", typeof idHorario);
+    console.log("idPaciente:", idPaciente, "tipo:", typeof idPaciente);
 
     await this.validateDoctorSpecialty(idDoctor, idSpecialty);
     await this.validateMustBeFutureDate(idHorario);
