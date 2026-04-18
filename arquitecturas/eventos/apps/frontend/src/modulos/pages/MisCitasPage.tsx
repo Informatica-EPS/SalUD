@@ -234,9 +234,16 @@ export const MisCitasPage = () => {
 
                                     <Box display="flex" alignItems="center" gap={1} mb={1}>
                                        <HospitalIcon fontSize="small" color="action" />
-                                       <Typography variant="body2" color="text.secondary">
-                                          {cita.tipoCita}
-                                       </Typography>
+                                       <Box>
+                                          <Typography variant="body2" color="text.secondary">
+                                             {cita.tipoCita}
+                                          </Typography>
+                                          {cita.tipoCita === 'ESPECIALIDAD' && getDoctor(cita)?.Specialty && (
+                                             <Typography variant="body2" color="secondary.main" fontWeight="medium">
+                                                {getDoctor(cita).Specialty.nombre}
+                                             </Typography>
+                                          )}
+                                       </Box>
                                     </Box>
 
                                     <Box display="flex" alignItems="center" gap={1} mb={1}>
@@ -359,9 +366,19 @@ export const MisCitasPage = () => {
                                        {horario?.horaInicio}
                                     </Typography>
 
-                                    <Typography variant="body2" color="text.secondary">
-                                       {cita.tipoCita}
-                                    </Typography>
+                                    <Box display="flex" alignItems="center" gap={1}>
+                                       <HospitalIcon fontSize="small" color="action" />
+                                       <Box>
+                                          <Typography variant="body2" color="text.secondary">
+                                             {cita.tipoCita}
+                                          </Typography>
+                                          {cita.tipoCita === 'ESPECIALIDAD' && getDoctor(cita)?.Specialty && (
+                                             <Typography variant="body2" color="secondary.main" fontWeight="medium">
+                                                {getDoctor(cita).Specialty.nombre}
+                                             </Typography>
+                                          )}
+                                       </Box>
+                                    </Box>
 
                                     {detalles?.diagnostico && (
                                        <Box mt={2} p={1} bgcolor="grey.100" borderRadius={1}>

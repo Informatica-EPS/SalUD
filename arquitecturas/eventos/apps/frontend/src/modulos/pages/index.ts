@@ -13,6 +13,7 @@ export { default as HomePage } from './HomePage';
 export { default as CitasDisponiblesPage } from './CitasDisponiblesPage';
 export { default as MisCitasPage } from './MisCitasPage';
 export { default as MisOrdenesPage } from './MisOrdenesPage';
+export { default as AgendarCitaEspecialidadPage } from './AgendarCitaEspecialidadPage';
 
 // Páginas de gestión
 export { default as PacientesPage } from './PacientesPage';

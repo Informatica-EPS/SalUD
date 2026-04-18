@@ -389,14 +389,21 @@ export const HistoriaClinicaPage = () => {
                                     </Typography>
                                  </Box>
                               </Grid>
-                              <Grid item xs={12} sm={6}>
-                                 <Box display="flex" alignItems="center" gap={1}>
-                                    <HospitalIcon fontSize="small" color="action" />
-                                    <Typography variant="body2">
-                                       <strong>Tipo:</strong> {cita.tipoCita}
-                                    </Typography>
-                                 </Box>
-                              </Grid>
+                             <Grid item xs={12} sm={6}>
+                                <Box display="flex" alignItems="center" gap={1}>
+                                   <HospitalIcon fontSize="small" color="action" />
+                                   <Box>
+                                      <Typography variant="body2">
+                                         <strong>Tipo:</strong> {cita.tipoCita}
+                                      </Typography>
+                                      {cita.tipoCita === 'ESPECIALIDAD' && cita.doctor?.doctorEspecialidad && (
+                                         <Typography variant="body2" color="secondary.main" fontWeight="medium">
+                                            {cita.doctor.doctorEspecialidad}
+                                         </Typography>
+                                      )}
+                                   </Box>
+                                </Box>
+                             </Grid>
                            </Grid>
 
                            {cita.detalles && (

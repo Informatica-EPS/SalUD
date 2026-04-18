@@ -8,6 +8,7 @@ import {
    CitasDisponiblesPage,
    MisCitasPage,
    MisOrdenesPage,
+   AgendarCitaEspecialidadPage,
    GestionHorariosPage,
    HistoriaClinicaPage,
    CrearOrdenPage,
@@ -91,6 +92,15 @@ const AppRoutes = () => {
                element={
                   <ProtectedRoute>
                      <MisOrdenesPage />
+                  </ProtectedRoute>
+               }
+            />
+
+            <Route
+               path="/agendar-cita-especialidad/:especialidadId"
+               element={
+                  <ProtectedRoute>
+                     <AgendarCitaEspecialidadPage />
                   </ProtectedRoute>
                }
             />

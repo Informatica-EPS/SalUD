@@ -1,7 +1,8 @@
 -- =============================================================
--- seed.sql  –  Limpia y repopula la base de datos SalUD
+-- seed.sql – Limpia y repobla la base de datos SalUD
 -- Contraseña de todos los usuarios: salud123
 -- SHA-256("salud123") = 444d2690e7413101d5efc5296fc171bb6b6b486e58b52d63531dbf39b83b399b
+-- Los documentos también se guardan en SHA-256 porque el login los busca hasheados
 -- =============================================================
 
 -- ---------------------------------------------------------------
@@ -54,7 +55,7 @@ CREATE TABLE rol (
 );
 
 CREATE TABLE especialidades (
-    id          VARCHAR PRIMARY KEY,
+    id          SERIAL PRIMARY KEY,
     nombre      VARCHAR(50)  NOT NULL,
     descripcion VARCHAR(200)
 );
@@ -62,7 +63,7 @@ CREATE TABLE especialidades (
 CREATE TABLE doctores (
     id              SERIAL PRIMARY KEY,
     licencia_medica VARCHAR NOT NULL,
-    especialidad    VARCHAR REFERENCES especialidades(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    especialidad    INTEGER REFERENCES especialidades(id) ON DELETE CASCADE ON UPDATE CASCADE,
     id_usuario      BIGINT  UNIQUE REFERENCES usuarios(id) ON DELETE SET NULL ON UPDATE CASCADE,
     creado_por      INTEGER,
     actualizado_por INTEGER,
@@ -132,7 +133,7 @@ CREATE TABLE ordenes (
     fecha_vencimiento TIMESTAMPTZ,
     estado           VARCHAR(50),
     entidad_destino  VARCHAR(100),
-    especialidad     VARCHAR(100) REFERENCES especialidades(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    especialidad     INTEGER REFERENCES especialidades(id) ON DELETE CASCADE ON UPDATE CASCADE,
     descripcion      VARCHAR(200),
     created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -160,50 +161,58 @@ VALUES
 
 INSERT INTO especialidades (id, nombre, descripcion)
 VALUES
-    ('1', 'Cardiología',  'Especialidad del corazón y sistema cardiovascular'),
-    ('2', 'Inmunología',  'Especialidad del sistema inmunológico');
+    (1, 'Cardiología',  'Especialidad del corazón y sistema cardiovascular'),
+    (2, 'Inmunología',  'Especialidad del sistema inmunológico');
 
 -- ---------------------------------------------------------------
 -- 4. Usuarios (5 en total: 3 médicos + 2 pacientes)
 -- ---------------------------------------------------------------
 
-INSERT INTO usuarios (primer_nombre, segundo_nombre, primer_apellido, segundo_apellido,
-                      fecha_nacimiento, lugar_nacimiento, direccion,
-                      documento, tipo_documento, usuario, email, password,
-                      creado_por, fecha_creacion)
+-- =============================================================
+-- Activar extensión para usar SHA256
+-- =============================================================
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+
+INSERT INTO usuarios (
+    primer_nombre, segundo_nombre, primer_apellido, segundo_apellido,
+    fecha_nacimiento, lugar_nacimiento, direccion,
+    documento, tipo_documento, usuario, email, password,
+    creado_por, fecha_creacion
+)
 VALUES
     -- Médico 1 – Cardiología
     ('Carlos',  'Alberto', 'Ramírez', 'Gómez',
      '1980-03-15', 'Bogotá', 'Cra 7 # 45-12',
-     '10000001', 'CC', 'dr.ramirez', 'dr.ramirez@salud.com',
+     encode(digest('10000001', 'sha256'), 'hex'), 'CC', 'dr.ramirez', 'dr.ramirez@salud.com',
      '444d2690e7413101d5efc5296fc171bb6b6b486e58b52d63531dbf39b83b399b',
      'seed', NOW()),
 
     -- Médico 2 – Inmunología
     ('Laura',   'Sofía',   'Torres',  'Medina',
      '1985-07-22', 'Medellín', 'Av 80 # 10-30',
-     '10000002', 'CC', 'dr.torres', 'dr.torres@salud.com',
+     encode(digest('10000002', 'sha256'), 'hex'), 'CC', 'dr.torres', 'dr.torres@salud.com',
      '444d2690e7413101d5efc5296fc171bb6b6b486e58b52d63531dbf39b83b399b',
      'seed', NOW()),
 
     -- Médico 3 – Sin especialidad
     ('Andrés',  NULL,      'Morales', 'Ríos',
      '1990-11-05', 'Cali', 'Cll 15 # 8-90',
-     '10000003', 'CC', 'dr.morales', 'dr.morales@salud.com',
+     encode(digest('10000003', 'sha256'), 'hex'), 'CC', 'dr.morales', 'dr.morales@salud.com',
      '444d2690e7413101d5efc5296fc171bb6b6b486e58b52d63531dbf39b83b399b',
      'seed', NOW()),
 
     -- Paciente 1
     ('María',   'Camila',  'López',   'Herrera',
      '1995-01-18', 'Bogotá', 'Cll 100 # 15-20',
-     '20000001', 'CC', 'pac.lopez', 'pac.lopez@salud.com',
+     encode(digest('20000001', 'sha256'), 'hex'), 'CC', 'pac.lopez', 'pac.lopez@salud.com',
      '444d2690e7413101d5efc5296fc171bb6b6b486e58b52d63531dbf39b83b399b',
      'seed', NOW()),
 
     -- Paciente 2
     ('Juan',    'Pablo',   'Castro',  'Vargas',
      '2000-06-30', 'Barranquilla', 'Cra 50 # 75-40',
-     '20000002', 'CC', 'pac.castro', 'pac.castro@salud.com',
+     encode(digest('20000002', 'sha256'), 'hex'), 'CC', 'pac.castro', 'pac.castro@salud.com',
      '444d2690e7413101d5efc5296fc171bb6b6b486e58b52d63531dbf39b83b399b',
      'seed', NOW());
 
@@ -213,8 +222,8 @@ VALUES
 
 INSERT INTO doctores (licencia_medica, especialidad, id_usuario, creado_por, created_at, updated_at)
 VALUES
-    ('LM-10001', '1', (SELECT id FROM usuarios WHERE usuario = 'dr.ramirez'),  1, NOW(), NOW()),
-    ('LM-10002', '2', (SELECT id FROM usuarios WHERE usuario = 'dr.torres'),   1, NOW(), NOW()),
+    ('LM-10001', 1, (SELECT id FROM usuarios WHERE usuario = 'dr.ramirez'),  1, NOW(), NOW()),
+    ('LM-10002', 2, (SELECT id FROM usuarios WHERE usuario = 'dr.torres'),   1, NOW(), NOW()),
     ('LM-10003', NULL,(SELECT id FROM usuarios WHERE usuario = 'dr.morales'),  1, NOW(), NOW());
 
 -- ---------------------------------------------------------------

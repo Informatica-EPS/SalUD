@@ -54,6 +54,13 @@ export interface IRole {
    updatedAt?: string;
 }
 
+// Especialidad
+export interface ISpecialty {
+   id: number;
+   nombre: string;
+   descripcion?: string;
+}
+
 // Paciente
 export interface IPatient {
    id: number;
@@ -76,6 +83,7 @@ export interface IPatient {
 export interface IDoctor {
    id: number;
    licenciaMedica: string;
+   especialidad?: number | null;
    idUsuario: number;
    creadoPor: number;
    actualizadoPor: number;
@@ -83,6 +91,7 @@ export interface IDoctor {
    updatedAt?: string;
    usuario?: IUser;
    User?: IUser; // Sequelize devuelve el modelo asociado con este nombre
+   Specialty?: ISpecialty; // Sequelize devuelve el modelo asociado con este nombre
 }
 
 // TimeSlot (Horario)
@@ -259,7 +268,7 @@ export interface IOrder {
    id: number;
    idCita: number;
    fechaVencimiento?: string;
-   estado: 'pendiente' | 'programada' | 'ejecutada' | 'cancelada';
+   estado: 'pendiente' | 'autorizada' | 'programada' | 'ejecutada' | 'cancelada';
    entidadDestino: string;
    especialidad: string;
    descripcion: string;
@@ -269,13 +278,14 @@ export interface IOrder {
    updatedAt?: string;
    cita?: IAppointment;
    Appointment?: IAppointment;
+   Specialty?: ISpecialty;
 }
 
 // Request para crear Orden
 export interface ICreateOrderRequest {
    idCita: number;
    fechaVencimiento?: string;
-   estado: 'pendiente' | 'programada' | 'ejecutada' | 'cancelada';
+   estado: 'pendiente' | 'autorizada' | 'programada' | 'ejecutada' | 'cancelada';
    entidadDestino: string;
    especialidad: string;
    descripcion: string;
@@ -287,7 +297,7 @@ export interface ICreateOrderRequest {
 export interface IUpdateOrderRequest {
    idCita?: number;
    fechaVencimiento?: string;
-   estado?: 'pendiente' | 'programada' | 'ejecutada' | 'cancelada';
+   estado?: 'pendiente' | 'autorizada' | 'programada' | 'ejecutada' | 'cancelada';
    entidadDestino?: string;
    especialidad?: string;
    descripcion?: string;
