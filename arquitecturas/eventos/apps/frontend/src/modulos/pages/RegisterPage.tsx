@@ -38,14 +38,106 @@ export default function RegisterPage() {
       licenciaMedica: '',
    });
 
+   const Discapacidades = [
+      { value: 'ninguna', label: 'Ninguna' },
+      { value: 'fisica', label: 'Física / Motora' },
+      { value: 'visual', label: 'Visual' },
+      { value: 'auditiva', label: 'Auditiva' },
+      { value: 'intelectual', label: 'Intelectual' },
+      { value: 'psicosocial', label: 'Mental / Psicosocial' },
+      { value: 'multiple', label: 'Múltiple' },
+   ];
+
+   const Etnias = [
+      { value: 'ninguna', label: 'Ninguna / No aplica' },
+      { value: 'indigena', label: 'Indígena' },
+      { value: 'rom', label: 'ROM (Gitano)' },
+      { value: 'raizal', label: 'Raizal' },
+      { value: 'palenquero', label: 'Palenquero' },
+      { value: 'afro', label: 'Afrocolombiano / Negro / Mulato' },
+      { value: 'otro', label: 'Otro' },
+      { value: 'no_responde', label: 'Prefiere no responder' },
+   ];
+
+   const Religiones = [
+      { value: 'ninguna', label: 'Ninguna' },
+      { value: 'catolica', label: 'Católica' },
+      { value: 'cristiana', label: 'Cristiana' },
+      { value: 'evangelica', label: 'Evangélica' },
+      { value: 'testigos_jehova', label: 'Testigos de Jehová' },
+      { value: 'judaista', label: 'Judía' },
+      { value: 'islam', label: 'Islam' },
+      { value: 'otra', label: 'Otra' },
+      { value: 'no_responde', label: 'Prefiere no responder' },
+   ];
+
+   const Sexos = [
+      { value: 'masculino', label: 'Masculino' },
+      { value: 'femenino', label: 'Femenino' },
+      { value: 'intersexual', label: 'Intersexual' },
+      { value: 'no_responde', label: 'Prefiere no responder' },
+   ];
+
+   const Generos = [
+      { value: 'hombre', label: 'Hombre' },
+      { value: 'mujer', label: 'Mujer' },
+      { value: 'no_binario', label: 'No binario' },
+      { value: 'transgenero', label: 'Transgénero' },
+      { value: 'otro', label: 'Otro' },
+      { value: 'no_responde', label: 'Prefiere no responder' },
+   ];
+
+   const [otroGenero, setOtroGenero] = useState('');
+
    const navigate = useNavigate();
 
    const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
 
+      if (fechaMayorHoy) {
+         Swal.fire({
+            icon: 'warning',
+            title: 'Fecha inválida',
+            text: 'La fecha de nacimiento no puede ser mayor a hoy',
+         });
+         return;
+      }
+
+      if (esMenorEdadCC) {
+         Swal.fire({
+            icon: 'warning',
+            title: 'Edad inválida',
+            text: 'Para documento CC debe ser mayor de 18 años',
+         });
+         return;
+      }
+
+      if (esMayorEdadTI) {
+         Swal.fire({
+            icon: 'warning',
+            title: 'Edad inválida',
+            text: 'Con documento TI no puede ser mayor de 18 años',
+         });
+         return;
+      }
+
+      if (patientData.identidadGenero === 'otro' && !otroGenero.trim()) {
+         Swal.fire({
+            icon: 'warning',
+            title: 'Campo requerido',
+            text: 'Debes especificar la identidad de género',
+         });
+         return;
+      }
+
       try {
          if (role === 'Paciente') {
-            await api.post('/patients/register', { userData, patientData });
+            const identidadGeneroFinal =
+               patientData.identidadGenero === 'otro'
+                  ? otroGenero
+                  : patientData.identidadGenero;
+
+            await api.post('/patients/register', { userData, patientData: { ...patientData, identidadGenero: identidadGeneroFinal } });
 
             Swal.fire({
                icon: 'success',
@@ -83,6 +175,32 @@ export default function RegisterPage() {
          background: '#f9fcfe',
       },
    };
+
+   const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+
+      // Edad mínima (18 años)
+   const fechaMinimaCC = new Date();
+      fechaMinimaCC.setFullYear(fechaMinimaCC.getFullYear() - 18);
+
+      // Fecha seleccionada
+   const fechaNacimientoDate = userData.fecha_nacimiento
+         ? new Date(userData.fecha_nacimiento)
+         : null;
+
+      // Validaciones
+   const fechaMayorHoy =
+         fechaNacimientoDate && fechaNacimientoDate > hoy;
+
+   const esMenorEdadCC =
+         userData.tipo_documento === 'CC' &&
+         fechaNacimientoDate &&
+         fechaNacimientoDate > fechaMinimaCC;
+
+   const esMayorEdadTI =
+         userData.tipo_documento === 'TI' &&
+         fechaNacimientoDate &&
+         fechaNacimientoDate <= fechaMinimaCC;
 
    return (
       <Box
@@ -251,7 +369,22 @@ export default function RegisterPage() {
                         label="Fecha Nacimiento"
                         InputLabelProps={{ shrink: true }}
                         value={userData.fecha_nacimiento}
-                        onChange={e => setUserData({ ...userData, fecha_nacimiento: e.target.value })}
+                        onChange={e =>
+                           setUserData({ ...userData, fecha_nacimiento: e.target.value })
+                        }
+                        inputProps={{
+                           max: new Date().toISOString().split('T')[0], // 🚫 futuro
+                        }}
+                        error={!!fechaMayorHoy || !!esMenorEdadCC || !!esMayorEdadTI}
+                        helperText={
+                           fechaMayorHoy
+                              ? 'La fecha no puede ser mayor a hoy'
+                              : esMenorEdadCC
+                              ? 'Debe ser mayor de 18 años para CC'
+                              : esMayorEdadTI
+                              ? 'Con TI no puede ser mayor de 18 años'
+                              : ''
+                        }
                         sx={inputStyle}
                      />
                   </Grid>
@@ -284,6 +417,7 @@ export default function RegisterPage() {
                   <Grid item xs={12} sm={6}>
                      <TextField
                         fullWidth
+                        required
                         select
                         value={role}
                         onChange={e => setRole(e.target.value)}
@@ -317,62 +451,108 @@ export default function RegisterPage() {
                         <Grid item xs={12} sm={6}>
                            <TextField
                               fullWidth
+                              select
                               label="Discapacidad"
+                              required
                               value={patientData.discapacidad}
                               onChange={e =>
                                  setPatientData({ ...patientData, discapacidad: e.target.value })
                               }
                               sx={inputStyle}
-                           />
+                           >
+                              {Discapacidades.map((d) => (
+                                 <MenuItem key={d.value} value={d.value}>
+                                    {d.label}
+                                 </MenuItem>
+                              ))}
+                           </TextField>
+                        </Grid>
+
+                        <Grid item xs={12} sm={6}>
+                           <TextField
+                           fullWidth
+                           select
+                           label="Religión"
+                           required
+                           value={patientData.religion}
+                           onChange={e => setPatientData({ ...patientData, religion: e.target.value })}
+                           sx={inputStyle}
+                        >
+                           {Religiones.map((r) => (
+                              <MenuItem key={r.value} value={r.value}>
+                                 {r.label}
+                              </MenuItem>
+                           ))}
+                        </TextField>
                         </Grid>
 
                         <Grid item xs={12} sm={6}>
                            <TextField
                               fullWidth
-                              label="Religión"
-                              value={patientData.religion}
-                              onChange={e => setPatientData({ ...patientData, religion: e.target.value })}
-                              sx={inputStyle}
-                           />
-                        </Grid>
-
-                        <Grid item xs={12} sm={6}>
-                           <TextField
-                              fullWidth
+                              select
                               label="Etnia"
+                              required
                               value={patientData.etnia}
                               onChange={e => setPatientData({ ...patientData, etnia: e.target.value })}
                               sx={inputStyle}
-                           />
+                           >
+                              {Etnias.map((e) => (
+                                 <MenuItem key={e.value} value={e.value}>
+                                    {e.label}
+                                 </MenuItem>
+                              ))}
+                           </TextField>
                         </Grid>
 
                         <Grid item xs={12} sm={6}>
                            <TextField
                               fullWidth
+                              select
                               label="Identidad de Género"
-                              select
                               value={patientData.identidadGenero}
-                              onChange={e => setPatientData({ ...patientData, identidadGenero: e.target.value })}
+                              onChange={e =>
+                                 setPatientData({ ...patientData, identidadGenero: e.target.value })
+                              }
                               sx={inputStyle}
                            >
-                              <MenuItem value="Femenino">Femenino</MenuItem>
-                              <MenuItem value="Masculino">Masculino</MenuItem>
+                              {Generos.map((g) => (
+                                 <MenuItem key={g.value} value={g.value}>
+                                    {g.label}
+                                 </MenuItem>
+                              ))}
                            </TextField>
                         </Grid>
 
+                        {patientData.identidadGenero === 'otro' && (
+                           <Grid item xs={12} sm={6}>
+                              <TextField
+                                 fullWidth
+                                 label="Especifique identidad de género"
+                                 value={otroGenero}
+                                 onChange={(e) => setOtroGenero(e.target.value)}
+                                 sx={inputStyle}
+                              />
+                           </Grid>
+                        )}
+
                         <Grid item xs={12} sm={6}>
                            <TextField
-                              fullWidth
-                              label="Sexo"
-                              required
-                              select
-                              value={patientData.sexo}
-                              onChange={e => setPatientData({ ...patientData, sexo: e.target.value })}
-                              sx={inputStyle}
-                           >
-                              <MenuItem value="Femenino">Femenino</MenuItem>
-                              <MenuItem value="Masculino">Masculino</MenuItem>
-                           </TextField>
+                           fullWidth
+                           select
+                           label="Sexo"
+                           required
+                           value={patientData.sexo}
+                           onChange={e =>
+                              setPatientData({ ...patientData, sexo: e.target.value })
+                           }
+                           sx={inputStyle}
+                        >
+                           {Sexos.map((s) => (
+                              <MenuItem key={s.value} value={s.value}>
+                                 {s.label}
+                              </MenuItem>
+                           ))}
+                        </TextField>
                         </Grid>
                      </>
                   )}
