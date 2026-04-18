@@ -123,12 +123,14 @@ export default function MedicoPage() {
       }
    };
 
+   console.log(user)
+
    const handleCrearOrden = (appointment: IAppointment) => {
       navigate('/crear-orden', {
          state: {
             citaId: appointment.id,
             pacienteNombre: getPatientFullName(appointment.paciente) || 'Paciente sin nombre',
-            doctorNombre: user?.primerNombre + ' ' + user?.primerApellido || 'Doctor',
+            doctorNombre: `${user?.primer_nombre ?? ''} ${user?.primer_apellido ?? ''}`.trim() || 'Médico actual',
          },
       });
    };
@@ -371,7 +373,6 @@ export default function MedicoPage() {
                      boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
                      transition: 'all 0.3s ease',
                      '&:hover': {
-                     transform: 'translateY(-5px)',
                      boxShadow: '0 15px 30px rgba(0,0,0,0.1)',
                      },
                   }}
@@ -394,7 +395,6 @@ export default function MedicoPage() {
                      boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
                      transition: 'all 0.3s ease',
                      '&:hover': {
-                     transform: 'translateY(-5px)',
                      boxShadow: '0 15px 30px rgba(0,0,0,0.1)',
                      },
                   }}
@@ -417,7 +417,6 @@ export default function MedicoPage() {
                      boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
                      transition: 'all 0.3s ease',
                      '&:hover': {
-                     transform: 'translateY(-5px)',
                      boxShadow: '0 15px 30px rgba(0,0,0,0.1)',
                      },
                   }}
@@ -440,7 +439,6 @@ export default function MedicoPage() {
                      boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
                      transition: 'all 0.3s ease',
                      '&:hover': {
-                     transform: 'translateY(-5px)',
                      boxShadow: '0 15px 30px rgba(0,0,0,0.1)',
                      },
                   }}
@@ -824,7 +822,7 @@ export default function MedicoPage() {
 
                                  {appointment.detalles.diagnostico && (
                                     <Box mb={2}>
-                                       <Paper variant="outlined" sx={{ p: 2, bgcolor: 'warning.light' }}>
+                                       <Paper variant="outlined" sx={{ p: 2, border: '1px solid', borderColor: 'warning.light', bgcolor: '#ffffff' }}>
                                           <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
                                              Diagnóstico
                                           </Typography>
@@ -837,7 +835,7 @@ export default function MedicoPage() {
 
                                  {appointment.detalles.planManejo && (
                                     <Box mb={2}>
-                                       <Paper variant="outlined" sx={{ p: 2, bgcolor: 'success.light' }}>
+                                       <Paper variant="outlined" sx={{ p: 2, border: '1px solid', borderColor: 'success.light', bgcolor: '#ffffff' }}>
                                           <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
                                              Plan de Manejo
                                           </Typography>

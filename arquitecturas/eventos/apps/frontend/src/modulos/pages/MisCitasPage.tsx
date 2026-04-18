@@ -104,6 +104,15 @@ export const MisCitasPage = () => {
       }
    };
 
+   const statCard = (gradient: string) => ({
+      p: 2,
+      borderRadius: 3,
+      textAlign: 'center',
+      background: gradient,
+      boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
+      '&:hover': { boxShadow: '0 15px 30px rgba(0,0,0,0.1)'},
+   });
+
    if (loading) {
       return (
          <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
@@ -136,7 +145,7 @@ export const MisCitasPage = () => {
                Mis Citas Médicas
             </Typography>
             <Box display="flex" justifyContent="space-between" alignItems="center">
-               <Typography variant="body1" color="text.secondary">
+               <Typography variant="body1" color="text.secondary" sx={{ opacity: 0.8 }}>
                   Gestiona tus citas programadas y revisa tu historial
                </Typography>
                <Button
@@ -160,7 +169,7 @@ export const MisCitasPage = () => {
          {/* Estadísticas */}
          <Grid container spacing={2} mb={4}>
             <Grid item xs={12} sm={3}>
-               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'primary.light' }}>
+               <Paper sx={statCard('linear-gradient(135deg, #e3f2fd, #ffffff)')}>
                   <Typography variant="h4" fontWeight="bold">
                      {citasProgramadas.length}
                   </Typography>
@@ -169,8 +178,9 @@ export const MisCitasPage = () => {
                   </Typography>
                </Paper>
             </Grid>
+
             <Grid item xs={12} sm={3}>
-               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'success.light' }}>
+               <Paper sx={statCard('linear-gradient(135deg, #c8e6c9, #ffffff)')}>
                   <Typography variant="h4" fontWeight="bold">
                      {citasCompletadas.length}
                   </Typography>
@@ -179,8 +189,9 @@ export const MisCitasPage = () => {
                   </Typography>
                </Paper>
             </Grid>
+
             <Grid item xs={12} sm={3}>
-               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'error.light' }}>
+               <Paper sx={statCard('linear-gradient(135deg, #ffcdd2, #ffffff)')}>
                   <Typography variant="h4" fontWeight="bold">
                      {citasCanceladas.length}
                   </Typography>
@@ -189,8 +200,9 @@ export const MisCitasPage = () => {
                   </Typography>
                </Paper>
             </Grid>
+
             <Grid item xs={12} sm={3}>
-               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'grey.200' }}>
+               <Paper sx={statCard('linear-gradient(135deg, #f5f5f5, #ffffff)')}>
                   <Typography variant="h4" fontWeight="bold">
                      {(appointments || []).length}
                   </Typography>
@@ -210,11 +222,21 @@ export const MisCitasPage = () => {
                <Grid container spacing={3} mb={4}>
                   {citasProgramadas.map((cita) => (
                      <Grid item xs={12} key={cita.id}>
-                        <Card elevation={3}>
+                        <Card
+                           sx={{
+                              borderRadius: 3,
+                              boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
+                              transition: '0.2s',
+                              '&:hover': {
+                                 transform: 'translateY(-3px)',
+                                 boxShadow: '0 12px 24px rgba(0,0,0,0.08)',
+                              },
+                           }}
+                        >
                            <CardContent>
                               <Grid container spacing={2}>
                                  <Grid item xs={12} md={8}>
-                                    <Box display="flex" alignItems="center" gap={1} mb={2}>
+                                    <Box display="flex" ustifyContent="space-between" mb={2}>
                                        <Chip
                                           label={getStatusLabel(cita.estado)}
                                           color={getStatusColor(cita.estado)}
@@ -300,8 +322,9 @@ export const MisCitasPage = () => {
                                        justifyContent="center"
                                     >
                                        <Button
-                                          variant="outlined"
+                                          variant="text"
                                           color="error"
+                                          sx={{ mt: 2 }}
                                           startIcon={<CancelIcon />}
                                           onClick={() => handleOpenCancelDialog(cita.id)}
                                           fullWidth

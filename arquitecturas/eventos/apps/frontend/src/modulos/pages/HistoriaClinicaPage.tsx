@@ -230,7 +230,6 @@ export const HistoriaClinicaPage = () => {
                         boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
                         transition: 'all 0.3s ease',
                         '&:hover': {
-                        transform: 'translateY(-5px)',
                         boxShadow: '0 15px 30px rgba(0,0,0,0.1)',
                         },
                      }}
@@ -253,7 +252,6 @@ export const HistoriaClinicaPage = () => {
                         boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
                         transition: 'all 0.3s ease',
                         '&:hover': {
-                        transform: 'translateY(-5px)',
                         boxShadow: '0 15px 30px rgba(0,0,0,0.1)',
                         },
                      }}
@@ -276,7 +274,6 @@ export const HistoriaClinicaPage = () => {
                         boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
                         transition: 'all 0.3s ease',
                         '&:hover': {
-                        transform: 'translateY(-5px)',
                         boxShadow: '0 15px 30px rgba(0,0,0,0.1)',
                         },
                      }}
@@ -299,7 +296,6 @@ export const HistoriaClinicaPage = () => {
                         boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
                         transition: 'all 0.3s ease',
                         '&:hover': {
-                        transform: 'translateY(-5px)',
                         boxShadow: '0 15px 30px rgba(0,0,0,0.1)',
                         },
                      }}
@@ -463,7 +459,7 @@ export const HistoriaClinicaPage = () => {
                                     <Box mb={2}>
                                        <Paper
                                           variant="outlined"
-                                          sx={{ p: 2, bgcolor: 'warning.light' }}
+                                          sx={{ p: 2, border: '1px solid', borderColor: 'warning.light', bgcolor: '#ffffff' }}
                                        >
                                           <Typography
                                              variant="subtitle2"
@@ -484,7 +480,7 @@ export const HistoriaClinicaPage = () => {
                                     <Box mb={2}>
                                        <Paper
                                           variant="outlined"
-                                          sx={{ p: 2, bgcolor: 'success.light' }}
+                                          sx={{ p: 2, border: '1px solid', borderColor: 'success.light', bgcolor: '#ffffff' }}
                                        >
                                           <Typography
                                              variant="subtitle2"
