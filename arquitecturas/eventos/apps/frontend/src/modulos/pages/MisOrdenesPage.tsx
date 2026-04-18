@@ -91,6 +91,26 @@ export const MisOrdenesPage = () => {
       return orders.filter((order) => estados.includes(order.estado));
    };
 
+   const handleAgendarCita = (order: IOrder) => {
+      navigate(`/agendar-cita-especialidad/${order.especialidad}`, {
+         state: {
+            ordenId: order.id,
+            especialidadNombre: order.Specialty?.nombre || 'Especialidad',
+         },
+      });
+   };
+
+   const statCard = (gradient: string) => ({
+      p: 2,
+      borderRadius: 3,
+      textAlign: 'center',
+      background: gradient,
+      boxShadow: '0 8px 20px rgba(0,0,0,0.05)',
+      '&:hover': { boxShadow: '0 15px 30px rgba(0,0,0,0.1)'},
+   });
+
+   // Órdenes autorizadas son las que están listas para agendar cita
+   const autorizadas = filterOrders(['autorizada']);
    const pendientes = filterOrders(['pendiente']);
    const programadas = filterOrders(['programada']);
    const ejecutadas = filterOrders(['ejecutada']);
@@ -116,7 +136,7 @@ export const MisOrdenesPage = () => {
       <Container maxWidth="lg" sx={{ py: 4 }}>
          {/* Header */}
          <Box mb={2}>
-            <BackButton to="/home" />
+            <BackButton to="/mis-citas" />
          </Box>
          <Box mb={4}>
             <Box display="flex" alignItems="center" gap={2} mb={2}>
@@ -125,15 +145,25 @@ export const MisOrdenesPage = () => {
                   Mis Órdenes Médicas
                </Typography>
             </Box>
-            <Typography variant="body1" color="text.secondary">
+            <Typography variant="body1" color="text.secondary" sx={{ opacity: 0.8 }}>
                Consulta todas tus órdenes médicas y su estado actual
             </Typography>
          </Box>
 
          {/* Estadísticas */}
-         <Grid container spacing={2} mb={4}>
-            <Grid item xs={6} sm={3}>
-               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'grey.200' }}>
+         <Grid container spacing={2} mb={4} wrap="nowrap" sx={{ overflowX: 'auto' }}>
+            <Grid item sx={{ minWidth: 180, flex: '1 1 0' }}>
+               <Paper sx={statCard('linear-gradient(135deg, #c8e6c9, #ffffff)')}>
+                  <Typography variant="h4" fontWeight="bold">
+                     {autorizadas.length}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                     Autorizadas
+                  </Typography>
+               </Paper>
+            </Grid>
+            <Grid item sx={{ minWidth: 180, flex: '1 1 0' }}>
+               <Paper sx={statCard('linear-gradient(135deg, #eeeeee, #ffffff)')}>
                   <Typography variant="h4" fontWeight="bold">
                      {pendientes.length}
                   </Typography>
@@ -142,8 +172,8 @@ export const MisOrdenesPage = () => {
                   </Typography>
                </Paper>
             </Grid>
-            <Grid item xs={6} sm={3}>
-               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'primary.light' }}>
+            <Grid item sx={{ minWidth: 180, flex: '1 1 0' }}>
+               <Paper sx={statCard('linear-gradient(135deg, #bbdefb, #ffffff)')}>
                   <Typography variant="h4" fontWeight="bold">
                      {programadas.length}
                   </Typography>
@@ -152,8 +182,8 @@ export const MisOrdenesPage = () => {
                   </Typography>
                </Paper>
             </Grid>
-            <Grid item xs={6} sm={3}>
-               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'success.light' }}>
+            <Grid item sx={{ minWidth: 180, flex: '1 1 0' }}>
+               <Paper sx={statCard('linear-gradient(135deg, #b3e5fc, #ffffff)')}>
                   <Typography variant="h4" fontWeight="bold">
                      {ejecutadas.length}
                   </Typography>
@@ -162,8 +192,8 @@ export const MisOrdenesPage = () => {
                   </Typography>
                </Paper>
             </Grid>
-            <Grid item xs={6} sm={3}>
-               <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'error.light' }}>
+            <Grid item sx={{ minWidth: 180, flex: '1 1 0' }}>
+               <Paper sx={statCard('linear-gradient(135deg, #ffcdd2, #ffffff)')}>
                   <Typography variant="h4" fontWeight="bold">
                      {canceladas.length}
                   </Typography>
