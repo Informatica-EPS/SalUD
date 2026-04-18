@@ -11,3 +11,4 @@ export { timeSlotsService } from './timeSlotsService';
 export { appointmentsService } from './appointmentsService';
 export { appointmentDetailsService } from './appointmentDetailsService';
 export { ordersService } from './ordersService';
+export { specialtiesService } from './specialtiesService';

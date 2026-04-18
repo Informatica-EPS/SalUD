@@ -19,6 +19,7 @@ class AppointmentService {
   async create(data) {
     const { idDoctor, idHorario, idPaciente } = data;
 
+    await this.validateIsGeneralSpecialty(idDoctor);
     await this.validateMustBeFutureDate(idHorario);
     await this.validatePatientHasNoScheduledAppointments(idPaciente, idHorario);
     await this.validateDoctorHasTimeSlot(idDoctor, idHorario);
@@ -88,6 +89,10 @@ class AppointmentService {
                   "segundo_apellido",
                   "email",
                 ],
+              },
+              {
+                model: SpecialtyModel,
+                attributes: ["id", "nombre", "descripcion"],
               },
             ],
           },
@@ -167,6 +172,10 @@ class AppointmentService {
                   "segundo_apellido",
                 ],
               },
+              {
+                model: SpecialtyModel,
+                attributes: ["id", "nombre", "descripcion"],
+              },
             ],
           },
           {
@@ -217,6 +226,25 @@ class AppointmentService {
             ],
           },
           {
+            model: DoctorModel,
+            include: [
+              {
+                model: UserModel,
+                attributes: [
+                  "id",
+                  "primer_nombre",
+                  "segundo_nombre",
+                  "primer_apellido",
+                  "segundo_apellido",
+                ],
+              },
+              {
+                model: SpecialtyModel,
+                attributes: ["id", "nombre", "descripcion"],
+              },
+            ],
+          },
+          {
             model: TimeSlotModel,
           },
           {
@@ -257,6 +285,10 @@ class AppointmentService {
                 "segundo_apellido",
                 "email",
               ],
+            },
+            {
+              model: SpecialtyModel,
+              attributes: ["id", "nombre", "descripcion"],
             },
           ],
         },
@@ -691,10 +723,48 @@ class AppointmentService {
     }
   }
 
-  async createBySpecialty(idSpecialty, data, userId) {
-    console.log("Creating appointment with data:", data);
-    const { idDoctor, idHorario, idPaciente } = data;
+  async validateIsGeneralSpecialty(idDoctor) {
+    const doctor = await DoctorModel.findByPk(idDoctor);
+    if (!doctor) {
+      throw new Error("Doctor no encontrado");
+    }
+    const specialty = await SpecialtyModel.findByPk(doctor.especialidad);
+    if (specialty !== null) {
+      throw new Error(
+        "El paciente no puede agendar una cita general con un médico especialista",
+      );
+    }
+  }
 
+  async validateDoctorSpecialty(idDoctor, idSpecialty) {
+    const doctor = await DoctorModel.findByPk(idDoctor);
+    if (!doctor) {
+      throw new Error("Doctor no encontrado");
+    }
+    
+    console.log("validateDoctorSpecialty - idDoctor:", idDoctor, "tipo:", typeof idDoctor);
+    console.log("validateDoctorSpecialty - idSpecialty:", idSpecialty, "tipo:", typeof idSpecialty);
+    console.log("validateDoctorSpecialty - doctor.especialidad:", doctor.especialidad, "tipo:", typeof doctor.especialidad);
+    
+    // Convertir ambos a número para comparar correctamente
+    if (Number(doctor.especialidad) !== Number(idSpecialty)) {
+      throw new Error("El médico no pertenece a la especialidad seleccionada");
+    }
+  }
+
+  async createBySpecialty(idSpecialty, data, userId) {
+    console.log("==== createBySpecialty ====");
+    console.log("idSpecialty:", idSpecialty, "tipo:", typeof idSpecialty);
+    console.log("data:", data);
+    console.log("userId:", userId);
+    
+    const { idDoctor, idHorario, idPaciente } = data;
+    
+    console.log("idDoctor:", idDoctor, "tipo:", typeof idDoctor);
+    console.log("idHorario:", idHorario, "tipo:", typeof idHorario);
+    console.log("idPaciente:", idPaciente, "tipo:", typeof idPaciente);
+
+    await this.validateDoctorSpecialty(idDoctor, idSpecialty);
     await this.validateMustBeFutureDate(idHorario);
     await this.validatePatientHasNoScheduledAppointments(idPaciente, idHorario);
     await this.validateDoctorHasTimeSlot(idDoctor, idHorario);

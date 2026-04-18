@@ -5,7 +5,7 @@ const timeSlotController = require("../controllers/time-slot.controller");
 router.post("/", timeSlotController.createTimeSlot);
 router.get("/", timeSlotController.getTimeSlots);
 
-
+// Rutas específicas (deben ir ANTES de las rutas con parámetros)
 router.get("/available/", timeSlotController.getAllAvailableSlots);
 router.get("/scheduled/", timeSlotController.getAllScheduledSlots);
 
@@ -15,11 +15,11 @@ router.get(
 );
 router.get("/doctor/:id", timeSlotController.getTimeSlotsByDoctor);
 
-// Speciality
-
-// router.get("/speciality/available/:id", timeSlotController.getTimeSlotsBySpecialityAvailable);
+// Specialty (con ambas ortografías para compatibilidad)
+router.get("/specialty/:id", timeSlotController.getTimeSlotsBySpeciality);
 router.get("/speciality/:id", timeSlotController.getTimeSlotsBySpeciality);
 
+// Rutas genéricas (deben ir AL FINAL)
 router.get("/:id", timeSlotController.getTimeSlotById);
 router.put("/:id", timeSlotController.updateTimeSlot);
 router.delete("/:id", timeSlotController.deleteTimeSlot);
