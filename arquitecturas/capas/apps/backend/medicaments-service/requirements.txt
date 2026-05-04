@@ -4,3 +4,5 @@ pika  # Si vas a usar RabbitMQ
 psycopg2-binary # Si vas a usar Postgres
 sqlalchemy
 pydantic
+alembic
+pydantic_settings
