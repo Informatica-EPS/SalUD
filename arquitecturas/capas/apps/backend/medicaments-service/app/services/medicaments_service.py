@@ -17,6 +17,6 @@ class MedicamentsService:
     self.repository = repository
 
   def get_all_medicaments(self) -> list[MedicamentResponse]:
-    return [MedicamentResponse(**medicament) for medicament in medicaments_mock]
-    # users = self.repository.get_all()
-    # return [UserResponse.model_validate(u) for u in users]
+    # return [MedicamentResponse(**medicament) for medicament in medicaments_mock]
+    medicaments = self.repository.get_all()
+    return [MedicamentResponse.model_validate(medicament) for medicament in medicaments]
