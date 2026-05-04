@@ -11,7 +11,6 @@ class MovementsResponse(BaseModel):
 
 
 class InventoryResponse(BaseModel):
-  id: int
   total: int
 
   model_config = {"from_attributes": True}
