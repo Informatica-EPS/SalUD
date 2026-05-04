@@ -8,6 +8,7 @@ class Medicament(Base):
 
   id = Column(Integer, primary_key=True, index=True)
   nombre = Column(String, nullable=False)
-  
+
   movimientos = relationship("Movement", back_populates="medicamento")
-  inventario = relationship("Inventory", back_populates="medicamento")
+  inventario = relationship(
+      "Inventory", back_populates="medicamento", uselist=False)

@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from app.models.medicament_model import Medicament
 
 
@@ -17,4 +17,4 @@ class MedicamentsRepository:
     return medicament
 
   def get_all(self) -> list[Medicament]:
-    return self.db.query(Medicament).all()
+    return self.db.query(Medicament).options(joinedload(Medicament.inventario), joinedload(Medicament.movimientos)).all()
