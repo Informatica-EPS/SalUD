@@ -1,5 +1,6 @@
 from fastapi import HTTPException
 from app.repositories.inventory_repository import InventoryRepository
+from app.core.constants import ErrorMessages
 
 
 class InventoryService:
@@ -11,12 +12,12 @@ class InventoryService:
 
         if not medicament_inventory:
             raise HTTPException(
-                status_code=404, detail="Medicamento no encontrado")
+                status_code=404, detail=ErrorMessages.MEDICAMENT_NOT_FOUND)
         if medicament_inventory.total < quantity:
             raise HTTPException(
-                status_code=400, detail="Inventario insuficiente")
+                status_code=400, detail=ErrorMessages.INSUFFICIENT_INVENTORY)
 
-        print(f"inventario ->: {medicament_inventory.total}")
+        # print(f"inventario ->: {medicament_inventory.total}")
 
         medicament_inventory.total -= quantity
         self.repository.update(medicament_inventory)

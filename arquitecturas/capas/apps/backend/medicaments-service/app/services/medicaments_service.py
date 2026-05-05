@@ -3,16 +3,17 @@ from app.repositories.medicaments_repository import MedicamentsRepository
 from app.repositories.inventory_repository import InventoryRepository
 from app.schemas.medicament_schema import MedicamentResponse, MedicamentDispatchRequest
 from app.services.inventory_service import InventoryService
+from app.services.movement_service import MovementService
 
 
 class MedicamentsService:
-    def __init__(self, repository: MedicamentsRepository, inventory_service: InventoryService):
+    def __init__(self, repository: MedicamentsRepository, inventory_service: InventoryService, movement_service: MovementService):
         self.repository = repository
         self.inventory_service = inventory_service
+        self.movement_service = movement_service
 
     def get_all_medicaments(self) -> list[MedicamentResponse]:
         medicaments = self.repository.get_all()
-        # return [MedicamentResponse.model_validate(medicament) for medicament in medicaments]
         return [
             {
                 "id": m.id,
@@ -24,5 +25,8 @@ class MedicamentsService:
         ]
 
     def dispatch_medicaments(self, body: MedicamentDispatchRequest):
-        return self.inventory_service.dispatch_medicaments(
+        self.inventory_service.dispatch_medicaments(
             body.medicament_id, body.quantity)
+        self.movement_service.create_dispatch_event(
+            body.medicament_id, body.quantity, "admin")
+        return {"message": "Medicamento despachado con éxito"}

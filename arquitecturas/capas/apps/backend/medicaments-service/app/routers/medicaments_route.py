@@ -3,8 +3,10 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.repositories.inventory_repository import InventoryRepository
 from app.repositories.medicaments_repository import MedicamentsRepository
+from app.repositories.movement_repository import MovementRepository
 from app.services.medicaments_service import MedicamentsService
 from app.services.inventory_service import InventoryService
+from app.services.movement_service import MovementService
 from app.schemas.medicament_schema import MedicamentDispatchRequest
 
 
@@ -12,7 +14,7 @@ router = APIRouter(prefix="/medicaments", tags=["Medicaments"])
 
 
 def get_medicaments_service(db: Session = Depends(get_db)):
-    return MedicamentsService(MedicamentsRepository(db), InventoryService(InventoryRepository(db)))
+    return MedicamentsService(MedicamentsRepository(db), InventoryService(InventoryRepository(db)), MovementService(MovementRepository(db)))
 
 
 @router.get("/", status_code=status.HTTP_200_OK)
