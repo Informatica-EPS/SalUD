@@ -2,24 +2,29 @@ from pydantic import BaseModel, EmailStr
 
 
 class MovementsResponse(BaseModel):
-  id: int
-  tipo: str
-  cantidad: int
-  created_at: str
+    id: int
+    tipo: str
+    cantidad: int
+    created_at: str
 
-  model_config = {"from_attributes": True}
+    model_config = {"from_attributes": True}
 
 
 class InventoryResponse(BaseModel):
-  total: int
+    total: int
 
-  model_config = {"from_attributes": True}
+    model_config = {"from_attributes": True}
 
 
 class MedicamentResponse(BaseModel):    # Lo que devuelve el endpoint
-  id: int
-  nombre: str
-  inventario: InventoryResponse | None = None
-  movimientos: list[MovementsResponse] | None = None
+    id: int
+    nombre: str
+    inventario: InventoryResponse | None = None
+    movimientos: list[MovementsResponse] | None = None
 
-  model_config = {"from_attributes": True}  # Permite leer desde ORM
+    model_config = {"from_attributes": True}  # Permite leer desde ORM
+
+
+class MedicamentDispatchRequest(BaseModel):    # Lo que recibe el endpoint
+    medicament_id: int
+    quantity: int
