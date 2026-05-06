@@ -138,3 +138,7 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 userconfig/
+
+**/__pycache__/
+*.pyc
+*.pyo
