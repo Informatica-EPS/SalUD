@@ -183,7 +183,7 @@ class OrderService {
     const order = await Order.findByPk(id);
     if (!order) return null;
 
-    await order.update({
+    await Order.update({
       ...data,
       actualizadoPor: auditUserId,
     });
@@ -273,6 +273,23 @@ class OrderService {
       currentPage: page,
       ordenes: rows,
     };
+  }
+
+  async validatePatientHasMedicamentOrder(idPaciente, idOrder) {
+    console.log("validatePatientHasMedicamentOrder", { idPaciente, idOrder });
+    // //valida si el paciente tiene una order idOrden autorizada para despachar un medicamento
+
+    // const order = await Order.findByPk(id);
+
+    // if (!order) throw Error("No existe la orden");
+
+    // if (order.estado !== ordersStatus.AUTHORIZED)
+    //   throw Error("Orden no autorizada para medicamento");
+
+    // // actualiza la orden a completada y registra el movimiento del despacho de medicamentos
+
+    // Order.update({ ...order, estado: ordersStatus.COMPLETED });
+    return true;
   }
 }
 

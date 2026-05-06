@@ -1,9 +1,9 @@
 from fastapi import HTTPException
 from app.repositories.medicaments_repository import MedicamentsRepository
-from app.repositories.inventory_repository import InventoryRepository
 from app.schemas.medicament_schema import MedicamentResponse, MedicamentDispatchRequest
 from app.services.inventory_service import InventoryService
 from app.services.movement_service import MovementService
+import httpx
 
 
 class MedicamentsService:
@@ -13,7 +13,9 @@ class MedicamentsService:
         self.movement_service = movement_service
 
     def get_all_medicaments(self) -> list[MedicamentResponse]:
+
         medicaments = self.repository.get_all()
+
         return [
             {
                 "id": m.id,
@@ -24,9 +26,19 @@ class MedicamentsService:
             for m in medicaments
         ]
 
-    def dispatch_medicaments(self, body: MedicamentDispatchRequest):
+    async def dispatch_medicaments(self, body: MedicamentDispatchRequest):
+        # validar orden con servicio de ordenes
+        data = {"idPaciente": body.idPaciente, "idOrden": body.idOrden}
+
+        async with httpx.AsyncClient() as client:
+            response = await client.post("http://backend:5000/api/orders/validate", json=data)
+
+        medicament_id, quantity = body.idMedicamento, body.cantidad
+
         self.inventory_service.dispatch_medicaments(
-            body.medicament_id, body.quantity)
+            medicament_id, quantity)
+
         self.movement_service.create_dispatch_event(
-            body.medicament_id, body.quantity, "admin")
+            medicament_id, quantity, "admin")
+
         return {"message": "Medicamento despachado con éxito"}

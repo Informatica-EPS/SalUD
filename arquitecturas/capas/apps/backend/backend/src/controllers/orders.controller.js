@@ -105,6 +105,19 @@ const deleteOrder = async (req, res, next) => {
   }
 };
 
+const validateOrder = async (req, res, next) => {
+  try {
+    const body = req.body;
+    const result = await orderService.validatePatientHasMedicamentOrder(
+      body.idPaciente,
+      body.idOrden,
+    );
+    res.json({ success: true, message: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createOrder,
   getOrders,
@@ -114,4 +127,5 @@ module.exports = {
   getOrderById,
   updateOrder,
   deleteOrder,
+  validateOrder,
 };

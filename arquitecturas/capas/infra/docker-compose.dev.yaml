@@ -144,7 +144,7 @@ services:
         [
           "CMD-SHELL",
           "pg_isready -U ${DB_MEDICAMENTS_USER} -d ${DB_MEDICAMENTS_NAME}",
-        ] # ← esto faltaba
+        ]
       interval: 10s
       timeout: 5s
       retries: 5

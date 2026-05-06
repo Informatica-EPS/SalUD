@@ -1,8 +1,8 @@
 fastapi
 uvicorn[standard]
-pika  # Si vas a usar RabbitMQ
-psycopg2-binary # Si vas a usar Postgres
+psycopg2-binary 
 sqlalchemy
 pydantic
 alembic
 pydantic_settings
+httpx

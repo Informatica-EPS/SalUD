@@ -16,15 +16,17 @@ class InventoryResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class MedicamentResponse(BaseModel):    # Lo que devuelve el endpoint
+class MedicamentResponse(BaseModel):
     id: int
     nombre: str
     inventario: InventoryResponse | None = None
     movimientos: list[MovementsResponse] | None = None
 
-    model_config = {"from_attributes": True}  # Permite leer desde ORM
+    model_config = {"from_attributes": True}
 
 
-class MedicamentDispatchRequest(BaseModel):    # Lo que recibe el endpoint
-    medicament_id: int
-    quantity: int
+class MedicamentDispatchRequest(BaseModel):
+    idMedicamento: int
+    idOrden: int
+    idPaciente: int
+    cantidad: int

@@ -23,5 +23,5 @@ def list_medicaments(service: MedicamentsService = Depends(get_medicaments_servi
 
 
 @router.post("/dispatch", status_code=status.HTTP_201_CREATED)
-def dispatch_medicaments_route(body: MedicamentDispatchRequest, service: MedicamentsService = Depends(get_medicaments_service)):
-    return service.dispatch_medicaments(body)
+async def dispatch_medicaments_route(body: MedicamentDispatchRequest, service: MedicamentsService = Depends(get_medicaments_service)):
+    return await service.dispatch_medicaments(body)
