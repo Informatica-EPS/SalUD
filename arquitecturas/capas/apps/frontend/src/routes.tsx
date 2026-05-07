@@ -14,6 +14,7 @@ import {
    CrearOrdenPage,
    // Páginas antiguas
    PacientePage,
+   MedicamentosPage,
    MedicoPage,
    DoctorsPage,
    DoctoresPageAdmin,
@@ -168,6 +169,15 @@ const AppRoutes = () => {
                element={
                   <ProtectedRoute>
                      <MedicoPage />
+                  </ProtectedRoute>
+               }
+            />
+
+            <Route
+               path="/medicamentos"
+               element={
+                  <ProtectedRoute>
+                     <MedicamentosPage />
                   </ProtectedRoute>
                }
             />

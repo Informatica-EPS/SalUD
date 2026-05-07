@@ -24,6 +24,9 @@ export { default as HistoriaClinicaPage } from './HistoriaClinicaPage';
 // Páginas de órdenes médicas
 export { default as CrearOrdenPage } from './CrearOrdenPage';
 
+// Página de entrega de medicamentos
+export { default as MedicamentosPage } from './MedicamentosPage';
+
 // Páginas antiguas (mantener por compatibilidad)
 export { default as MedicoPage } from './MedicoPage';
 export { default as PacientePage } from './PacientePage';
