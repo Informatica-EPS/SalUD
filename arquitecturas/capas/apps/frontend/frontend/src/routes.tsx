@@ -20,6 +20,7 @@ import {
    PacientesPageAdmin,
 } from './modulos/pages';
 import { useAuth } from './context';
+import { MedicamentsRemoteWrapper } from './components/MedicamentsRemoteWrapper';
 
 // Protección de rutas
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -149,6 +150,16 @@ const AppRoutes = () => {
                element={
                   <ProtectedRoute>
                      <CrearOrdenPage />
+                  </ProtectedRoute>
+               }
+            />
+
+            {/* Ruta de Medicamentos (Microfrontend) */}
+            <Route
+               path="/medicamentos/*"
+               element={
+                  <ProtectedRoute>
+                     <MedicamentsRemoteWrapper />
                   </ProtectedRoute>
                }
             />
