@@ -99,7 +99,7 @@ services:
       dockerfile: Dockerfile
       target: development
     volumes:
-      - ../apps/frontend:/app
+      - ../apps/frontend/frontend:/app
       - /app/node_modules
     ports:
       - "8080:8080"
