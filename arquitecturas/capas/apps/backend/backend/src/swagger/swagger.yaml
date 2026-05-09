@@ -1,0 +1,564 @@
+openapi: 3.0.0
+info:
+  title: SalUD API - Documentation
+  description: API para el sistema de gestión de citas médicas SalUD.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000/api
+    description: Servidor de Desarrollo
+
+paths:
+  /users/login:
+    post:
+      summary: Iniciar sesión
+      tags:
+        - Usuarios
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                documento:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login exitoso
+        '400':
+          description: Contraseña incorrecta
+        '404':
+          description: Usuario no encontrado
+
+  /doctors:
+    get:
+      summary: Obtener lista de doctores
+      tags:
+        - Doctores
+      responses:
+        '200':
+          description: Lista de doctores
+    post:
+      summary: Crear un nuevo doctor
+      tags:
+        - Doctores
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Doctor'
+      responses:
+        '201':
+          description: Doctor creado
+
+  /patients:
+    get:
+      summary: Obtener lista de pacientes
+      tags:
+        - Pacientes
+      responses:
+        '200':
+          description: Lista de pacientes
+    post:
+      summary: Crear un nuevo paciente
+      tags:
+        - Pacientes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Patient'
+      responses:
+        '201':
+          description: Paciente creado
+
+  /appointments:
+    get:
+      summary: Obtener lista de citas paginadas
+      tags:
+        - Citas
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de citas
+    post:
+      summary: Crear una nueva cita
+      tags:
+        - Citas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Appointment'
+      responses:
+        '201':
+          description: Cita creada
+
+  /appointments/{idAppointment}:
+    get:
+      summary: Obtener cita por ID
+      tags:
+        - Citas
+      parameters:
+        - name: idAppointment
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Detalle de la cita
+        '404':
+          description: Cita no encontrada
+    put:
+      summary: Actualizar una cita
+      tags:
+        - Citas
+      parameters:
+        - name: idAppointment
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Appointment'
+      responses:
+        '200':
+          description: Cita actualizada
+    delete:
+      summary: Eliminar una cita
+      tags:
+        - Citas
+      parameters:
+        - name: idAppointment
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Cita eliminada
+
+  /appointments/reschedule/{idAppointment}:
+    put:
+      summary: Reprogramar una cita
+      tags:
+        - Citas
+      parameters:
+        - name: idAppointment
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                idHorario:
+                  type: integer
+      responses:
+        '200':
+          description: Cita reprogramada
+
+  /appointments/cancel/{idAppointment}:
+    put:
+      summary: Cancelar una cita
+      tags:
+        - Citas
+      parameters:
+        - name: idAppointment
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Cita cancelada
+
+  /appointments/complete/{idAppointment}:
+    put:
+      summary: Marcar cita como completada
+      tags:
+        - Citas
+      parameters:
+        - name: idAppointment
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Cita completada
+
+  /appointments/doctor/{idDoctor}:
+    get:
+      summary: Obtener citas por doctor
+      tags:
+        - Citas
+      parameters:
+        - name: idDoctor
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de citas del doctor
+
+  /appointments/paciente/{idPaciente}:
+    get:
+      summary: Obtener citas por paciente
+      tags:
+        - Citas
+      parameters:
+        - name: idPaciente
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de citas del paciente
+
+  /appointments/medical-records/{idPaciente}:
+    get:
+      summary: Obtener historia clínica de un paciente
+      tags:
+        - Citas
+      parameters:
+        - name: idPaciente
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Historia clínica completa
+
+  /appointment-details:
+    get:
+      summary: Obtener detalles de citas paginados
+      tags:
+        - Detalles de Cita
+      responses:
+        '200':
+          description: Lista de detalles
+    post:
+      summary: Crear un detalle de cita
+      tags:
+        - Detalles de Cita
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentDetail'
+      responses:
+        '201':
+          description: Detalle creado
+
+  /appointment-details/appointment/{appointmentId}:
+    get:
+      summary: Obtener detalles por ID de cita
+      tags:
+        - Detalles de Cita
+      parameters:
+        - name: appointmentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de detalles para esa cita
+
+  /appointment-details/{id}:
+    get:
+      summary: Obtener detalle de cita por ID
+      tags:
+        - Detalles de Cita
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Detalle de la cita
+    put:
+      summary: Actualizar detalle de cita
+      tags:
+        - Detalles de Cita
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentDetail'
+      responses:
+        '200':
+          description: Detalle actualizado
+    delete:
+      summary: Eliminar detalle de cita
+      tags:
+        - Detalles de Cita
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Detalle eliminado
+
+  /time-slots:
+    get:
+      summary: Obtener todos los horarios
+      tags:
+        - Horarios
+      responses:
+        '200':
+          description: Lista de horarios
+    post:
+      summary: Crear un nuevo horario
+      tags:
+        - Horarios
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimeSlot'
+      responses:
+        '201':
+          description: Horario creado
+
+  /time-slots/available/:
+    get:
+      summary: Obtener todos los horarios disponibles
+      tags:
+        - Horarios
+      responses:
+        '200':
+          description: Lista de horarios disponibles
+
+  /time-slots/scheduled/:
+    get:
+      summary: Obtener todos los horarios programados
+      tags:
+        - Horarios
+      responses:
+        '200':
+          description: Lista de horarios ocupados
+
+  /time-slots/doctor/available/{id}:
+    get:
+      summary: Obtener horarios disponibles por doctor
+      tags:
+        - Horarios
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de horarios disponibles
+
+  /time-slots/doctor/{id}:
+    get:
+      summary: Obtener todos los horarios de un doctor
+      tags:
+        - Horarios
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de horarios del doctor
+
+  /time-slots/{id}:
+    get:
+      summary: Obtener horario por ID
+      tags:
+        - Horarios
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Detalle del horario
+    put:
+      summary: Actualizar horario
+      tags:
+        - Horarios
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimeSlot'
+      responses:
+        '200':
+          description: Horario actualizado
+    delete:
+      summary: Eliminar horario
+      tags:
+        - Horarios
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Horario eliminado
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        primer_nombre:
+          type: string
+        primer_apellido:
+          type: string
+        documento:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+
+    Doctor:
+      type: object
+      required:
+        - licenciaMedica
+      properties:
+        id:
+          type: integer
+        licenciaMedica:
+          type: string
+        idUsuario:
+          type: integer
+
+    Patient:
+      type: object
+      properties:
+        id:
+          type: integer
+        ocupacion:
+          type: string
+        discapacidad:
+          type: string
+        religion:
+          type: string
+        etnia:
+          type: string
+        identidadGenero:
+          type: string
+        sexo:
+          type: string
+        idUsuario:
+          type: integer
+
+    Appointment:
+      type: object
+      properties:
+        id:
+          type: integer
+        tipoCita:
+          type: string
+        estado:
+          type: string
+        idPaciente:
+          type: integer
+        idDoctor:
+          type: integer
+        idHorario:
+          type: integer
+
+    AppointmentDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+        motivo:
+          type: string
+        antecedentes:
+          type: string
+        anamnesis:
+          type: string
+        revisionSistemas:
+          type: string
+        examenFisico:
+          type: string
+        diagnostico:
+          type: string
+        planManejo:
+          type: string
+        evolucion:
+          type: string
+        idCita:
+          type: integer
+
+    TimeSlot:
+      type: object
+      properties:
+        id:
+          type: integer
+        fecha:
+          type: string
+          format: date
+        horaInicio:
+          type: string
+        horaFin:
+          type: string
+        estado:
+          type: string
+        idDoctor:
+          type: integer
