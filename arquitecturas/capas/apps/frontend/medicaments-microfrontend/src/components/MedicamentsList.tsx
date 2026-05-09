@@ -12,11 +12,24 @@ import {
   Chip,
   CircularProgress,
   Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
 } from '@mui/material';
 import {
   Search as SearchIcon,
   Add as AddIcon,
   LocalPharmacy as PharmacyIcon,
+  TrendingUp as TrendingUpIcon,
+  TrendingDown as TrendingDownIcon,
 } from '@mui/icons-material';
 import { medicamentsService } from '../services/medicamentsService';
 import { Medicament } from '../types/medicament.types';
@@ -26,6 +39,8 @@ export const MedicamentsList: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedMedicament, setSelectedMedicament] = useState<Medicament | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
   useEffect(() => {
     loadMedicaments();
@@ -64,7 +79,7 @@ export const MedicamentsList: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     if (window.confirm('¿Está seguro de eliminar este medicamento?')) {
       try {
         await medicamentsService.delete(id);
@@ -74,6 +89,33 @@ export const MedicamentsList: React.FC = () => {
         console.error('Error deleting medicament:', err);
       }
     }
+  };
+
+  const getStockColor = (inventario: number): 'success' | 'warning' | 'error' => {
+    if (inventario >= 100) return 'success';
+    if (inventario > 50) return 'warning';
+    return 'error';
+  };
+
+  const handleOpenDetails = (medicament: Medicament) => {
+    setSelectedMedicament(medicament);
+    setDetailsOpen(true);
+  };
+
+  const handleCloseDetails = () => {
+    setDetailsOpen(false);
+    setSelectedMedicament(null);
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleString('es-ES', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
   if (loading) {
@@ -129,48 +171,29 @@ export const MedicamentsList: React.FC = () => {
             <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               <CardContent sx={{ flexGrow: 1 }}>
                 <Typography variant="h6" component="h2" gutterBottom>
-                  {medicament.name}
+                  {medicament.nombre}
                 </Typography>
-                <Typography variant="body2" color="text.secondary" paragraph>
-                  {medicament.description}
-                </Typography>
+                
+                <Box sx={{ mb: 2 }}>
+                  <Chip
+                    label={`Inventario: ${medicament.inventario}`}
+                    size="medium"
+                    color={getStockColor(medicament.inventario)}
+                    sx={{ fontWeight: 'bold' }}
+                  />
+                </Box>
+
                 <Box sx={{ mb: 1 }}>
                   <Typography variant="caption" color="text.secondary">
-                    Dosificación:
+                    Total de movimientos:
                   </Typography>
-                  <Typography variant="body2">{medicament.dosage}</Typography>
+                  <Typography variant="body2">
+                    {medicament.movimientos.length} registros
+                  </Typography>
                 </Box>
-                {medicament.manufacturer && (
-                  <Box sx={{ mb: 1 }}>
-                    <Typography variant="caption" color="text.secondary">
-                      Fabricante:
-                    </Typography>
-                    <Typography variant="body2">{medicament.manufacturer}</Typography>
-                  </Box>
-                )}
-                {medicament.price !== undefined && (
-                  <Box sx={{ mb: 1 }}>
-                    <Typography variant="caption" color="text.secondary">
-                      Precio:
-                    </Typography>
-                    <Typography variant="body2">${medicament.price.toFixed(2)}</Typography>
-                  </Box>
-                )}
-                {medicament.stock !== undefined && (
-                  <Box sx={{ mb: 1 }}>
-                    <Chip
-                      label={`Stock: ${medicament.stock}`}
-                      size="small"
-                      color={medicament.stock > 10 ? 'success' : 'warning'}
-                    />
-                  </Box>
-                )}
-                {medicament.requiresPrescription && (
-                  <Chip label="Requiere Prescripción" size="small" color="error" />
-                )}
               </CardContent>
               <CardActions>
-                <Button size="small" onClick={() => console.log('Ver', medicament.id)}>
+                <Button size="small" onClick={() => handleOpenDetails(medicament)}>
                   Ver Detalles
                 </Button>
                 <Button size="small" onClick={() => console.log('Editar', medicament.id)}>
@@ -193,6 +216,81 @@ export const MedicamentsList: React.FC = () => {
           </Typography>
         </Box>
       )}
+
+      <Dialog 
+        open={detailsOpen} 
+        onClose={handleCloseDetails}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <PharmacyIcon color="primary" />
+            <Box>
+              <Typography variant="h6">{selectedMedicament?.nombre}</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Inventario actual: {selectedMedicament?.inventario} unidades
+              </Typography>
+            </Box>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          {selectedMedicament && selectedMedicament.movimientos.length > 0 ? (
+            <TableContainer component={Paper} elevation={0}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Tipo</TableCell>
+                    <TableCell align="right">Cantidad</TableCell>
+                    <TableCell>Usuario</TableCell>
+                    <TableCell>Fecha</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {selectedMedicament.movimientos
+                    .slice()
+                    .reverse()
+                    .map((movimiento) => (
+                      <TableRow key={movimiento.id}>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            {movimiento.tipo_movimiento === 'entrada' ? (
+                              <TrendingUpIcon color="success" />
+                            ) : (
+                              <TrendingDownIcon color="error" />
+                            )}
+                            <Chip
+                              label={movimiento.tipo_movimiento.toUpperCase()}
+                              size="small"
+                              color={movimiento.tipo_movimiento === 'entrada' ? 'success' : 'error'}
+                            />
+                          </Box>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Typography variant="body2" fontWeight="bold">
+                            {movimiento.tipo_movimiento === 'entrada' ? '+' : '-'}
+                            {movimiento.cantidad}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>{movimiento.created_by}</TableCell>
+                        <TableCell>{formatDate(movimiento.created_at)}</TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          ) : (
+            <Box sx={{ textAlign: 'center', py: 4 }}>
+              <Typography variant="body1" color="text.secondary">
+                No hay movimientos registrados para este medicamento
+              </Typography>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDetails}>Cerrar</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

@@ -1,28 +1,22 @@
+export interface Movimiento {
+  id: number;
+  id_medicamento: number;
+  cantidad: number;
+  tipo_movimiento: 'entrada' | 'salida';
+  created_by: string;
+  created_at: string;
+}
+
 export interface Medicament {
-  id: string;
-  name: string;
-  description: string;
-  dosage: string;
-  sideEffects?: string;
-  contraindications?: string;
-  manufacturer?: string;
-  price?: number;
-  stock?: number;
-  requiresPrescription: boolean;
-  createdAt: string;
-  updatedAt: string;
+  id: number;
+  nombre: string;
+  inventario: number;
+  movimientos: Movimiento[];
 }
 
 export interface MedicamentCreate {
-  name: string;
-  description: string;
-  dosage: string;
-  sideEffects?: string;
-  contraindications?: string;
-  manufacturer?: string;
-  price?: number;
-  stock?: number;
-  requiresPrescription: boolean;
+  nombre: string;
+  inventario: number;
 }
 
 export interface MedicamentUpdate extends Partial<MedicamentCreate> {}
