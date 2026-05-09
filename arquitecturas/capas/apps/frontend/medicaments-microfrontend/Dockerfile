@@ -16,7 +16,7 @@ RUN npm run build
 # Preview: Build servido con Vite (para testing local de microfrontends)
 FROM base AS preview
 ENV NODE_OPTIONS="--max-old-space-size=2048"
-RUN npm run build
+RUN npm run build 
 EXPOSE 8081
 CMD ["npm", "run", "preview"]
 
