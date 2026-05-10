@@ -4,7 +4,7 @@
 
 SalUD es un sistema web de gestión de citas médicas que permite a pacientes reservar franjas horarias con doctores, y a médicos gestionar su agenda y generar órdenes de atención y medicamentos.
 
-![Arquitectura General](Diagramas/Arquitectura_General_Capas.jpg)
+![Arquitectura General](Diagramas/Diagrama_Arquitectura_Final.jpg‎)
 
 ### Componentes principales
 
@@ -206,6 +206,6 @@ Los diagramas pueden ser editados directamente en **Draw.io** (diagrams.net).
 
 | Diagrama | Enlace de Edición |
 | :--- | :--- |
-| **1. Arquitectura General** | [🔗 Abrir en Google Drive](https://drive.google.com/file/d/1kffo73vZDxnEAT-TWTamoV2Y3dGbxe5u/view?usp=sharing) |
+| **1. Arquitectura General** | [🔗 Abrir en Google Drive](https://drive.google.com/file/d/1Ei3xqrRgfZiZRDCt526HMs2Pqmkhk7eP/view?usp=sharing)|
 | **2. Diagrama de Capas** | [🔗 Abrir en Google Drive](https://drive.google.com/file/d/1b0HxPSArQGBfAZN1CvM3dtpBij3eoq98/view?usp=sharing) |
 
