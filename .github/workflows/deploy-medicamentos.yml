@@ -42,6 +42,15 @@ jobs:
         uses: azure/cli@v1
         with:
           inlineScript: |
+            # 1. Le damos a la Container App las llaves de la bodega (Registry)
+            az containerapp registry set \
+              --name ${{ env.CONTAINER_APP_NAME }} \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --server ${{ env.ACR_LOGIN_SERVER }} \
+              --username ${{ env.ACR_USERNAME }} \
+              --password ${{ env.ACR_PASSWORD }}
+
+            # 2. Ahora sí, le ordenamos que se actualice (ya tiene permiso)
             az containerapp update \
               --name ${{ env.CONTAINER_APP_NAME }} \
               --resource-group ${{ env.RESOURCE_GROUP }} \
