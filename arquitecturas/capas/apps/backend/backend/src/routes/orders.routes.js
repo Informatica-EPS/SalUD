@@ -10,5 +10,6 @@ router.get("/", ordersController.getOrders);
 router.get("/:id", ordersController.getOrderById);
 router.put("/:id", ordersController.updateOrder);
 router.delete("/:id", ordersController.deleteOrder);
+router.get("/getByPatientDocument/:documento", ordersController.getOrdersByPatientDocument);
 router.post("/validate", ordersController.validateOrder);
 module.exports = router;

@@ -1,4 +1,5 @@
 "use strict";
+const crypto = require("crypto");
 const Order = require("../models/order.model");
 const AppointmentModel = require("../models/appointments.model");
 const TimeSlotModel = require("../models/time-slot.model");
@@ -272,6 +273,70 @@ class OrderService {
       totalItems: count,
       currentPage: page,
       ordenes: rows,
+    };
+  }
+
+  async findByPartientDocument(document, queryParams) {
+    const hashedDocumento = crypto
+      .createHash("sha256")
+      .update(document)
+      .digest("hex");
+
+    const { rows, count, page, totalPages } = await functions.paginate(
+      Order,
+      queryParams,
+      {
+        include: [
+          {
+            model: SpecialtyModel,
+            attributes: ["id", "nombre", "descripcion"],
+          },
+          {
+            model: AppointmentModel,
+            required: true,
+            attributes: ["id", "tipoCita", "estado"],
+            include: [
+              {
+                model: TimeSlotModel,
+                attributes: ["id", "fecha", "horaInicio", "horaFin"],
+              },
+              {
+                model: PatientModel,
+                required: true,
+                attributes: [
+                  "id",
+                  "religion",
+                  "discapacidad",
+                  "etnia",
+                  "ocupacion",
+                ],
+                include: [
+                  {
+                    model: UserModel,
+                    required: true,
+                    where: { documento: hashedDocumento },
+                    attributes: [
+                      "id",
+                      "primer_nombre",
+                      "segundo_nombre",
+                      "primer_apellido",
+                      "segundo_apellido",
+                      "documento",
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    );
+
+    return {
+      totalPages,
+      totalItems: count,
+      currentPage: page,
+      ordenes: rows
     };
   }
 
