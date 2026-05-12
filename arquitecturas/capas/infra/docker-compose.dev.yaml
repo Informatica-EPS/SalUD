@@ -1,0 +1,165 @@
+services:
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      db:
+        condition: service_healthy
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ../apps/backend/backend
+      dockerfile: Dockerfile
+    command: npx nodemon -L src/index.js
+    volumes:
+      - ../apps/backend/backend:/app
+      - /app/node_modules
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DIALECT=postgres
+      - APPOINTMENT_DETAIL_KEY=${APPOINTMENT_DETAIL_KEY}
+      - NODE_ENV=development
+      - PORT=5000
+      - RABBITMQ_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  notifications-service:
+    build:
+      context: ../apps/backend/notifications
+      dockerfile: Dockerfile
+    command: npm run dev
+    volumes:
+      - ../apps/backend/notifications:/app
+      - /app/node_modules
+    ports:
+      - "5001:5001"
+    environment:
+      - NODE_ENV=development
+      - PORT=5001
+      - RABBITMQ_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ../apps/frontend/frontend
+      dockerfile: Dockerfile
+      target: development
+    volumes:
+      - ../apps/frontend/frontend:/app
+      - /app/node_modules
+    ports:
+      - "8080:8080"
+    stdin_open: true
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+      - WDS_SOCKET_PORT=0
+
+  medicaments-microfrontend:
+    build:
+      context: ../apps/frontend/medicaments-microfrontend
+      dockerfile: Dockerfile
+      target: preview
+    ports:
+      - "8081:8081"
+    stdin_open: true
+
+  medicaments-service:
+    build:
+      context: ../apps/backend/medicaments-service
+      dockerfile: Dockerfile
+    volumes:
+      - ../apps/backend/medicaments-service:/app
+    ports:
+      - "5010:5010"
+    environment:
+      - DB_NAME=${DB_MEDICAMENTS_NAME}
+      - DB_USER=${DB_MEDICAMENTS_USER}
+      - DB_PASSWORD=${DB_MEDICAMENTS_PASSWORD}
+      - DB_HOST=${DB_MEDICAMENTS_HOST}
+      - DB_PORT=${DB_MEDICAMENTS_PORT}
+      - ENV=development
+    depends_on:
+      medicaments-db:
+        condition: service_healthy
+
+  medicaments-db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_MEDICAMENTS_USER}
+      POSTGRES_PASSWORD: ${DB_MEDICAMENTS_PASSWORD}
+      POSTGRES_DB: ${DB_MEDICAMENTS_NAME}
+    ports:
+      - "5433:5432"
+    volumes:
+      - medicaments_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DB_MEDICAMENTS_USER} -d ${DB_MEDICAMENTS_NAME}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
+  pgadmin_data:
+  rabbitmq_data:
+  medicaments_db_data:

@@ -1,0 +1,1052 @@
+{
+  "info": {
+    "_postman_id": "2e2ff780-7004-4d6a-be70-411828c21bd9",
+    "name": "SalUD",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "12536572"
+  },
+  "item": [
+    {
+      "name": "patients",
+      "item": [
+        {
+          "name": "Patients",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "localhost:5000/api/patients",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "patients"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Patient",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"occupation\": \"Desarrollador de Software\",\n    \"disability\": \"Ninguna\",\n    \"religion\": \"Agnóstico\",\n    \"ethnicity\": \"Mestizo\",\n    \"genderIdentity\": \"Masculino\",\n    \"sex\": \"M\",\n    \"userId\": 2,\n    \"createdBy\": 1,\n    \"updatedBy\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/patients",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "patients"
+              ]
+            },
+            "description": "Generated from cURL: curl --location 'http://localhost:5000/api/patients' \\\n--header 'Content-Type: application/json' \\\n--data '{\n    \"occupation\": \"Desarrollador de Software\",\n    \"disability\": \"Ninguna\",\n    \"religion\": \"Agnóstico\",\n    \"ethnicity\": \"Mestizo\",\n    \"genderIdentity\": \"Masculino\",\n    \"sex\": \"M\",\n    \"userId\": 2,\n    \"createdBy\": 1,\n    \"updatedBy\": 1\n}'"
+          },
+          "response": []
+        },
+        {
+          "name": "All",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/patients",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "patients"
+              ]
+            },
+            "description": "Generated from cURL: curl --location 'http://localhost:5000/api/patients'"
+          },
+          "response": []
+        },
+        {
+          "name": "byId",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/patients/2",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "patients",
+                "2"
+              ]
+            },
+            "description": "Generated from cURL: curl --location 'http://localhost:5000/api/patients/1'"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "timeSlot",
+      "item": [
+        {
+          "name": "timeSlot",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"date\": \"2026-03-10\",\n    \"startTime\": \"08:00:00\",\n    \"endTime\": \"08:30:00\",\n    \"status\": \"DISPONIBLE\",\n    \"doctorId\": 1,\n    \"createdBy\": 1,\n    \"updatedBy\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/time-slots",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "time-slots"
+              ]
+            },
+            "description": "Generated from cURL: curl --location 'http://localhost:5000/api/time-slots' \\\n--header 'Content-Type: application/json' \\\n--data '{\n    \"date\": \"2026-03-10\",\n    \"startTime\": \"08:00:00\",\n    \"endTime\": \"08:30:00\",\n    \"status\": \"DISPONIBLE\",\n    \"doctorId\": 1,\n    \"createdBy\": 1,\n    \"updatedBy\": 1\n}'"
+          },
+          "response": []
+        },
+        {
+          "name": "byId",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"id\": 6,\n    \"fecha\": \"2026-03-17\",\n    \"horaInicio\": \"09:00:00\",\n    \"horaFin\": \"09:30:00\",\n    \"estado\": \"programado\",\n    \"idDoctor\": 1,\n    \"creadoPor\": 1,\n    \"actualizadoPor\": 1,\n    \"createdAt\": \"2026-03-08T16:53:30.781Z\",\n    \"updatedAt\": \"2026-03-08T16:53:47.019Z\",\n    \"id_doctor\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/time-slots/6",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "time-slots",
+                "6"
+              ]
+            },
+            "description": "Generated from cURL: curl --location 'http://localhost:5000/api/time-slots/1'"
+          },
+          "response": []
+        },
+        {
+          "name": "All",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/time-slots?page=3",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "time-slots"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "3"
+                }
+              ]
+            },
+            "description": "Generated from cURL: curl --location 'http://localhost:5000/api/time-slots'"
+          },
+          "response": []
+        },
+        {
+          "name": "postBatch",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"slots\": [\n      {\n        \"fecha\": \"2026-03-10\",\n        \"horaInicio\": \"08:00:00\",\n        \"horaFin\": \"08:29:00\",\n        \"estado\": \"disponible\",\n        \"idDoctor\": 3,\n        \"creadoPor\": 1,\n        \"actualizadoPor\": 1\n      },\n      {\n        \"fecha\": \"2026-03-10\",\n        \"horaInicio\": \"10:30:00\",\n        \"horaFin\": \"10:59:00\",\n        \"estado\": \"disponible\",\n        \"idDoctor\": 3,\n        \"creadoPor\": 1,\n        \"actualizadoPor\": 1\n      },\n      {\n        \"fecha\": \"2026-03-11\",\n        \"horaInicio\": \"09:00:00\",\n        \"horaFin\": \"09:29:00\",\n        \"estado\": \"disponible\",\n        \"idDoctor\": 3,\n        \"creadoPor\": 1,\n        \"actualizadoPor\": 1\n      },\n      {\n        \"fecha\": \"2026-03-11\",\n        \"horaInicio\": \"14:30:00\",\n        \"horaFin\": \"14:59:00\",\n        \"estado\": \"disponible\",\n        \"idDoctor\": 3,\n        \"creadoPor\": 1,\n        \"actualizadoPor\": 1\n      },\n      {\n        \"fecha\": \"2026-03-12\",\n        \"horaInicio\": \"11:30:00\",\n        \"horaFin\": \"11:59:00\",\n        \"estado\": \"disponible\",\n        \"idDoctor\": 3,\n        \"creadoPor\": 1,\n        \"actualizadoPor\": 1\n      },\n      {\n        \"fecha\": \"2026-03-12\",\n        \"horaInicio\": \"15:00:00\",\n        \"horaFin\": \"15:29:00\",\n        \"estado\": \"disponible\",\n        \"idDoctor\": 3,\n        \"creadoPor\": 1,\n        \"actualizadoPor\": 1\n      },\n      {\n        \"fecha\": \"2026-03-13\",\n        \"horaInicio\": \"08:30:00\",\n        \"horaFin\": \"08:59:00\",\n        \"estado\": \"disponible\",\n        \"idDoctor\": 3,\n        \"creadoPor\": 1,\n        \"actualizadoPor\": 1\n      },\n      {\n        \"fecha\": \"2026-03-13\",\n        \"horaInicio\": \"16:00:00\",\n        \"horaFin\": \"16:29:00\",\n        \"estado\": \"disponible\",\n        \"idDoctor\": 3,\n        \"creadoPor\": 1,\n        \"actualizadoPor\": 1\n      },\n      {\n        \"fecha\": \"2026-03-14\",\n        \"horaInicio\": \"13:00:00\",\n        \"horaFin\": \"13:29:00\",\n        \"estado\": \"disponible\",\n        \"idDoctor\": 3,\n        \"creadoPor\": 1,\n        \"actualizadoPor\": 1\n      },\n      {\n        \"fecha\": \"2026-03-14\",\n        \"horaInicio\": \"16:30:00\",\n        \"horaFin\": \"16:59:00\",\n        \"estado\": \"disponible\",\n        \"idDoctor\": 3,\n        \"creadoPor\": 1,\n        \"actualizadoPor\": 1\n      }\n    ]\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/time-slots/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "time-slots",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "postSingle",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"fecha\": \"2026-03-18\",\n    \"horaInicio\": \"06:30:00\",\n    \"horaFin\": \"06:59:00\",\n    \"estado\": \"disponible\",\n    \"idDoctor\": 1,\n    \"creadoPor\": 1,\n    \"actualizadoPor\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/time-slots/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "time-slots",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "AllByDoctor",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/time-slots/doctor/3?limit=20",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "time-slots",
+                "doctor",
+                "3"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "AllByDoctorAvailable",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/time-slots/doctor/available/3",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "time-slots",
+                "doctor",
+                "available",
+                "3"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "AllAvailabe",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/time-slots/available",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "time-slots",
+                "available"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "AllScheduled",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/time-slots/scheduled",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "time-slots",
+                "scheduled"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "byId",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"id\": 6,\n    \"fecha\": \"2026-03-17\",\n    \"horaInicio\": \"09:00:00\",\n    \"horaFin\": \"09:30:00\",\n    \"estado\": \"programado\",\n    \"idDoctor\": 1,\n    \"creadoPor\": 1,\n    \"actualizadoPor\": 1,\n    \"createdAt\": \"2026-03-08T16:53:30.781Z\",\n    \"updatedAt\": \"2026-03-08T16:53:47.019Z\",\n    \"id_doctor\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/time-slots/6",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "time-slots",
+                "6"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "appointments",
+      "item": [
+        {
+          "name": "Appointment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"tipoCita\": \"MEDICINA_GENERAL\",\n    \"estado\": \"programada\",\n    \"idPaciente\": 1,\n    \"idDoctor\": 3,\n    \"idHorario\": 19,\n    \"creadoPor\": 1,\n    \"actualizadoPor\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/appointments",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "appointments"
+              ]
+            },
+            "description": "Generated from cURL: curl --location 'http://localhost:5000/api/appointments' \\\n--header 'Content-Type: application/json' \\\n--data '{\n    \"appointmentType\": \"MEDICINA_GENERAL\",\n    \"status\": \"PROGRAMADA\",\n    \"patientId\": 1,\n    \"doctorId\": 1,\n    \"timeSlotId\": 1,\n    \"createdBy\": 1,\n    \"updatedBy\": 1\n}'"
+          },
+          "response": []
+        },
+        {
+          "name": "byID",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/appointments/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "appointments",
+                "1"
+              ]
+            },
+            "description": "Generated from cURL: curl --location 'http://localhost:5000/api/appointments/1'"
+          },
+          "response": []
+        },
+        {
+          "name": "All",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/appointments",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "appointments"
+              ]
+            },
+            "description": "Generated from cURL: curl --location 'http://localhost:5000/api/appointments'"
+          },
+          "response": []
+        },
+        {
+          "name": "byDoctor",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/appointments/doctor/3",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "appointments",
+                "doctor",
+                "3"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "byPatient",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/appointments/paciente/1?page=1&limit=4",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "appointments",
+                "paciente",
+                "1"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "4"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "reschedule",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"tipoCita\": \"Consulta General\",\n    \"estado\": \"programada\",\n    \"idPaciente\": 1,\n    \"idDoctor\": 1,\n    \"idHorario\": 5,\n    \"creadoPor\": 1,\n    \"actualizadoPor\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/appointments/reschedule/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "appointments",
+                "reschedule",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "ClinicalHIstory",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/appointments/medical-records/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "appointments",
+                "medical-records",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "cancel",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"tipoCita\": \"Consulta General\",\n    \"estado\": \"Programada\",\n    \"idPaciente\": 1,\n    \"idDoctor\": 1,\n    \"idHorario\": 7,\n    \"creadoPor\": 1,\n    \"actualizadoPor\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/appointments/cancel/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "appointments",
+                "cancel",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "complete",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"tipoCita\": \"Consulta General\",\n    \"estado\": \"Programada\",\n    \"idPaciente\": 1,\n    \"idDoctor\": 1,\n    \"idHorario\": 7,\n    \"creadoPor\": 1,\n    \"actualizadoPor\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/appointments/complete/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "appointments",
+                "complete",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "delete",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/appointments/2",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "appointments",
+                "2"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "appointment details",
+      "item": [
+        {
+          "name": "appointment-detail",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"motivo\": \"Dolor de cabeza intenso y fiebre\",\n    \"antecedentes\": \"Alergia a la Penicilina\",\n    \"anamnesis\": \"Paciente refiere dolor desde hace 3 días...\",\n    \"revisionSistemas\": \"Cardiorespiratorio: Normal. Abdomen: Blando.\",\n    \"examenFisico\": \"TA: 120/80, FC: 80, Temp: 38.5°C\",\n    \"diagnostico\": \"Cefalea tensional asociada a cuadro viral\",\n    \"planManejo\": \"Acetaminofén 1gr cada 8 horas. Hidratación.\",\n    \"evolucion\": \"Paciente estable.\",\n    \"idCita\": 16,\n    \"creadoPor\": 1,\n    \"actualizadoPor\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/appointment-details",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "appointment-details"
+              ]
+            },
+            "description": "Generated from cURL: curl --location 'http://localhost:5000/api/appointment-details' \\\n--header 'Content-Type: application/json' \\\n--data '{\n    \"reason\": \"Dolor de cabeza intenso y fiebre\",\n    \"background\": \"Alergia a la Penicilina\",\n    \"anamnesis\": \"Paciente refiere dolor desde hace 3 días...\",\n    \"systemsReview\": \"Cardiorespiratorio: Normal. Abdomen: Blando.\",\n    \"physicalExam\": \"TA: 120/80, FC: 80, Temp: 38.5°C\",\n    \"diagnosis\": \"Cefalea tensional asociada a cuadro viral\",\n    \"managementPlan\": \"Acetaminofén 1gr cada 8 horas. Hidratación.\",\n    \"evolution\": \"Paciente estable.\",\n    \"appointmentId\": 1,\n    \"createdBy\": 1,\n    \"updatedBy\": 1\n}'"
+          },
+          "response": []
+        },
+        {
+          "name": "byId",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"motivo\": \"Dolor de cabeza intenso y fiebre desde hace 3 días.\",\n    \"antecedentes\": \"Hipertensión arterial diagnosticada en 2020. Alergia a la penicilina.\",\n    \"anamnesis\": \"El paciente refiere que el dolor es de tipo punzante, se irradia hacia la nuca y aumenta con el esfuerzo físico. Tomó paracetamol sin presentar mejoría.\",\n    \"revisionSistemas\": \"Cardiovascular: Sin palpitaciones. Respiratorio: Leve congestión nasal. Gastrointestinal: Náuseas ocasionales, sin vómito.\",\n    \"examenFisico\": \"TA: 130/85 mmHg, FC: 88 lpm, FR: 18 rpm, Temp: 38.5°C. Paciente consciente, faringe levemente enrojecida. Pupilas isocóricas y normorreactivas.\",\n    \"diagnostico\": \"Cefalea tensional secundaria a cuadro viral leve.\",\n    \"idCita\": 15\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/appointment-details/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "appointment-details",
+                "1"
+              ]
+            },
+            "description": "Generated from cURL: curl --location 'http://localhost:5000/api/appointment-details/1'"
+          },
+          "response": []
+        },
+        {
+          "name": "All",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/appointment-details",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "appointment-details"
+              ]
+            },
+            "description": "Generated from cURL: curl --location 'http://localhost:5000/api/appointment-details'"
+          },
+          "response": []
+        },
+        {
+          "name": "create",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"motivo\": \"Dolor de cabeza intenso y fiebre desde hace 3 días.\",\n    \"antecedentes\": \"Hipertensión arterial diagnosticada en 2020. Alergia a la penicilina.\",\n    \"anamnesis\": \"El paciente refiere que el dolor es de tipo punzante, se irradia hacia la nuca y aumenta con el esfuerzo físico. Tomó paracetamol sin presentar mejoría.\",\n    \"revisionSistemas\": \"Cardiovascular: Sin palpitaciones. Respiratorio: Leve congestión nasal. Gastrointestinal: Náuseas ocasionales, sin vómito.\",\n    \"examenFisico\": \"TA: 130/85 mmHg, FC: 88 lpm, FR: 18 rpm, Temp: 38.5°C. Paciente consciente, faringe levemente enrojecida. Pupilas isocóricas y normorreactivas.\",\n    \"diagnostico\": \"Cefalea tensional secundaria a cuadro viral leve.\",\n    \"idCita\": 15\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/appointment-details/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "appointment-details",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "byPatient",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/appointments/clinical-history/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "appointments",
+                "clinical-history",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "delete",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"motivo\": \"Dolor de cabeza intenso y fiebre desde hace 3 días.\",\n    \"antecedentes\": \"Hipertensión arterial diagnosticada en 2020. Alergia a la penicilina.\",\n    \"anamnesis\": \"El paciente refiere que el dolor es de tipo punzante, se irradia hacia la nuca y aumenta con el esfuerzo físico. Tomó paracetamol sin presentar mejoría.\",\n    \"revisionSistemas\": \"Cardiovascular: Sin palpitaciones. Respiratorio: Leve congestión nasal. Gastrointestinal: Náuseas ocasionales, sin vómito.\",\n    \"examenFisico\": \"TA: 130/85 mmHg, FC: 88 lpm, FR: 18 rpm, Temp: 38.5°C. Paciente consciente, faringe levemente enrojecida. Pupilas isocóricas y normorreactivas.\",\n    \"diagnostico\": \"Cefalea tensional secundaria a cuadro viral leve.\",\n    \"idCita\": 15\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/appointment-details/10",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "appointment-details",
+                "10"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Doctors",
+      "item": [
+        {
+          "name": "Create Doctor",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"licenciaMedica\": \"RM-12345-COL\",\n    \"idUsuario\": 5,\n    \"creadoPor\": 1,\n    \"actualizadoPor\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/doctors",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "doctors"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "byId",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/doctors/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "doctors",
+                "1"
+              ]
+            },
+            "description": "Generated from cURL: curl --location 'http://localhost:5000/api/doctors/1'"
+          },
+          "response": []
+        },
+        {
+          "name": "Doctors",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "localhost:5000/api/doctors",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "doctors"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "All",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/doctors",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "doctors"
+              ]
+            },
+            "description": "Generated from cURL: curl --location 'http://localhost:5000/api/doctors'"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "health",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "localhost:5000/api/health",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "health"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
