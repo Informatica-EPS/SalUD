@@ -1,7 +1,8 @@
 -- =============================================================
+
 -- seed.sql – Limpia y repobla la base de datos SalUD
 -- Contraseña de todos los usuarios: salud123
--- SHA-256("salud123") = 444d2690e7413101d5efc5296fc171bb6b6b486e58b52d63531dbf39b83b399b
+-- Usando: encode(digest('salud123', 'sha256'), 'hex')
 -- Los documentos también se guardan en SHA-256 porque el login los busca hasheados
 -- =============================================================
 
@@ -156,8 +157,10 @@ CREATE UNIQUE INDEX IF NOT EXISTS doctores_id_usuario_unique ON doctores (id_usu
 
 INSERT INTO rol (nombre, descripcion, creado_por, fecha_creacion)
 VALUES
-    ('medico',   'Rol para médicos del sistema',   'seed', NOW()),
-    ('paciente', 'Rol para pacientes del sistema', 'seed', NOW());
+    ('Medico',   'Rol para médicos del sistema',   'seed', NOW()),
+    ('Paciente', 'Rol para pacientes del sistema', 'seed', NOW()),
+    ('AdminMedicamentos', 'Rol para administradores de medicamentos', 'seed', NOW()),
+	('Admin', 'Rol para administradores del sistema', 'seed', NOW());
 
 INSERT INTO especialidades (id, nombre, descripcion)
 VALUES
@@ -185,35 +188,46 @@ VALUES
     ('Carlos',  'Alberto', 'Ramírez', 'Gómez',
      '1980-03-15', 'Bogotá', 'Cra 7 # 45-12',
      encode(digest('10000001', 'sha256'), 'hex'), 'CC', 'dr.ramirez', 'dr.ramirez@salud.com',
-     '444d2690e7413101d5efc5296fc171bb6b6b486e58b52d63531dbf39b83b399b',
+     encode(digest('salud123', 'sha256'), 'hex'),
      'seed', NOW()),
 
     -- Médico 2 – Inmunología
     ('Laura',   'Sofía',   'Torres',  'Medina',
      '1985-07-22', 'Medellín', 'Av 80 # 10-30',
      encode(digest('10000002', 'sha256'), 'hex'), 'CC', 'dr.torres', 'dr.torres@salud.com',
-     '444d2690e7413101d5efc5296fc171bb6b6b486e58b52d63531dbf39b83b399b',
+     encode(digest('salud123', 'sha256'), 'hex'),
      'seed', NOW()),
 
     -- Médico 3 – Sin especialidad
     ('Andrés',  NULL,      'Morales', 'Ríos',
      '1990-11-05', 'Cali', 'Cll 15 # 8-90',
      encode(digest('10000003', 'sha256'), 'hex'), 'CC', 'dr.morales', 'dr.morales@salud.com',
-     '444d2690e7413101d5efc5296fc171bb6b6b486e58b52d63531dbf39b83b399b',
+     encode(digest('salud123', 'sha256'), 'hex'),
      'seed', NOW()),
 
     -- Paciente 1
     ('María',   'Camila',  'López',   'Herrera',
      '1995-01-18', 'Bogotá', 'Cll 100 # 15-20',
      encode(digest('20000001', 'sha256'), 'hex'), 'CC', 'pac.lopez', 'pac.lopez@salud.com',
-     '444d2690e7413101d5efc5296fc171bb6b6b486e58b52d63531dbf39b83b399b',
+     encode(digest('salud123', 'sha256'), 'hex'),
      'seed', NOW()),
 
     -- Paciente 2
     ('Juan',    'Pablo',   'Castro',  'Vargas',
      '2000-06-30', 'Barranquilla', 'Cra 50 # 75-40',
      encode(digest('20000002', 'sha256'), 'hex'), 'CC', 'pac.castro', 'pac.castro@salud.com',
-     '444d2690e7413101d5efc5296fc171bb6b6b486e58b52d63531dbf39b83b399b',
+     encode(digest('salud123', 'sha256'), 'hex'),
+     'seed', NOW()),
+    -- AdminMedicamentos
+    ('Paula',    '',   'Garcia',  'Perdomo',
+     '2001-06-30', 'Bogotá', 'Cra 50 # 75-40',
+     encode(digest('30000001', 'sha256'), 'hex'), 'CC', 'pau.garcia', 'pagp@salud.com',
+     encode(digest('salud123', 'sha256'), 'hex'),
+     'seed', NOW()),
+    ('Ana',    'María',   'Alonso',  'Maldonado',
+     '2001-06-30', 'Bogotá', 'Cra 50 # 75-40',
+     encode(digest('40000001', 'sha256'), 'hex'), 'CC', 'ana.mal', 'anamal@salud.com',
+     encode(digest('salud123', 'sha256'), 'hex'),
      'seed', NOW());
 
 -- ---------------------------------------------------------------
@@ -241,10 +255,20 @@ VALUES
 
 INSERT INTO roles_usuario (id_rol, id_usuario)
 SELECT r.id, u.id FROM rol r, usuarios u
-WHERE r.nombre = 'medico'
+WHERE r.nombre = 'Medico'
   AND u.usuario IN ('dr.ramirez', 'dr.torres', 'dr.morales');
 
 INSERT INTO roles_usuario (id_rol, id_usuario)
 SELECT r.id, u.id FROM rol r, usuarios u
-WHERE r.nombre = 'paciente'
+WHERE r.nombre = 'Paciente'
   AND u.usuario IN ('pac.lopez', 'pac.castro');
+
+INSERT INTO roles_usuario (id_rol, id_usuario)
+SELECT r.id, u.id FROM rol r, usuarios u
+WHERE r.nombre = 'AdminMedicamentos'
+  AND u.usuario IN ('pau.garcia');
+
+INSERT INTO roles_usuario (id_rol, id_usuario)
+SELECT r.id, u.id FROM rol r, usuarios u
+WHERE r.nombre = 'Admin'
+  AND u.usuario IN ('ana.mal');

@@ -217,7 +217,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"slots\": [\n      {\n        \"fecha\": \"2026-03-10\",\n        \"horaInicio\": \"08:00:00\",\n        \"horaFin\": \"08:29:00\",\n        \"estado\": \"disponible\",\n        \"idDoctor\": 3,\n        \"creadoPor\": 1,\n        \"actualizadoPor\": 1\n      },\n      {\n        \"fecha\": \"2026-03-10\",\n        \"horaInicio\": \"10:30:00\",\n        \"horaFin\": \"10:59:00\",\n        \"estado\": \"disponible\",\n        \"idDoctor\": 3,\n        \"creadoPor\": 1,\n        \"actualizadoPor\": 1\n      },\n      {\n        \"fecha\": \"2026-03-11\",\n        \"horaInicio\": \"09:00:00\",\n        \"horaFin\": \"09:29:00\",\n        \"estado\": \"disponible\",\n        \"idDoctor\": 3,\n        \"creadoPor\": 1,\n        \"actualizadoPor\": 1\n      },\n      {\n        \"fecha\": \"2026-03-11\",\n        \"horaInicio\": \"14:30:00\",\n        \"horaFin\": \"14:59:00\",\n        \"estado\": \"disponible\",\n        \"idDoctor\": 3,\n        \"creadoPor\": 1,\n        \"actualizadoPor\": 1\n      },\n      {\n        \"fecha\": \"2026-03-12\",\n        \"horaInicio\": \"11:30:00\",\n        \"horaFin\": \"11:59:00\",\n        \"estado\": \"disponible\",\n        \"idDoctor\": 3,\n        \"creadoPor\": 1,\n        \"actualizadoPor\": 1\n      },\n      {\n        \"fecha\": \"2026-03-12\",\n        \"horaInicio\": \"15:00:00\",\n        \"horaFin\": \"15:29:00\",\n        \"estado\": \"disponible\",\n        \"idDoctor\": 3,\n        \"creadoPor\": 1,\n        \"actualizadoPor\": 1\n      },\n      {\n        \"fecha\": \"2026-03-13\",\n        \"horaInicio\": \"08:30:00\",\n        \"horaFin\": \"08:59:00\",\n        \"estado\": \"disponible\",\n        \"idDoctor\": 3,\n        \"creadoPor\": 1,\n        \"actualizadoPor\": 1\n      },\n      {\n        \"fecha\": \"2026-03-13\",\n        \"horaInicio\": \"16:00:00\",\n        \"horaFin\": \"16:29:00\",\n        \"estado\": \"disponible\",\n        \"idDoctor\": 3,\n        \"creadoPor\": 1,\n        \"actualizadoPor\": 1\n      },\n      {\n        \"fecha\": \"2026-03-14\",\n        \"horaInicio\": \"13:00:00\",\n        \"horaFin\": \"13:29:00\",\n        \"estado\": \"disponible\",\n        \"idDoctor\": 3,\n        \"creadoPor\": 1,\n        \"actualizadoPor\": 1\n      },\n      {\n        \"fecha\": \"2026-03-14\",\n        \"horaInicio\": \"16:30:00\",\n        \"horaFin\": \"16:59:00\",\n        \"estado\": \"disponible\",\n        \"idDoctor\": 3,\n        \"creadoPor\": 1,\n        \"actualizadoPor\": 1\n      }\n    ]\n  }",
+              "raw": "{\n    \"slots\": [\n      {\n        \"fecha\": \"2026-03-10\",\n        \"horaInicio\": \"08:00:00\",\n        \"horaFin\": \"08:29:00\",\n        \"estado\": \"disponible\",\n        \"idDoctor\": 3,\n        \"creadoPor\": 1,\n        \"actualizadoPor\": 1\n      },\n      {\n        \"fecha\": \"2026-03-10\",\n        \"horaInicio\": \"10:30:00\",\n        \"horaFin\": \"10:59:00\",\n        \"estado\": \"disponible\",\n        \"idDoctor\": 3,\n        \"creadoPor\": 1,\n        \"actualizadoPor\": 1\n      },\n      {\n        \"fecha\": \"2026-03-11\",\n        \"horaInicio\": \"09:00:00\",\n        \"horaFin\": \"09:29:00\",\n        \"estado\": \"disponible\",\n        \"idDoctor\": 3,\n        \"creadoPor\": 1,\n        \"actualizadoPor\": 1\n      },\n      {\n        \"fecha\": \"2026-03-11\",\n        \"horaInicio\": \"14:30:00\",\n        \"horaFin\": \"14:59:00\",\n        \"estado\": \"disponible\",\n        \"idDoctor\": 3,\n        \"creadoPor\": 1,\n        \"actualizadoPor\": 1\n      },\n      {\n        \"fecha\": \"2026-03-12\",\n        \"horaInicio\": \"11:30:00\",\n        \"horaFin\": \"11:59:00\",\n        \"estado\": \"disponible\",\n        \"idDoctor\": 3,\n        \"creadoPor\": 1,\n        \"actualizadoPor\": 1\n      },\n      {\n        \"fecha\": \"2026-03-12\",\n        \"horaInicio\": \"15:00:00\",\n        \"horaFin\": \"15:29:00\",\n        \"estado\": \"disponible\",\n        \"idDoctor\": 3,\n        \"creadoPor\": 1,\n        \"actualizadoPor\": 1\n      },\n      {\n        \"fecha\": \"2026-03-13\",\n        \"horaInicio\": \"08:30:00\",\n        \"horaFin\": \"08:59:00\",\n        \"estado\": \"disponible\",\n        \"idDoctor\": 3,\n        \"creadoPor\": 1,\n        \"actualizadoPor\": 1\n      },\n      {\n        \"fecha\": \"2026-03-13\",\n        \"horaInicio\": \"16:00:00\",\n        \"horaFin\": \"16:29:00\",\n        \"estado\": \"disponible\",\n        \"idDoctor\": 3,\n        \"creadoPor\": 1,\n        \"actualizadoPor\": 1\n      }\n    ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1021,6 +1021,328 @@
               ]
             },
             "description": "Generated from cURL: curl --location 'http://localhost:5000/api/doctors'"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "List Orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/orders?page=1&limit=10",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"idCita\": 1,\n    \"fechaVencimiento\": \"2026-12-31T23:59:59Z\",\n    \"estado\": \"autorizada\",\n    \"entidadDestino\": \"Farmacia Central\",\n    \"especialidad\": 1,\n    \"descripcion\": \"Medicamentos para tratamiento viral\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/orders",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Order By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/orders/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "orders",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Order",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"estado\": \"completada\",\n    \"descripcion\": \"Medicamentos entregados\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/orders/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "orders",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Order",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/orders/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "orders",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get By Patient Document",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/orders/getByPatientDocument/10000001",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "orders",
+                "getByPatientDocument",
+                "10000001"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Validate Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"idPaciente\": 1,\n    \"idOrden\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/orders/validate",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "orders",
+                "validate"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Specialties",
+      "item": [
+        {
+          "name": "List Specialties",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/specialties",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "specialties"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"documento\": \"10000001\",\n    \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/users/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "users",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/users",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"primer_nombre\": \"Juan\",\n    \"primer_apellido\": \"Perez\",\n    \"documento\": \"12345678\",\n    \"email\": \"juan@example.com\",\n    \"password\": \"securepassword\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/users",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "users"
+              ]
+            }
           },
           "response": []
         }
