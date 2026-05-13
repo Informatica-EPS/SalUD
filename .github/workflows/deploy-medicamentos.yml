@@ -1,0 +1,57 @@
+name: Despliegue del Módulo de Medicamentos
+
+on:
+  push:
+    branches:
+      - prod
+    paths:
+      - 'arquitecturas/capas/apps/backend/medicaments-service/**'
+
+env:
+  ACR_LOGIN_SERVER: "saludreg.azurecr.io"
+  ACR_USERNAME: ${{ secrets.MED_CONTAINER_USER }}
+  ACR_PASSWORD: ${{ secrets.MED_CONTAINER_PASS }}
+  CONTAINER_APP_NAME: "medicamentos-service"
+  RESOURCE_GROUP: "SalUD-RG-SD"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v3
+
+      - name: Iniciar sesión en Azure Container Registry
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ env.ACR_LOGIN_SERVER }}
+          username: ${{ env.ACR_USERNAME }}
+          password: ${{ env.ACR_PASSWORD }}
+
+      - name: Construir y Subir la imagen Docker
+        run: |
+          docker build -t ${{ env.ACR_LOGIN_SERVER }}/${{ env.CONTAINER_APP_NAME }}:${{ github.sha }} ./arquitecturas/capas/apps/backend/medicaments-service
+          docker push ${{ env.ACR_LOGIN_SERVER }}/${{ env.CONTAINER_APP_NAME }}:${{ github.sha }}
+
+      - name: Iniciar sesión en Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Desplegar en Azure Container Apps
+        uses: azure/cli@v1
+        with:
+          inlineScript: |
+            # 1. Le damos a la Container App las llaves de la bodega (Registry)
+            az containerapp registry set \
+              --name ${{ env.CONTAINER_APP_NAME }} \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --server ${{ env.ACR_LOGIN_SERVER }} \
+              --username ${{ env.ACR_USERNAME }} \
+              --password ${{ env.ACR_PASSWORD }}
+
+            # 2. Ahora sí, le ordenamos que se actualice (ya tiene permiso)
+            az containerapp update \
+              --name ${{ env.CONTAINER_APP_NAME }} \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --image ${{ env.ACR_LOGIN_SERVER }}/${{ env.CONTAINER_APP_NAME }}:${{ github.sha }}

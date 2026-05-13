@@ -14,4 +14,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Comando para desarrollo con hot-reload
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5010", "--reload"]
+CMD ["sh", "-c", "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 5010"]

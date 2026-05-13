@@ -3,6 +3,7 @@ from app.repositories.medicaments_repository import MedicamentsRepository
 from app.schemas.medicament_schema import MedicamentResponse, MedicamentDispatchRequest
 from app.services.inventory_service import InventoryService
 from app.services.movement_service import MovementService
+from app.core.config import settings
 import httpx
 
 
@@ -29,9 +30,14 @@ class MedicamentsService:
     async def dispatch_medicaments(self, body: MedicamentDispatchRequest):
         # validar orden con servicio de ordenes
         data = {"idPaciente": body.idPaciente, "idOrden": body.idOrden}
+        
 
         async with httpx.AsyncClient() as client:
-            response = await client.post("http://backend:5000/api/orders/validate", json=data)
+            url_validacion = f"{settings.backend_url}/api/orders/validate"
+            response = await client.post(url_validacion, json=data)
+
+            if response.status_code != 200:
+                raise HTTPException(status_code=400, detail="Error al despachar medicamento.")
 
         medicament_id, quantity = body.idMedicamento, body.cantidad
 
