@@ -6,7 +6,7 @@ name: CI/CD Pipeline to Azure VM
 on:
   push:
     branches:
-      - feat131
+      - prod
 
 jobs:
   # ==========================================
@@ -63,10 +63,10 @@ jobs:
             # 1. Navegar a la carpeta donde clonaste el proyecto en tu máquina de Azure
             cd ~/SalUD/arquitecturas/capas
             
-            # Traer los últimos cambios de la rama feat131
-            git fetch origin feat131
-            git checkout feat131
-            git reset --hard origin/feat131
+            # Traer los últimos cambios de la rama prod
+            git fetch origin prod
+            git checkout prod
+            git reset --hard origin/prod
             
             # 3. Reconstruir las imágenes y levantar contenedores en segundo plano
             docker compose --env-file infra/dev.env -f infra/docker-compose.prod.yaml down
