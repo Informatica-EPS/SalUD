@@ -25,21 +25,21 @@ jobs:
           node-version: '18' # Puedes ajustarlo a la versión de Node que uses
 
       - name: Instalar dependencias del Frontend
-        working-directory: ./arquitecturas/capas/apps/frontend
+        working-directory: ./arquitecturas/eventos/apps/frontend
         run: npm ci
 
       - name: Ejecutar pruebas del Frontend (Jest)
-        working-directory: ./arquitecturas/capas/apps/frontend
+        working-directory: ./arquitecturas/eventos/apps/frontend
         continue-on-error: true
         run: npm run test
 
 # --- 2. PRUEBAS DEL BACKEND PRINCIPAL (Las que van a crear) ---
       - name: Backend - Instalar
-        working-directory: ./arquitecturas/capas/apps/backend/backend
+        working-directory: ./arquitecturas/eventos/apps/backend/backend
         run: npm install
 
       - name: Backend - Pruebas
-        working-directory: ./arquitecturas/capas/apps/backend/backend
+        working-directory: ./arquitecturas/eventos/apps/backend/backend
         env:
           NODE_ENV: test
         run: npm run test
@@ -61,7 +61,7 @@ jobs:
           # El script que se ejecutará DENTRO de tu máquina de Azure:
           script: |
             # 1. Navegar a la carpeta donde clonaste el proyecto en tu máquina de Azure
-            cd ~/SalUD/arquitecturas/capas
+            cd ~/SalUD/arquitecturas/eventos
             
             # Traer los últimos cambios de la rama prod
             git fetch origin prod
