@@ -95,11 +95,11 @@ services:
 
   frontend:
     build:
-      context: ../apps/frontend
+      context: ../apps/frontend/frontend
       dockerfile: Dockerfile
       target: development
     volumes:
-      - ../apps/frontend:/app
+      - ../apps/frontend/frontend:/app
       - /app/node_modules
     ports:
       - "8080:8080"
@@ -108,6 +108,15 @@ services:
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
       - WDS_SOCKET_PORT=0
+
+  medicaments-microfrontend:
+    build:
+      context: ../apps/frontend/medicaments-microfrontend
+      dockerfile: Dockerfile
+      target: preview
+    ports:
+      - "8081:8081"
+    stdin_open: true
 
   medicaments-service:
     build:
