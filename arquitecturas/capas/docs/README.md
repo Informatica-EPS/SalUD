@@ -4,7 +4,8 @@
 
 SalUD es un sistema web de gestión de citas médicas para pacientes y doctores.
 
-![Arquitectura General](docs/Diagramas/Arquitectura_General_Capas.jpg)
+![Diagrama Capas Microservicio](Diagramas/Diagrama_Arquitectura_Final.jpg)
+
 
 ### Componentes
 
@@ -55,10 +56,6 @@ máquina dentro de contenedores Docker aislados entre sí.
   puede afectar al backend, ni el backend a la base de datos, sin pasar
   por las interfaces definidas entre ellos.
 
-## 2. Arquitectura Detallada de Capas
-
-![Diagrama de Capas](Diagramas/Diagrama_Capas.jpg)
----
 
 ### Principio de capas
 
@@ -68,8 +65,7 @@ SalUD está organizado
 internamente siguiendo una **arquitectura en capas**, donde cada capa
 tiene una responsabilidad única y bien definida.
 
-![Diagrama de Capas](Diagramas/Diagrama_Capas.jpg)
-
+![Diagrama de Capas](Diagramas/Capas%20-%20Diagrama%20Actualizado.drawio.png)
 ---
 
 ### Las 4 Capas de SalUD
@@ -173,8 +169,6 @@ Los datos se guardan en un **volumen Docker** llamado `db_data`, lo que garantiz
 El microservicio de medicamentos es un sistema **completamente independiente** del monolito: tiene su propio lenguaje de programacion, su propio servidor y su propia base de datos. Aunque comparte el mismo servidor fisico (Azure), funciona de forma autonoma.
 
 Tambien sigue una arquitectura en 4 capas, pero adaptada al lenguaje Python y al framework FastAPI.
-
-![Diagrama Capas Microservicio](Diagramas/Diagrama_Capas_Microservicio.jpg)
 
 > **Diferencia clave con el monolito:** En Node.js existen Routes y Controllers por separado. En Python/FastAPI, el **Router** cumple ambas funciones en un solo archivo — recibe la peticion Y la coordina al Service directamente, sin necesitar un Controller aparte.
 
