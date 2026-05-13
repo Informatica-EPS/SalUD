@@ -3,7 +3,7 @@ name: Despliegue del Módulo de Medicamentos
 on:
   push:
     branches:
-      - prod
+      - feat131f
     paths:
       - 'arquitecturas/capas/apps/backend/medicaments-service/**'
 
