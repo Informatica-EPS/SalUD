@@ -7,6 +7,7 @@ class Settings(BaseSettings):
   db_password: str
   db_host: str
   db_port: int
+  backend_url: str
 
   @property
   def database_url(self) -> str:

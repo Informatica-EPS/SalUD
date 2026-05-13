@@ -123,6 +123,7 @@ services:
       - DB_PASSWORD=${DB_MEDICAMENTS_PASSWORD}
       - DB_HOST=${DB_MEDICAMENTS_HOST}
       - DB_PORT=${DB_MEDICAMENTS_PORT}
+      - BACKEND_URL=${BACKEND_URL_DEV}
       - ENV=development
     depends_on:
       medicaments-db:
