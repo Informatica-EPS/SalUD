@@ -25,11 +25,11 @@ jobs:
           node-version: '18' # Puedes ajustarlo a la versión de Node que uses
 
       - name: Instalar dependencias del Frontend
-        working-directory: ./arquitecturas/capas/apps/frontend
+        working-directory: ./arquitecturas/capas/apps/frontend/frontend
         run: npm ci
 
       - name: Ejecutar pruebas del Frontend (Jest)
-        working-directory: ./arquitecturas/capas/apps/frontend
+        working-directory: ./arquitecturas/capas/apps/frontend/frontend
         continue-on-error: true
         run: npm run test
 
