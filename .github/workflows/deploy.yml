@@ -54,7 +54,6 @@ jobs:
     steps:
       - name: Ejecutar comandos de despliegue vía SSH
         uses: appleboy/ssh-action@master
-        # 1. Leer los secretos de GitHub y asignarlos a variables de entorno de este paso
         env:
           VITE_MEDICAMENTS_REMOTE_URL: ${{ secrets.VITE_MEDICAMENTS_REMOTE_URL }}
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
@@ -62,24 +61,21 @@ jobs:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          
-          # 2. Decirle a la acción SSH que envíe estas variables a través del túnel seguro
+          # Esto le dice a la acción que pase estas variables al entorno SSH
           envs: VITE_MEDICAMENTS_REMOTE_URL,VITE_API_URL
           
           script: |
-            # 3. "Exportar" las variables en la terminal de la máquina virtual de Azure
-            # para que el sistema operativo sepa que existen antes de correr Docker
-            export VITE_MEDICAMENTS_REMOTE_URL=$VITE_MEDICAMENTS_REMOTE_URL
-            export VITE_API_URL=$VITE_API_URL
-            
-            # Navegar a la carpeta donde clonaste el proyecto en tu máquina de Azure
             cd ~/SalUD/arquitecturas/capas
             
             # Traer los últimos cambios de la rama feat131f
             git fetch origin feat131f
             git checkout feat131f
             git reset --hard origin/feat131f
-            
-            # Reconstruir las imágenes y levantar contenedores en segundo plano
+
+            VITE_MEDICAMENTS_REMOTE_URL=$VITE_MEDICAMENTS_REMOTE_URL \
+            VITE_API_URL=$VITE_API_URL \
             docker compose --env-file infra/dev.env -f infra/docker-compose.prod.yaml down
+            
+            VITE_MEDICAMENTS_REMOTE_URL=$VITE_MEDICAMENTS_REMOTE_URL \
+            VITE_API_URL=$VITE_API_URL \
             docker compose --env-file infra/dev.env -f infra/docker-compose.prod.yaml up -d --build
