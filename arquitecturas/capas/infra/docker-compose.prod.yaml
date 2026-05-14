@@ -92,7 +92,7 @@ services:
   # --- FRONTEND (Nginx sirviendo React) ---
   frontend:
     build:
-      context: ../apps/frontend
+      context: ../apps/frontend/frontend
       dockerfile: Dockerfile
       target: production
       args:
