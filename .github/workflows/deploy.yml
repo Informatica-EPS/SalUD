@@ -54,14 +54,10 @@ jobs:
     steps:
       - name: Ejecutar comandos de despliegue vía SSH
         uses: appleboy/ssh-action@master
-        env:
-          VITE_MEDICAMENTS_REMOTE_URL: ${{ secrets.VITE_MEDICAMENTS_REMOTE_URL }}
-          VITE_API_URL: ${{ secrets.VITE_API_URL }}
         with:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          # Esto le dice a la acción que pase estas variables al entorno SSH
           script: |
             cd ~/SalUD/arquitecturas/capas
             
@@ -70,9 +66,34 @@ jobs:
             git checkout feat131f
             git reset --hard origin/feat131f
 
-            export VITE_MEDICAMENTS_REMOTE_URL=$VITE_MEDICAMENTS_REMOTE_URL
-            export VITE_API_URL=$VITE_API_URL
+            # 🔑 Script para agregar secrets solo si no existen
+            add_if_not_exists() {
+              local key="$1"
+              local value="$2"
+              local env_file="apps/frontend/.env"
+              
+              # Crear el archivo si no existe
+              if [ ! -f "$env_file" ]; then
+                touch "$env_file"
+              fi
+              
+              # Verificar si la variable ya existe en el archivo
+              if grep -q "^${key}=" "$env_file"; then
+                echo "✓ ${key} ya existe en ${env_file}"
+              else
+                echo "${key}=${value}" >> "$env_file"
+                echo "✓ ${key} agregado a ${env_file}"
+              fi
+            }
+
+            # Agregar las variables de secrets
+            add_if_not_exists "VITE_MEDICAMENTS_REMOTE_URL" "${{ secrets.VITE_MEDICAMENTS_REMOTE_URL }}"
+            add_if_not_exists "VITE_API_URL" "${{ secrets.VITE_API_URL }}"
             
+            # Mostrar el archivo actualizado (sin valores sensibles)
+            echo "Contenido de apps/frontend/.env:"
+            cat apps/frontend/.env
             
+            # Desplegar
             docker compose --env-file infra/dev.env -f infra/docker-compose.prod.yaml down
             docker compose --env-file infra/dev.env -f infra/docker-compose.prod.yaml up -d --build
