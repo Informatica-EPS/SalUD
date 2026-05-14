@@ -2,16 +2,13 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import federation from '@originjs/vite-plugin-federation';
 
-// Obtener la URL base de la API desde las variables de entorno
-const MEDICAMENTS_URL = import.meta.env.VITE_MEDICAMENTS_REMOTE_URL || 'http://localhost:8081/assets/remoteEntry.js';
-
 export default defineConfig({
    plugins: [
       react(),
       federation({
          name: 'host_app',
          remotes: {
-            medicamentsApp: MEDICAMENTS_URL,
+            medicamentsApp: process.env.VITE_MEDICAMENTS_REMOTE_URL ? `${process.env.VITE_MEDICAMENTS_REMOTE_URL}/assets/remoteEntry.js` : 'http://localhost:8081/assets/remoteEntry.js',
          },
          shared: {
             react: {
