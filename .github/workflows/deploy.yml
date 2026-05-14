@@ -70,10 +70,9 @@ jobs:
             git checkout feat131f
             git reset --hard origin/feat131f
 
-            VITE_MEDICAMENTS_REMOTE_URL=$VITE_MEDICAMENTS_REMOTE_URL \
-            VITE_API_URL=$VITE_API_URL \
-            docker compose --env-file infra/dev.env -f infra/docker-compose.prod.yaml down
+            export VITE_MEDICAMENTS_REMOTE_URL=$VITE_MEDICAMENTS_REMOTE_URL
+            export VITE_API_URL=$VITE_API_URL
             
-            VITE_MEDICAMENTS_REMOTE_URL=$VITE_MEDICAMENTS_REMOTE_URL \
-            VITE_API_URL=$VITE_API_URL \
+            
+            docker compose --env-file infra/dev.env -f infra/docker-compose.prod.yaml down
             docker compose --env-file infra/dev.env -f infra/docker-compose.prod.yaml up -d --build
