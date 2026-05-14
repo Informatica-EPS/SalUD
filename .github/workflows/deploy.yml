@@ -62,8 +62,6 @@ jobs:
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           # Esto le dice a la acción que pase estas variables al entorno SSH
-          envs: VITE_MEDICAMENTS_REMOTE_URL,VITE_API_URL
-          
           script: |
             cd ~/SalUD/arquitecturas/capas
             
