@@ -6,7 +6,7 @@ name: CI/CD Pipeline to Azure VM
 on:
   push:
     branches:
-      - prod
+      - feat131f
 
 jobs:
   # ==========================================
@@ -49,25 +49,37 @@ jobs:
   # ==========================================
   deploy:
     name: Deploy to Azure
-    needs: test # IMPORTANTE: Esto obliga a que este trabajo espere a que "test" sea exitoso.
+    needs: test 
     runs-on: ubuntu-latest
     steps:
       - name: Ejecutar comandos de despliegue vía SSH
         uses: appleboy/ssh-action@master
+        # 1. Leer los secretos de GitHub y asignarlos a variables de entorno de este paso
+        env:
+          VITE_MEDICAMENTS_REMOTE_URL: ${{ secrets.VITE_MEDICAMENTS_REMOTE_URL }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
         with:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          # El script que se ejecutará DENTRO de tu máquina de Azure:
+          
+          # 2. Decirle a la acción SSH que envíe estas variables a través del túnel seguro
+          envs: VITE_MEDICAMENTS_REMOTE_URL,VITE_API_URL
+          
           script: |
-            # 1. Navegar a la carpeta donde clonaste el proyecto en tu máquina de Azure
+            # 3. "Exportar" las variables en la terminal de la máquina virtual de Azure
+            # para que el sistema operativo sepa que existen antes de correr Docker
+            export VITE_MEDICAMENTS_REMOTE_URL=$VITE_MEDICAMENTS_REMOTE_URL
+            export VITE_API_URL=$VITE_API_URL
+            
+            # Navegar a la carpeta donde clonaste el proyecto en tu máquina de Azure
             cd ~/SalUD/arquitecturas/capas
             
-            # Traer los últimos cambios de la rama prod
-            git fetch origin prod
-            git checkout prod
-            git reset --hard origin/prod
+            # Traer los últimos cambios de la rama feat131f
+            git fetch origin feat131f
+            git checkout feat131f
+            git reset --hard origin/feat131f
             
-            # 3. Reconstruir las imágenes y levantar contenedores en segundo plano
+            # Reconstruir las imágenes y levantar contenedores en segundo plano
             docker compose --env-file infra/dev.env -f infra/docker-compose.prod.yaml down
             docker compose --env-file infra/dev.env -f infra/docker-compose.prod.yaml up -d --build

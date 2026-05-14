@@ -95,6 +95,9 @@ services:
       context: ../apps/frontend
       dockerfile: Dockerfile
       target: production
+      args:
+        - VITE_MEDICAMENTS_REMOTE_URL=${VITE_MEDICAMENTS_REMOTE_URL}
+        - VITE_API_URL=${VITE_API_URL}
     container_name: salud-frontend-prod
     restart: always
     ports:
