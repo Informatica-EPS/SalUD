@@ -86,13 +86,39 @@ jobs:
               fi
             }
 
-            # Agregar las variables de secrets
-            add_if_not_exists "VITE_MEDICAMENTS_REMOTE_URL" "${{ secrets.VITE_MEDICAMENTS_REMOTE_URL }}"
+            # Agregar VITE_API_URL a apps/frontend/.env
             add_if_not_exists "VITE_API_URL" "${{ secrets.VITE_API_URL }}"
             
-            # Mostrar el archivo actualizado (sin valores sensibles)
             echo "Contenido de apps/frontend/.env:"
             cat apps/frontend/.env
+            
+            # 🔑 Script para agregar secrets a infra/dev.env
+            add_to_infra() {
+              local key="$1"
+              local value="$2"
+              local env_file="infra/dev.env"
+              
+              # Crear el archivo si no existe
+              if [ ! -f "$env_file" ]; then
+                touch "$env_file"
+              fi
+              
+              # Verificar si la variable ya existe en el archivo
+              if grep -q "^${key}=" "$env_file"; then
+                # Reemplazar la línea existente
+                sed -i "s/^${key}=.*/${key}=${value}/" "$env_file"
+                echo "✓ ${key} actualizado en ${env_file}"
+              else
+                echo "${key}=${value}" >> "$env_file"
+                echo "✓ ${key} agregado a ${env_file}"
+              fi
+            }
+
+            # Agregar VITE_MEDICAMENTS_REMOTE_URL a infra/dev.env
+            add_to_infra "VITE_MEDICAMENTS_REMOTE_URL" "${{ secrets.VITE_MEDICAMENTS_REMOTE_URL }}"
+            
+            echo "Contenido de infra/dev.env:"
+            cat infra/dev.env
             
             # Desplegar
             docker compose --env-file infra/dev.env -f infra/docker-compose.prod.yaml down
