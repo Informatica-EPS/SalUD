@@ -97,6 +97,8 @@ services:
       target: production
     container_name: salud-frontend-prod
     restart: always
+    environment:
+      VITE_MEDICAMENTS_REMOTE_URL: ${VITE_MEDICAMENTS_REMOTE_URL}
     ports:
       - "80:80"
     depends_on:
