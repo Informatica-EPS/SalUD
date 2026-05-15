@@ -7,8 +7,8 @@ import PersonIcon from '@mui/icons-material/Person';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import DescriptionIcon from '@mui/icons-material/Description';
-import DoctorsPageAdmin from '../Admin/DoctorsPage';
-import PatientsPageAdmin from '../Admin/PatientsPage';
+//import DoctorsPageAdmin from '../Admin/DoctorsPage';
+//import PatientsPageAdmin from '../Admin/PatientsPage';
 
 const HomePage = () => {
    const navigate = useNavigate();
@@ -29,6 +29,7 @@ const HomePage = () => {
       userRoles.includes('Doctor') ||
       (userRoles.length === 0 && user?.idDoctor);
    const isAdmin = userRoles.includes('Admin') || userRoles.includes('Administrador');
+   const isAdminMedicamentos = userRoles.includes('AdminMedicamentos');
 
    // Opciones para pacientes
    const patientOptions = [
@@ -157,6 +158,23 @@ const HomePage = () => {
       },
    ];
 
+      const adminMedicamentosOptions = [
+      {
+         icon: <LocalHospitalIcon sx={{
+                  fontSize: 60,
+                  mb: 2,
+                  background: 'rgba(26,163,168,0.1)',
+                  borderRadius: '50%',
+                  p: 2,
+               }} />,
+         title: 'Gestionar Medicamentos',
+         description: 'Administra la entrega de medicamentos',
+         path: '/Medicamentos',
+         buttonText: 'Entregar Medicamentos',
+         color: 'primary',
+      }
+   ];
+
    return (
       <Box sx={{ flexGrow: 1, minHeight: '100vh', bgcolor: 'grey.50' }}>
          {/* Header */}
@@ -182,6 +200,7 @@ const HomePage = () => {
                      {isPatient && ' - Paciente'}
                      {isDoctor && ' - Doctor'}
                      {isAdmin && ' - Administrador'}
+                     {isAdminMedicamentos && ' - Administrador de Medicamentos'}
                   </Typography>
                )}
             </Box>
@@ -199,7 +218,8 @@ const HomePage = () => {
                <Typography variant="h6" color="text.secondary">
                   {isPatient && 'Gestiona tus citas y consulta tu historial médico'}
                   {isDoctor && !isPatient && 'Administra tus horarios y pacientes'}
-                  {!isPatient && !isDoctor && 'Bienvenido al sistema de gestión de citas médicas'}
+                  {isAdminMedicamentos && !isPatient && !isDoctor && 'Bienvenido al sistema de entrega de medicamentos'}
+                  {!isPatient && !isDoctor && !isAdminMedicamentos && 'Bienvenido al sistema de gestión de citas médicas'}
                </Typography>
             </Box>
 
@@ -377,7 +397,8 @@ const HomePage = () => {
                </Box>
             )}
 
-            {/* Sección Común - Visible para todos */}
+            {/* Sección Común - Visible para todos excepto medicamentos*/}
+            {!isAdminMedicamentos && (
             <Box>
                <Typography variant="h5" gutterBottom sx={{
                      fontWeight: 'bold',
@@ -432,9 +453,68 @@ const HomePage = () => {
                   ))}
                </Grid>
             </Box>
+            )}
+
+                        {/* Sección Común - Visible para admin medicamentos*/}
+            {isAdminMedicamentos && (
+            <Box>
+               <Typography variant="h5" gutterBottom sx={{
+                     fontWeight: 'bold',
+                     mb: 3,
+                     borderLeft: '5px solid #1aa3a8',
+                     pl: 2,
+                  }}>
+                  🔍 Entrega de Medicamentos
+               </Typography>
+               <Grid container spacing={3}>
+                  {adminMedicamentosOptions.map((option, index) => (
+                     <Grid item xs={12} md={6} lg={4} key={index}>
+                        <Card
+                           sx={{
+                                 height: '100%',
+                                 display: 'flex',
+                                 flexDirection: 'column',
+                                 borderRadius: 4,
+                                 transition: 'all 0.3s ease',
+                                 boxShadow: '0 8px 20px rgba(0,0,0,0.08)',
+                                 '&:hover': {
+                                    transform: 'translateY(-10px) scale(1.02)',
+                                    boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+                                 },
+                              }}
+                        >
+                           <CardContent sx={{ flexGrow: 1, textAlign: 'center', p: 3 }}>
+                              {option.icon}
+                              <Typography
+                                 variant="h5"
+                                 component="h2"
+                                 gutterBottom
+                                 sx={{ fontWeight: 'bold' }}
+                              >
+                                 {option.title}
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                                 {option.description}
+                              </Typography>
+                              <Button
+                                 variant="contained"
+                                 fullWidth
+                                 color={option.color as any}
+                                 onClick={() => navigate(option.path)}
+                                 size="large"
+                              >
+                                 {option.buttonText}
+                              </Button>
+                           </CardContent>
+                        </Card>
+                     </Grid>
+                  ))}
+               </Grid>
+            </Box>
+            )}
 
             {/* Mensaje si no tiene roles específicos */}
-            {!isPatient && !isDoctor && (
+            {!isPatient && !isDoctor && !isAdminMedicamentos && (
                <Box
                   sx={{ mt: 4, p: 4, bgcolor: 'info.light', borderRadius: 2, textAlign: 'center' }}
                >

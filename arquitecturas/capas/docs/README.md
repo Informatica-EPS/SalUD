@@ -2,66 +2,58 @@
 
 ## 1. Arquitectura General
 
-SalUD es un sistema web de gestión de citas médicas que permite a pacientes reservar franjas horarias con doctores, y a médicos gestionar su agenda y generar órdenes de atención y medicamentos.
+SalUD es un sistema web de gestión de citas médicas para pacientes y doctores.
 
-![Arquitectura General](Diagramas/Arquitectura_General_Capas.jpg)
+![Arquitectura General](docs/Diagramas/Arquitectura_General_Capas.jpg)
 
-### Componentes principales
-
-| Componente | Tecnología | Puerto |
-|---|---|---|
-| **Frontend** | React + Vite | 5173 |
-| **Backend** | Node.js + Express | 8000 |
-| **Base de datos** | PostgreSQL 15 | 5432 |
-
-Cuando el médico genera una orden de atención, se activa un flujo de eventos adicional:
+### Componentes
 
 | Componente | Tecnología | Puerto |
 |---|---|---|
-| **RabbitMQ (Broker)** | RabbitMQ | 5672 / 5671 |
-| **notificacion_orden** | Worker Node.js + AMQP | — |
+| Frontend Principal | React + Vite | 5173 |
+| Backend | Node.js + Express | 8000 |
+| Base de datos | PostgreSQL 15 | 5432 |
+| RabbitMQ (eventos) | RabbitMQ | 5672 |
+| notificacion_orden | Worker Node.js | — |
+| MF Medicamentos (microfrontend) | React + Vite | 8081 |
+| medicamentos-service | Python / FastAPI | 8001 |
+| Base de datos medicamentos | PostgreSQL 15 | 5433 |
 
-El microservicio de medicamentos es un componente independiente:
+### Despliegue: 1 servidor físico (Azure for Students)
 
-| Componente | Tecnología | Puerto |
-|---|---|---|
-| **medicamentos-service** | Node.js + Express | 8001 |
-| **Base de datos medicamentos** | PostgreSQL 15 | 5433 |
+Todo corre en **un solo servidor** usando Docker Compose. Cada componente
+vive en su propio contenedor Docker, aislado de los demás. Se eligió un
+solo servidor por costo, simplicidad y porque la escala del proyecto lo permite.
 
----
+## 2. Arquitectura en Capas — Monolito SalUD
 
 ### Despliegue físico: 1 nivel (Single-Tier)
 
-Todo el sistema se despliega en **un único servidor físico** hospedado en **Azure for Students**, usando **Docker Compose** para gestionar los contenedores.
+Todo el sistema se despliega en **un único servidor físico** hospedado en
+**Azure for Students**, usando **Docker Compose** para gestionar los
+contenedores.
 
-Aunque el sistema tiene múltiples componentes, todos corren en la misma máquina física dentro de contenedores Docker aislados entre sí.
+Aunque el sistema tiene múltiples componentes, todos corren en la misma
+máquina dentro de contenedores Docker aislados entre sí.
 
----
+#### ¿Por qué un solo servidor?
 
-### Flujo de comunicación entre componentes
+- **Costo:** Azure for Students tiene créditos limitados. Tener múltiples
+  servidores aumentaría el costo sin beneficio real para el volumen de
+  usuarios del proyecto.
 
-```
-Usuario (navegador)
-    --> Frontend :5173  (React + Vite)
-        --> Backend :8000  (Node.js + Express)
-            --> PostgreSQL :5432  (base de datos principal)
-            --> medicamentos-service :8001
-                --> PostgreSQL BD2 :5433
-```
+- **Escala del proyecto:** SalUD es un sistema académico con una cantidad
+  reducida de usuarios simultáneos. Un solo servidor es suficiente para
+  atender la carga esperada.
 
-Flujo de eventos (solo cuando el médico genera una orden de atención):
+- **Simplicidad:** Con Docker Compose, todos los contenedores se inician,
+  detienen y actualizan con un solo comando, lo que simplifica la
+  administración del sistema.
 
-```
-Backend :8000
-    --> publica evento "orden.creada"
-        --> RabbitMQ Broker :5672
-            --> cola: notificacion_orden (Worker Node.js)
-                --> GET /api/appointments/:id  (obtiene email del paciente)
-                --> envía correo via SMTP
-                    --> Bandeja del paciente (servicio externo)
-```
-
----
+- **Aislamiento garantizado:** Aunque estén en el mismo servidor físico,
+  cada contenedor Docker funciona de forma independiente. El frontend no
+  puede afectar al backend, ni el backend a la base de datos, sin pasar
+  por las interfaces definidas entre ellos.
 
 ## 2. Arquitectura Detallada de Capas
 
@@ -70,25 +62,13 @@ Backend :8000
 
 ### Principio de capas
 
-SalUD aplica el principio de **capas cerradas** en donde cada solicitud del usuario debe pasar por todas las capas en orden, de arriba hacia abajo. Ninguna capa puede saltar a otra que no sea la inmediatamente siguiente.
+## 2. Arquitectura Detallada de Capas - SalUD
 
-```
-CAPA 1: Presentación   <-- el usuario interactúa aquí
-    |
-    v  (solo puede hablar con Capa 2)
-CAPA 2: Negocio        <-- las reglas del sistema
-    |
-    v  (solo puede hablar con Capa 3)
-CAPA 3: Datos          <-- el traductor a SQL
-    |
-    v  (solo puede hablar con Capa 4)
-CAPA 4: Persistencia   <-- el almacenamiento físico
-```
+SalUD está organizado
+internamente siguiendo una **arquitectura en capas**, donde cada capa
+tiene una responsabilidad única y bien definida.
 
-Esto garantiza que:
-- Las reglas de negocio **siempre se aplican** (nadie puede ir directamente a la base de datos sin pasar por las validaciones).
-- Cada capa puede **modificarse de forma independiente** sin afectar a las demás.
-- El sistema es más fácil de **mantener y depurar**.
+![Diagrama de Capas](Diagramas/Diagrama_Capas.jpg)
 
 ---
 
@@ -187,16 +167,116 @@ Es donde los datos viven de forma permanente. No tiene lógica de programación:
 Los datos se guardan en un **volumen Docker** llamado `db_data`, lo que garantiza que no se pierdan cuando el contenedor se reinicia.
 
 ---
+## 3. Arquitectura Detallada de Capas — Microservicio Medicamentos
 
-### Resumen de capas
 
-| # | Capa | Contenedor | Tecnología | Responsabilidad |
+El microservicio de medicamentos es un sistema **completamente independiente** del monolito: tiene su propio lenguaje de programacion, su propio servidor y su propia base de datos. Aunque comparte el mismo servidor fisico (Azure), funciona de forma autonoma.
+
+Tambien sigue una arquitectura en 4 capas, pero adaptada al lenguaje Python y al framework FastAPI.
+
+![Diagrama Capas Microservicio](Diagramas/Diagrama_Capas_Microservicio.jpg)
+
+> **Diferencia clave con el monolito:** En Node.js existen Routes y Controllers por separado. En Python/FastAPI, el **Router** cumple ambas funciones en un solo archivo — recibe la peticion Y la coordina al Service directamente, sin necesitar un Controller aparte.
+
+---
+
+### Las 4 Capas del Microservicio
+
+#### Capa 1 — Presentacion
+
+**Contenedor Docker:** `medicaments-microfrontend :8081`
+**Tecnologia:** React + Vite + TypeScript
+
+Es la pantalla que ve el gestor de medicamentos para consultar y gestionar medicamentos. Es una aplicacion React completamente independiente que se incrusta dentro del Frontend Principal usando **Module Federation** — el medico no nota que es un sistema separado, lo ve todo como una sola aplicacion.
+
+| Archivo | Funcion |
+|---|---|
+| `MedicamentsList.tsx` | Lista de medicamentos con su inventario disponible |
+| `MedicamentsModule.tsx` | Modulo principal expuesto al frontend via Module Federation |
+| `medicamentsService.ts` | Llamadas HTTP al medicaments-service |
+
+**Comunicacion con la capa siguiente:** HTTP REST al medicaments-service en el puerto 8001.
+
+---
+
+#### Capa 2 — Negocio
+
+**Contenedor Docker:** `medicaments-service :8001`
+**Tecnologia:** Python + FastAPI
+
+Es el cerebro del microservicio. Valida y aplica las reglas del negocio de medicamentos. A diferencia del monolito, en FastAPI el **Router** hace el trabajo de Routes y Controllers al mismo tiempo.
+
+**Router** — Recibe las peticiones y las dirige al service correcto:
+
+| Archivo | Funcion |
+|---|---|
+| `medicaments_route.py` | Define todos los endpoints HTTP del microservicio |
+| `dependencies.py` | Gestiona la conexion con la base de datos para cada peticion |
+
+**Services** — Aplican las reglas de negocio:
+
+| Archivo | Reglas que aplica |
+|---|---|
+| `medicaments_service.py` | Consultar y registrar medicamentos |
+| `inventory_service.py` | Verificar y actualizar el inventario disponible |
+| `movement_service.py` | Registrar entradas y salidas de medicamentos |
+
+**Comunicacion con la capa siguiente:** Llama a los Repositories y Models (Capa 3) para leer o guardar datos.
+
+---
+
+#### Capa 3 — Datos
+
+**Contenedor Docker:** `medicaments-service :8001` *(mismo contenedor que Capa 2, separacion logica por carpetas)*
+**Tecnologia:** SQLAlchemy ORM + Repository Pattern
+
+Esta capa tiene dos partes. Los **Models** definen como se ven los datos en Python, y los **Repositories** son los unicos autorizados a hablar con la base de datos.
+
+> Esta separacion extra se llama **Repository Pattern** y tiene una ventaja: si en el futuro se cambia la base de datos, solo se modifica el Repository sin tocar el resto del codigo.
+
+**Models** (SQLAlchemy ORM — traduce objetos Python a SQL):
+
+| Archivo | Tabla en la base de datos |
+|---|---|
+| `medicament_model.py` | `medicamentos` |
+| `inventory_model.py` | `inventario` |
+| `movement_model.py` | `movimientos` |
+
+**Repositories** (unico punto de acceso a la base de datos):
+
+| Archivo | Que gestiona |
+|---|---|
+| `medicaments_repository.py` | Consultas y registros de medicamentos |
+| `inventory_repository.py` | Consultas y actualizaciones de inventario |
+| `movement_repository.py` | Registro del historial de movimientos |
+
+**Comunicacion con la capa siguiente:** Genera y ejecuta consultas SQL hacia PostgreSQL BD2.
+
+---
+
+#### Capa 4 — Persistencia
+
+**Contenedor Docker:** `postgres BD2 :5433`
+**Tecnologia:** PostgreSQL 15
+
+Es la base de datos **exclusiva del microservicio** — completamente separada de la base de datos principal del monolito. Esta separacion es una de las caracteristicas mas importantes de los microservicios: cada servicio es dueño de sus propios datos.
+
+| Tabla | Contenido |
+|---|---|
+| `medicamentos` | Nombre y registro de cada medicamento disponible |
+| `inventario` | Cantidad total disponible de cada medicamento |
+| `movimientos` | Historial de entradas y salidas (quien lo hizo, cuanto, cuando) |
+
+---
+
+### Resumen del Microservicio
+
+| # | Capa | Contenedor | Tecnologia | Responsabilidad |
 |---|---|---|---|---|
-| 1 | Presentación | `frontend :5173` | React + Vite | Interfaz de usuario |
-| 2 | Negocio | `backend :8000` | Node.js + Express | Reglas y lógica del sistema |
-| 3 | Datos | `backend :8000` | Sequelize ORM | Acceso y traducción a SQL |
-| 4 | Persistencia | `postgres :5432` | PostgreSQL 15 | Almacenamiento físico |
-
+| 1 | Presentacion | `medicaments-microfrontend :8081` | React + Vite | Interfaz del medico para medicamentos |
+| 2 | Negocio | `medicaments-service :8001` | Python + FastAPI | Router + Services (reglas del sistema) |
+| 3 | Datos | `medicaments-service :8001` | SQLAlchemy + Repositories | Acceso y traduccion a SQL |
+| 4 | Persistencia | `postgres BD2 :5433` | PostgreSQL 15 | Base de datos exclusiva del microservicio |
 
 ---
 
@@ -206,6 +286,6 @@ Los diagramas pueden ser editados directamente en **Draw.io** (diagrams.net).
 
 | Diagrama | Enlace de Edición |
 | :--- | :--- |
-| **1. Arquitectura General** | [🔗 Abrir en Google Drive](https://drive.google.com/file/d/1kffo73vZDxnEAT-TWTamoV2Y3dGbxe5u/view?usp=sharing) |
+| **1. Arquitectura General** | [🔗 Abrir en Google Drive](https://drive.google.com/file/d/1Ei3xqrRgfZiZRDCt526HMs2Pqmkhk7eP/view?usp=sharing)|
 | **2. Diagrama de Capas** | [🔗 Abrir en Google Drive](https://drive.google.com/file/d/1b0HxPSArQGBfAZN1CvM3dtpBij3eoq98/view?usp=sharing) |
 

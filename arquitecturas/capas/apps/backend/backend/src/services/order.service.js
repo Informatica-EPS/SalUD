@@ -1,4 +1,5 @@
 "use strict";
+const crypto = require("crypto");
 const Order = require("../models/order.model");
 const AppointmentModel = require("../models/appointments.model");
 const TimeSlotModel = require("../models/time-slot.model");
@@ -275,21 +276,85 @@ class OrderService {
     };
   }
 
+  async findByPartientDocument(document, queryParams) {
+    const hashedDocumento = crypto
+      .createHash("sha256")
+      .update(document)
+      .digest("hex");
+
+    const { rows, count, page, totalPages } = await functions.paginate(
+      Order,
+      queryParams,
+      {
+        include: [
+          {
+            model: SpecialtyModel,
+            attributes: ["id", "nombre", "descripcion"],
+          },
+          {
+            model: AppointmentModel,
+            required: true,
+            attributes: ["id", "tipoCita", "estado"],
+            include: [
+              {
+                model: TimeSlotModel,
+                attributes: ["id", "fecha", "horaInicio", "horaFin"],
+              },
+              {
+                model: PatientModel,
+                required: true,
+                attributes: [
+                  "id",
+                  "religion",
+                  "discapacidad",
+                  "etnia",
+                  "ocupacion",
+                ],
+                include: [
+                  {
+                    model: UserModel,
+                    required: true,
+                    where: { documento: hashedDocumento },
+                    attributes: [
+                      "id",
+                      "primer_nombre",
+                      "segundo_nombre",
+                      "primer_apellido",
+                      "segundo_apellido",
+                      "documento",
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    );
+
+    return {
+      totalPages,
+      totalItems: count,
+      currentPage: page,
+      ordenes: rows,
+    };
+  }
+
   async validatePatientHasMedicamentOrder(idPaciente, idOrder) {
     console.log("validatePatientHasMedicamentOrder", { idPaciente, idOrder });
     // //valida si el paciente tiene una order idOrden autorizada para despachar un medicamento
 
-    // const order = await Order.findByPk(id);
+    if (!order) throw Error("No existe la orden");
 
-    // if (!order) throw Error("No existe la orden");
+    if (order.estado !== ordersStatus.AUTHORIZED)
+      throw Error("Orden no autorizada para medicamento");
 
-    // if (order.estado !== ordersStatus.AUTHORIZED)
-    //   throw Error("Orden no autorizada para medicamento");
+    const appointment = await AppointmentService.findById(order.idCita);
 
-    // // actualiza la orden a completada y registra el movimiento del despacho de medicamentos
+    if (appointment.idPaciente !== idPaciente)
+      throw Error("El paciente no tiene esa orden asociada");
 
-    // Order.update({ ...order, estado: ordersStatus.COMPLETED });
-    return true;
+    return await order.update({ estado: ordersStatus.COMPLETED });
   }
 }
 

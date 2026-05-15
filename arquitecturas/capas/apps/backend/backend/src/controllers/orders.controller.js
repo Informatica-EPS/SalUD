@@ -1,5 +1,6 @@
 const orderService = require("../services/order.service");
 const { get } = require("../routes/time-slot.routes");
+const appointmentService = require("../services/appointment.service");
 
 const createOrder = async (req, res, next) => {
   try {
@@ -105,12 +106,25 @@ const deleteOrder = async (req, res, next) => {
   }
 };
 
+const getOrdersByPatientDocument = async (req, res, next) => {
+  try {
+    const result = await orderService.findByPartientDocument(
+      req.params.documento,
+      req.query
+    );
+    res.json({ success: true, message: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const validateOrder = async (req, res, next) => {
   try {
     const body = req.body;
     const result = await orderService.validatePatientHasMedicamentOrder(
       body.idPaciente,
       body.idOrden,
+      appointmentService,
     );
     res.json({ success: true, message: result });
   } catch (error) {
@@ -127,5 +141,6 @@ module.exports = {
   getOrderById,
   updateOrder,
   deleteOrder,
+  getOrdersByPatientDocument,
   validateOrder,
 };
