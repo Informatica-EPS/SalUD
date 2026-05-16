@@ -192,7 +192,7 @@ class OrderService {
     const order = await Order.findByPk(id);
     if (!order) return null;
 
-    await Order.update({
+    await order.update({
       ...data,
       actualizadoPor: auditUserId,
     });
@@ -289,6 +289,68 @@ class OrderService {
       .createHash("sha256")
       .update(document)
       .digest("hex");
+
+    const { rows, count, page, totalPages } = await functions.paginate(
+      Order,
+      queryParams,
+      {
+        include: [
+          {
+            model: SpecialtyModel,
+            attributes: ["id", "nombre", "descripcion"],
+          },
+          {
+            model: AppointmentModel,
+            required: true,
+            attributes: ["id", "tipoCita", "estado"],
+            include: [
+              {
+                model: TimeSlotModel,
+                attributes: ["id", "fecha", "horaInicio", "horaFin"],
+              },
+              {
+                model: PatientModel,
+                required: true,
+                attributes: [
+                  "id",
+                  "religion",
+                  "discapacidad",
+                  "etnia",
+                  "ocupacion",
+                ],
+                include: [
+                  {
+                    model: UserModel,
+                    required: true,
+                    where: { documento: hashedDocumento },
+                    attributes: [
+                      "id",
+                      "primer_nombre",
+                      "segundo_nombre",
+                      "primer_apellido",
+                      "segundo_apellido",
+                      "documento",
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    );
+
+    return {
+      totalPages,
+      totalItems: count,
+      currentPage: page,
+      ordenes: rows
+    };
+  }
+
+  async validatePatientHasMedicamentOrder(idPaciente, idOrder) {
+    console.log("validatePatientHasMedicamentOrder", { idPaciente, idOrder });
+    // //valida si el paciente tiene una order idOrden autorizada para despachar un medicamento
 
     const { rows, count, page, totalPages } = await functions.paginate(
       Order,

@@ -42,6 +42,7 @@ CREATE INDEX IF NOT EXISTS ix_movimientos_id_medicamento ON movimientos(id_medic
 
 -- Medicamentos de ejemplo
 INSERT INTO medicamentos (nombre) VALUES 
+    ('N/A'),
     ('Acetaminofén 500mg'),
     ('Ibuprofeno 400mg'),
     ('Amoxicilina 500mg'),
@@ -56,16 +57,17 @@ ON CONFLICT DO NOTHING;
 
 -- Inventario inicial
 INSERT INTO inventario (id, total) VALUES 
-    (1, 150),  -- Acetaminofén
-    (2, 200),  -- Ibuprofeno
-    (3, 100),  -- Amoxicilina
-    (4, 180),  -- Omeprazol
-    (5, 120),  -- Loratadina
-    (6, 90),   -- Aspirina
-    (7, 160),  -- Metformina
-    (8, 140),  -- Losartán
-    (9, 110),  -- Atorvastatina
-    (10, 75)   -- Salbutamol
+    (1, 0),  -- Acetaminofén
+    (2, 150),  -- Acetaminofén
+    (3, 200),  -- Ibuprofeno
+    (4, 100),  -- Amoxicilina
+    (5, 180),  -- Omeprazol
+    (6, 120),  -- Loratadina
+    (7, 90),   -- Aspirina
+    (8, 160),  -- Metformina
+    (9, 140),  -- Losartán
+    (10, 110),  -- Atorvastatina
+    (11, 75)   -- Salbutamol
 ON CONFLICT DO NOTHING;
 
 -- Movimientos iniciales (entradas al inventario)
