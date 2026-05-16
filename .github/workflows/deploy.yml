@@ -8,8 +8,8 @@ on:
     branches:
       - feat131f
     paths-ignore:
-      - 'apps/medicaments-frontend/**'
-      - 'apps/medicaments-backend/**'
+      - 'arquitecturas/capas/apps/backend/medicaments-service/**'
+      - 'arquitecturas/capas/apps/frontend/medicaments-microfrontend/**'
 
 jobs:
   # ==========================================

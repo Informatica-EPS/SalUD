@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - feat131f
+    paths:
+      - 'arquitecturas/capas/apps/frontend/medicaments-microfrontend/**'
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:
