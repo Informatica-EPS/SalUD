@@ -56,7 +56,7 @@ export default defineConfig({
     strictPort: true,
   },
   test: {
-    environment: 'jsdom',
+    environment: 'happy-dom',
     globals: true,
   },
 });
