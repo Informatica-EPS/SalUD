@@ -7,6 +7,9 @@ on:
   push:
     branches:
       - prod
+    paths-ignore:
+      - 'arquitecturas/capas/apps/backend/medicaments-service/**'
+      - 'arquitecturas/capas/apps/frontend/medicaments-microfrontend/**'
 
 jobs:
   # ==========================================
@@ -25,21 +28,21 @@ jobs:
           node-version: '18' # Puedes ajustarlo a la versión de Node que uses
 
       - name: Instalar dependencias del Frontend
-        working-directory: ./arquitecturas/eventos/apps/frontend
+        working-directory: ./arquitecturas/capas/apps/frontend/frontend
         run: npm ci
 
       - name: Ejecutar pruebas del Frontend (Jest)
-        working-directory: ./arquitecturas/eventos/apps/frontend
+        working-directory: ./arquitecturas/capas/apps/frontend/frontend
         continue-on-error: true
         run: npm run test
 
 # --- 2. PRUEBAS DEL BACKEND PRINCIPAL (Las que van a crear) ---
       - name: Backend - Instalar
-        working-directory: ./arquitecturas/eventos/apps/backend/backend
+        working-directory: ./arquitecturas/capas/apps/backend/backend
         run: npm install
 
       - name: Backend - Pruebas
-        working-directory: ./arquitecturas/eventos/apps/backend/backend
+        working-directory: ./arquitecturas/capas/apps/backend/backend
         env:
           NODE_ENV: test
         run: npm run test
@@ -49,7 +52,7 @@ jobs:
   # ==========================================
   deploy:
     name: Deploy to Azure
-    needs: test # IMPORTANTE: Esto obliga a que este trabajo espere a que "test" sea exitoso.
+    needs: test 
     runs-on: ubuntu-latest
     steps:
       - name: Ejecutar comandos de despliegue vía SSH
@@ -58,16 +61,69 @@ jobs:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          # El script que se ejecutará DENTRO de tu máquina de Azure:
           script: |
-            # 1. Navegar a la carpeta donde clonaste el proyecto en tu máquina de Azure
-            cd ~/SalUD/arquitecturas/eventos
+            cd ~/SalUD/arquitecturas/capas
             
             # Traer los últimos cambios de la rama prod
             git fetch origin prod
             git checkout prod
             git reset --hard origin/prod
+
+            # 🔑 Script para agregar secrets solo si no existen
+            add_if_not_exists() {
+              local key="$1"
+              local value="$2"
+              local env_file="apps/frontend/frontend/.env"
+              
+              # Crear el archivo si no existe
+              if [ ! -f "$env_file" ]; then
+                touch "$env_file"
+              fi
+              
+              # Verificar si la variable ya existe en el archivo
+              if grep -q "^${key}=" "$env_file"; then
+                echo "✓ ${key} ya existe en ${env_file}"
+              else
+                echo "${key}=${value}" >> "$env_file"
+                echo "✓ ${key} agregado a ${env_file}"
+              fi
+            }
+
+            # Agregar VITE_API_URL a apps/frontend/frontend/.env
+            add_if_not_exists "VITE_API_URL" "${{ secrets.VITE_API_URL }}"
+            add_if_not_exists "VITE_MEDICAMENTS_REMOTE_URL" "${{ secrets.VITE_MEDICAMENTS_REMOTE_URL }}"
             
-            # 3. Reconstruir las imágenes y levantar contenedores en segundo plano
+            echo "Contenido de apps/frontend/frontend/.env:"
+            cat apps/frontend/frontend/.env
+            
+            # 🔑 Script para agregar secrets a infra/dev.env
+            add_to_infra() {
+              local key="$1"
+              local value="$2"
+              local env_file="infra/dev.env"
+              
+              # Crear el archivo si no existe
+              if [ ! -f "$env_file" ]; then
+                touch "$env_file"
+              fi
+              
+              # Verificar si la variable ya existe en el archivo
+              if grep -q "^${key}=" "$env_file"; then
+                # Reemplazar la línea existente
+                sed -i "s/^${key}=.*/${key}=${value}/" "$env_file"
+                echo "✓ ${key} actualizado en ${env_file}"
+              else
+                echo "${key}=${value}" >> "$env_file"
+                echo "✓ ${key} agregado a ${env_file}"
+              fi
+            }
+
+            # Agregar VITE_MEDICAMENTS_REMOTE_URL a infra/dev.env
+            add_to_infra "VITE_MEDICAMENTS_REMOTE_URL" "${{ secrets.VITE_MEDICAMENTS_REMOTE_URL }}"
+            
+            echo "Contenido de infra/dev.env:"
+            cat infra/dev.env
+            
+            # Desplegar
             docker compose --env-file infra/dev.env -f infra/docker-compose.prod.yaml down
             docker compose --env-file infra/dev.env -f infra/docker-compose.prod.yaml up -d --build
