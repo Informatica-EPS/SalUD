@@ -8,7 +8,7 @@ export default defineConfig({
       federation({
          name: 'host_app',
          remotes: {
-            medicamentsApp: process.env.VITE_MEDICAMENTS_REMOTE_URL ? `${process.env.VITE_MEDICAMENTS_REMOTE_URL}/assets/remoteEntry.js` : 'http://localhost:8081/assets/remoteEntry.js',
+            medicamentsApp: `${process.env.VITE_MEDICAMENTS_REMOTE_URL}/assets/remoteEntry.js`,
          },
          shared: {
             react: {
