@@ -184,7 +184,7 @@ class OrderService {
     const order = await Order.findByPk(id);
     if (!order) return null;
 
-    await Order.update({
+    await order.update({
       ...data,
       actualizadoPor: auditUserId,
     });

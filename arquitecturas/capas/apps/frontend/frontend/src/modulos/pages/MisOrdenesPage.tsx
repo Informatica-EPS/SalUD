@@ -29,15 +29,23 @@ import { useAuth } from '../../context/AuthContext';
 import { ordersService } from '../../services';
 import { IOrder } from '../../interface';
 import { BackButton } from '../../components';
+import { medicamentsService, Medicament } from '../../services/medicamentsService';
+import { useSpecialties } from '../../hooks';
 
 export const MisOrdenesPage = () => {
    const { user } = useAuth();
    const [orders, setOrders] = useState<IOrder[]>([]);
    const [loading, setLoading] = useState(true);
    const [error, setError] = useState<string | null>(null);
+const { specialties } = useSpecialties(); // 👈 agrega esto
+   const [medicaments, setMedicaments] = useState<Medicament[]>([]); // 👈 agrega esto
 
    useEffect(() => {
       loadOrders();
+      // 👇 agrega esto
+      medicamentsService.getAll()
+         .then(setMedicaments)
+         .catch(console.error);
    }, []);
 
    const loadOrders = async () => {
@@ -57,6 +65,18 @@ export const MisOrdenesPage = () => {
          setLoading(false);
       }
    };
+
+   const resolverNombreOrden = (order: IOrder) => {
+   const esNA = order.especialidad === 1;  // 👈 usa order.especialidad directamente
+   const specialty = specialties.find(s => s.id === order.especialidad);  // 👈 igual
+   const medicamento = medicaments.find(m => m.id === order.idMedicamento);
+   const tieneMedicamento = medicamento && order.idMedicamento !== 1;
+   const nombreEspecialidad = specialty?.nombre;
+
+   if (esNA && tieneMedicamento) return medicamento.nombre;
+   if (!esNA && tieneMedicamento) return `${nombreEspecialidad}, ${medicamento.nombre}`;
+   return nombreEspecialidad || String(order.especialidad);  // 👈 igual
+};
 
    const getStatusColor = (estado: string) => {
       switch (estado) {
@@ -92,7 +112,7 @@ export const MisOrdenesPage = () => {
    };
 
    const handleAgendarCita = (order: IOrder) => {
-      navigate(`/agendar-cita-especialidad/${order.especialidad}`, {
+      navigate(`/agendar-cita-especialidad/${resolverNombreOrden(order)}`, {
          state: {
             ordenId: order.id,
             especialidadNombre: order.Specialty?.nombre || 'Especialidad',
@@ -239,7 +259,7 @@ export const MisOrdenesPage = () => {
                                        Especialidad
                                     </Typography>
                                     <Typography variant="body1" fontWeight="bold">
-                                       {order.especialidad}
+                                       {resolverNombreOrden(order)}
                                     </Typography>
                                  </Box>
                               </Box>
@@ -335,7 +355,7 @@ export const MisOrdenesPage = () => {
                                        Especialidad
                                     </Typography>
                                     <Typography variant="body1" fontWeight="bold">
-                                       {order.especialidad}
+                                       {resolverNombreOrden(order)}
                                     </Typography>
                                  </Box>
                               </Box>
@@ -406,7 +426,7 @@ export const MisOrdenesPage = () => {
                               <OrderIcon color="action" />
                               <Box flex={1}>
                                  <Typography variant="subtitle1" fontWeight="bold">
-                                    Orden #{order.id} - {order.especialidad}
+                                    Orden #{order.id} - {resolverNombreOrden(order)}
                                  </Typography>
                                  <Typography variant="body2" color="text.secondary">
                                     {order.entidadDestino}
@@ -426,7 +446,7 @@ export const MisOrdenesPage = () => {
                                     Especialidad
                                  </Typography>
                                  <Typography variant="body1" fontWeight="bold">
-                                    {order.especialidad}
+                                    {resolverNombreOrden(order)}
                                  </Typography>
                               </Grid>
                               <Grid item xs={12} sm={6}>
