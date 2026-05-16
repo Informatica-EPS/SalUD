@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_MEDICAMENTS_API_URL || 'http://localhost:5010/api';
+const API_URL = import.meta.env.VITE_MEDICAMENTS_API_URL || 'http://localhost:5010';
 
 const medicamentsClient = axios.create({
   baseURL: API_URL,
@@ -14,7 +14,7 @@ export interface Medicament {
 
 export const medicamentsService = {
   getAll: async (): Promise<Medicament[]> => {
-    const response = await medicamentsClient.get<Medicament[]>('/medicaments');
+    const response = await medicamentsClient.get<Medicament[]>('/api/medicaments');
     return response.data;
   },
 };
