@@ -1,4 +1,5 @@
 "use strict";
+const crypto = require("crypto");
 const Order = require("../models/order.model");
 const AppointmentModel = require("../models/appointments.model");
 const TimeSlotModel = require("../models/time-slot.model");
@@ -12,35 +13,43 @@ const specialtyService = require("./specialty.service");
 
 class OrderService {
   async create(data, auditUserId) {
+    console.log("create ->", { data });
+
     const order = await Order.create({
       ...data,
       creadoPor: auditUserId,
       actualizadoPor: auditUserId,
     });
 
-    const { dataValues: specialty } = await specialtyService.getSpecialty(
-      order.especialidad,
-    );
+    if (order.especialidad) {
+      const { dataValues: specialty } = await specialtyService.getSpecialty(
+        order.especialidad,
+      );
 
-    console.log({ specialty });
+      if (!specialty) {
+        throw new Error("Especialidad no encontrada");
+      }
 
-    if (!specialty) {
-      throw new Error("Especialidad no encontrada");
+      order.dataValues.specialtyName = specialty.nombre;
+
+      console.log({ order });
+
+      const rabbitService = new RabbitMQService();
+      const publisher = rabbitService.getPublisherService();
+      await publisher.setUp("clinic_events");
+
+      await publisher.publishEvent("order.created", {
+        ...order,
+      });
+
+      return order;
     }
 
-    order.dataValues.specialtyName = specialty.nombre;
+    if (order.idMedicamento) {
+      console.log("Orden de medicamento creada");
 
-    console.log({ order });
-
-    const rabbitService = new RabbitMQService();
-    const publisher = rabbitService.getPublisherService();
-    await publisher.setUp("clinic_events");
-
-    await publisher.publishEvent("order.created", {
-      ...order,
-    });
-
-    return order;
+      return order;
+    }
   }
 
   async findAll(queryParams) {
@@ -275,21 +284,101 @@ class OrderService {
     };
   }
 
-  async validatePatientHasMedicamentOrder(idPaciente, idOrder) {
-    console.log("validatePatientHasMedicamentOrder", { idPaciente, idOrder });
-    // //valida si el paciente tiene una order idOrden autorizada para despachar un medicamento
+  async findByPartientDocument(document, queryParams) {
+    const hashedDocumento = crypto
+      .createHash("sha256")
+      .update(document)
+      .digest("hex");
 
-    // const order = await Order.findByPk(id);
+    const { rows, count, page, totalPages } = await functions.paginate(
+      Order,
+      queryParams,
+      {
+        include: [
+          {
+            model: SpecialtyModel,
+            attributes: ["id", "nombre", "descripcion"],
+          },
+          {
+            model: AppointmentModel,
+            required: true,
+            attributes: ["id", "tipoCita", "estado"],
+            include: [
+              {
+                model: TimeSlotModel,
+                attributes: ["id", "fecha", "horaInicio", "horaFin"],
+              },
+              {
+                model: PatientModel,
+                required: true,
+                attributes: [
+                  "id",
+                  "religion",
+                  "discapacidad",
+                  "etnia",
+                  "ocupacion",
+                ],
+                include: [
+                  {
+                    model: UserModel,
+                    required: true,
+                    where: { documento: hashedDocumento },
+                    attributes: [
+                      "id",
+                      "primer_nombre",
+                      "segundo_nombre",
+                      "primer_apellido",
+                      "segundo_apellido",
+                      "documento",
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    );
 
-    // if (!order) throw Error("No existe la orden");
+    return {
+      totalPages,
+      totalItems: count,
+      currentPage: page,
+      ordenes: rows,
+    };
+  }
 
-    // if (order.estado !== ordersStatus.AUTHORIZED)
-    //   throw Error("Orden no autorizada para medicamento");
+  async validatePatientHasMedicamentOrder(
+    idPaciente,
+    idOrder,
+    idMedicamento,
+    AppointmentService,
+  ) {
+    console.log("validatePatientHasMedicamentOrder", {
+      idPaciente,
+      idOrder,
+      idMedicamento,
+    });
 
-    // // actualiza la orden a completada y registra el movimiento del despacho de medicamentos
+    const order = await Order.findByPk(idOrder);
 
-    // Order.update({ ...order, estado: ordersStatus.COMPLETED });
-    return true;
+    if (!order) throw Error("No existe la orden");
+
+    if (order.estado !== ordersStatus.AUTHORIZED)
+      throw Error("Orden no autorizada para medicamento");
+
+    console.log({ order, idMedicamento });
+    if (order.idMedicamento !== idMedicamento)
+      throw Error(
+        "Este medicamento no esta autorizado para ser despachado en esta orden",
+      );
+
+    const appointment = await AppointmentService.findById(order.idCita);
+
+    if (appointment.idPaciente !== idPaciente)
+      throw Error("El paciente no tiene esa orden asociada");
+
+    return await order.update({ estado: ordersStatus.COMPLETED });
   }
 }
 
