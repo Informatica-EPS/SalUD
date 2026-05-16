@@ -91,6 +91,7 @@ jobs:
 
             # Agregar VITE_API_URL a apps/frontend/frontend/.env
             add_if_not_exists "VITE_API_URL" "${{ secrets.VITE_API_URL }}"
+            add_if_not_exists "VITE_MEDICAMENTS_REMOTE_URL" "${{ secrets.VITE_MEDICAMENTS_REMOTE_URL }}"
             
             echo "Contenido de apps/frontend/frontend/.env:"
             cat apps/frontend/frontend/.env
