@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
    Box,
    Button,
@@ -38,6 +38,7 @@ import { BackButton } from '../../components';
 import Swal from 'sweetalert2';
 import EditIcon from '@mui/icons-material/Edit';
 import VerifiedIcon from '@mui/icons-material/Verified';
+import { medicamentsService, Medicament } from '../../services/medicamentsService';
 
 const ESPECIALIDADES = [
    'Cardiología',
@@ -75,6 +76,9 @@ export const CrearOrdenPage = () => {
    const { createOrder, updateOrder, loading, fetchOrdersByAppointment, orders } = useOrders();
    const { specialties, loading: loadingSpecialties } = useSpecialties();
 
+   const [medicaments, setMedicaments] = useState<Medicament[]>([]);
+   const [loadingMedicaments, setLoadingMedicaments] = useState(false);
+
    const state = location.state as LocationState;
    const citaIdFromState = state?.citaId;
    const pacienteNombre = state?.pacienteNombre;
@@ -86,11 +90,27 @@ export const CrearOrdenPage = () => {
    const [formData, setFormData] = useState({
       idCita: citaIdFromState || 0,
       especialidad: '',
+      idMedicamento: '',
       entidadDestino: '',
       descripcion: '',
       estado: 'pendiente',
       fechaVencimiento: '',
    });
+
+   useEffect(() => {
+  const fetchMedicaments = async () => {
+    setLoadingMedicaments(true);
+    try {
+      const data = await medicamentsService.getAll();
+      setMedicaments(data);
+    } catch (err) {
+      console.error('Error cargando medicamentos:', err);
+    } finally {
+      setLoadingMedicaments(false);
+    }
+  };
+  fetchMedicaments();
+}, []);
 
    const [error, setError] = useState<string | null>(null);
    const [success, setSuccess] = useState<string | null>(null);
@@ -113,20 +133,22 @@ export const CrearOrdenPage = () => {
       }
    }, [citaIdFromState]);
 
-   const loadExistingOrders = async () => {
-      if (citaIdFromState) {
-         try {
-            await fetchOrdersByAppointment(citaIdFromState);
-            setExistingOrders(orders);
-         } catch (err) {
-            console.error('Error al cargar órdenes existentes:', err);
+   const loadExistingOrders = useCallback(async () => {
+   if (citaIdFromState) {
+      try {
+         const result = await fetchOrdersByAppointment(citaIdFromState);
+         
+         if (result?.data) {
+         setExistingOrders(result.data);
          }
+      } catch (err) {
+         console.error('Error al cargar órdenes existentes:', err);
       }
-   };
-
-   useEffect(() => {
-      setExistingOrders(orders);
-   }, [orders]);
+   }
+   }, [citaIdFromState]);
+      useEffect(() => {
+         setExistingOrders(orders);
+      }, [orders]);
 
    useEffect(() => {
       console.log('Estado del diálogo cambió:', openEditDialog);
@@ -144,7 +166,7 @@ export const CrearOrdenPage = () => {
          setError('Debe seleccionar una cita válida');
          return false;
       }
-      if (!formData.especialidad.trim()) {
+      if (!formData.especialidad) {
          setError('Debe seleccionar una especialidad');
          return false;
       }
@@ -179,7 +201,8 @@ export const CrearOrdenPage = () => {
 
       const result = await createOrder({
          idCita: formData.idCita,
-         especialidad: formData.especialidad,
+         especialidad: Number(formData.especialidad),
+         idMedicamento: Number(formData.idMedicamento),
          entidadDestino: formData.entidadDestino,
          descripcion: formData.descripcion,
          estado: formData.estado as 'pendiente' | 'programada' | 'ejecutada' | 'cancelada',
@@ -534,10 +557,25 @@ export const CrearOrdenPage = () => {
                                  />
                               </Box>
 
-                              {/* ESPECIALIDAD */}
-                              <Typography variant="body2" color="text.secondary" mt={1}>
-                                 {orden.Specialty?.nombre || orden.especialidad}
-                              </Typography>
+                              {/* ESPECIALIDAD / MEDICAMENTO */}
+<Typography variant="body2" color="text.secondary" mt={1}>
+   {(() => {
+      const esNA = orden.Specialty?.id === 1 || orden.especialidad === 1;
+      const tieneMedicamento = orden.idMedicamento && orden.idMedicamento !== 1;
+      const nombreEspecialidad = orden.Specialty?.nombre;
+      // 👇 busca el nombre en el array que ya tienes del puerto 5010
+      const medicamento = medicaments.find((m) => m.id === orden.idMedicamento);
+      const nombreMedicamento = medicamento?.nombre || 'Medicamento no encontrado';
+
+      if (esNA && tieneMedicamento) {
+         return nombreMedicamento;
+      } else if (!esNA && tieneMedicamento) {
+         return `${nombreEspecialidad}, ${nombreMedicamento}`;
+      } else {
+         return nombreEspecialidad || orden.especialidad;
+      }
+   })()}
+</Typography>
 
                               <Divider sx={{ my: 2 }} />
 
@@ -703,23 +741,47 @@ export const CrearOrdenPage = () => {
             </Grid>
 
             <Grid item xs={12} sm={6}>
-               <TextField
-                  fullWidth
-                  select
-                  label="Especialidad"
-                  name="especialidad"
-                  value={formData.especialidad}
-                  onChange={handleChange}
-                  required
-                  disabled={loadingSpecialties}
-               >
-                  {specialties.map((esp) => (
-                     <MenuItem key={esp.id} value={esp.id.toString()}>
-                        {esp.nombre}
-                     </MenuItem>
-                  ))}
-               </TextField>
-            </Grid>
+   <TextField
+      fullWidth
+      select
+      label="Especialidad"
+      name="especialidad"
+      value={formData.especialidad}
+      onChange={handleChange}
+      required
+      disabled={loadingSpecialties}
+   >
+      <MenuItem value={1}>N/A</MenuItem>
+      {specialties
+         .filter((esp) => esp.id !== 1)
+         .map((esp) => (
+            <MenuItem key={esp.id} value={esp.id}>
+               {esp.nombre}
+            </MenuItem>
+         ))}
+   </TextField>
+</Grid>
+
+            <Grid item xs={12} sm={6}>
+  <TextField
+  fullWidth
+  select
+  label="Medicamento"
+  name="idMedicamento"
+  value={formData.idMedicamento}
+  onChange={handleChange}
+  disabled={loadingMedicaments}
+>
+  <MenuItem value={1}>N/A</MenuItem>
+  {medicaments
+    .filter((med) => med.id !== 1)
+    .map((med) => (
+      <MenuItem key={med.id} value={med.id}>
+        {med.nombre}
+      </MenuItem>
+    ))}
+</TextField>
+</Grid>
 
             <Grid item xs={12} sm={6}>
                <TextField

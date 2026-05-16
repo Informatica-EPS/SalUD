@@ -1,5 +1,4 @@
 const orderService = require("../services/order.service");
-const appointmentService = require("../services/appointment.service");
 
 const createOrder = async (req, res, next) => {
   try {
@@ -109,7 +108,7 @@ const getOrdersByPatientDocument = async (req, res, next) => {
   try {
     const result = await orderService.findByPartientDocument(
       req.params.documento,
-      req.query,
+      req.query
     );
     res.json({ success: true, message: result });
   } catch (error) {
