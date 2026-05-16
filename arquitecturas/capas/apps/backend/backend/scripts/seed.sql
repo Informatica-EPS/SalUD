@@ -131,6 +131,7 @@ CREATE TABLE detalles_cita (
 CREATE TABLE ordenes (
     id               SERIAL PRIMARY KEY,
     id_cita          INTEGER REFERENCES citas(id) ON DELETE SET NULL ON UPDATE CASCADE,
+    id_medicamento   INTEGER,
     fecha_vencimiento TIMESTAMPTZ,
     estado           VARCHAR(50),
     entidad_destino  VARCHAR(100),
@@ -164,8 +165,9 @@ VALUES
 
 INSERT INTO especialidades (id, nombre, descripcion)
 VALUES
-    (1, 'Cardiología',  'Especialidad del corazón y sistema cardiovascular'),
-    (2, 'Inmunología',  'Especialidad del sistema inmunológico');
+    (1, 'N/A',  'N/A'),
+    (2, 'Cardiología',  'Especialidad del corazón y sistema cardiovascular'),
+    (3, 'Inmunología',  'Especialidad del sistema inmunológico');
 
 -- ---------------------------------------------------------------
 -- 4. Usuarios (5 en total: 3 médicos + 2 pacientes)

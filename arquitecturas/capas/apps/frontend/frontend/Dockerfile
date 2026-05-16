@@ -12,6 +12,8 @@ CMD ["npm", "run", "dev"]
 
 FROM base AS build
 ENV NODE_OPTIONS="--max-old-space-size=2048"
+ARG VITE_MEDICAMENTS_REMOTE_URL
+ENV VITE_MEDICAMENTS_REMOTE_URL=$VITE_MEDICAMENTS_REMOTE_URL
 RUN npm run build
 
 # Producción (Nginx ultraligero para Azure)
