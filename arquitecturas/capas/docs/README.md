@@ -4,71 +4,53 @@
 
 SalUD es un sistema web de gestión de citas médicas para pacientes y doctores.
 
-![Arquitectura General](docs/Diagramas/Arquitectura_General_Capas.jpg)
+![Arquitectura General](Diagramas/Diagrama_General_Actualizado.jpg)
+
+
 
 ### Componentes
 
-| Componente | Tecnología | Puerto |
-|---|---|---|
-| Frontend Principal | React + Vite | 5173 |
-| Backend | Node.js + Express | 8000 |
-| Base de datos | PostgreSQL 15 | 5432 |
-| RabbitMQ (eventos) | RabbitMQ | 5672 |
-| notificacion_orden | Worker Node.js | — |
-| MF Medicamentos (microfrontend) | React + Vite | 8081 |
-| medicamentos-service | Python / FastAPI | 8001 |
-| Base de datos medicamentos | PostgreSQL 15 | 5433 |
+| Componente | Tecnología | Puerto | Despliegue |
+|---|---|---|---|
+| Frontend Principal | React + Vite | 8080 | Docker (VM Azure) |
+| Backend | Node.js + Express | 5000 | Docker (VM Azure) |
+| Base de datos | PostgreSQL 15 | 5432 | Docker (VM Azure) |
+| RabbitMQ (eventos) | RabbitMQ | 5672 | Docker (VM Azure) |
+| notificacion_orden | Worker Node.js | — | Docker (VM Azure) |
+| MF Medicamentos (microfrontend) | React + Vite | 8081 | Azure Static Apps |
+| medicamentos-service | Python / FastAPI | 5010 | Azure Container Apps |
+| Base de datos medicamentos | Neon Serverless Postgres | — | Neon.tech (externo) |
 
-### Despliegue: 1 servidor físico (Azure for Students)
+### Despliegue
 
-Todo corre en **un solo servidor** usando Docker Compose. Cada componente
-vive en su propio contenedor Docker, aislado de los demás. Se eligió un
-solo servidor por costo, simplicidad y porque la escala del proyecto lo permite.
+El sistema está dividido en dos unidades de despliegue independientes:
 
-## 2. Arquitectura en Capas — Monolito SalUD
+**Monolito SalUD — 1 nivel físico (Single-Tier)**
 
-### Despliegue físico: 1 nivel (Single-Tier)
+El monolito corre en **un único servidor físico** en Azure usando Docker Compose. Aunque tiene 4 capas lógicas, todas corren en la misma máquina. Se eligió este enfoque por costo, simplicidad y porque la escala del proyecto lo permite.
 
-Todo el sistema se despliega en **un único servidor físico** hospedado en
-**Azure for Students**, usando **Docker Compose** para gestionar los
-contenedores.
+- **Costo:** Azure for Students tiene créditos limitados. Un solo servidor es suficiente para el volumen de usuarios del proyecto.
+- **Simplicidad:** Con Docker Compose, todos los contenedores se inician, detienen y actualizan con un solo comando.
+- **Aislamiento garantizado:** Aunque estén en el mismo servidor físico, cada contenedor Docker funciona de forma independiente.
 
-Aunque el sistema tiene múltiples componentes, todos corren en la misma
-máquina dentro de contenedores Docker aislados entre sí.
+**Microservicio Medicamentos — 3 niveles físicos (Multi-Tier)**
 
-#### ¿Por qué un solo servidor?
+El microservicio de medicamentos se despliega en servicios cloud separados, cada uno en su propio nivel físico independiente:
 
-- **Costo:** Azure for Students tiene créditos limitados. Tener múltiples
-  servidores aumentaría el costo sin beneficio real para el volumen de
-  usuarios del proyecto.
+- **Nivel 1 — Presentación:** Azure Static Apps
+- **Nivel 2 — Negocio + Datos:** Azure Container Apps
+- **Nivel 3 — Persistencia:** Neon Serverless Postgres (proveedor externo, neon.tech)
 
-- **Escala del proyecto:** SalUD es un sistema académico con una cantidad
-  reducida de usuarios simultáneos. Un solo servidor es suficiente para
-  atender la carga esperada.
+A diferencia del monolito, aquí cada nivel corre en infraestructura diferente y escala de forma independiente.
 
-- **Simplicidad:** Con Docker Compose, todos los contenedores se inician,
-  detienen y actualizan con un solo comando, lo que simplifica la
-  administración del sistema.
-
-- **Aislamiento garantizado:** Aunque estén en el mismo servidor físico,
-  cada contenedor Docker funciona de forma independiente. El frontend no
-  puede afectar al backend, ni el backend a la base de datos, sin pasar
-  por las interfaces definidas entre ellos.
-
-## 2. Arquitectura Detallada de Capas
-
-![Diagrama de Capas](Diagramas/Diagrama_Capas.jpg)
 ---
-
-### Principio de capas
 
 ## 2. Arquitectura Detallada de Capas - SalUD
 
-SalUD está organizado
-internamente siguiendo una **arquitectura en capas**, donde cada capa
+SalUD está organizado internamente siguiendo una **arquitectura en capas**, donde cada capa
 tiene una responsabilidad única y bien definida.
 
-![Diagrama de Capas](Diagramas/Diagrama_Capas.jpg)
+![Diagrama de Capas](Diagramas/Capas%20-%20Diagrama%20Actualizado.drawio.png)
 
 ---
 
@@ -76,7 +58,7 @@ tiene una responsabilidad única y bien definida.
 
 #### Capa 1 — Presentación
 
-**Contenedor Docker:** `frontend :5173`  
+**Contenedor Docker:** `frontend :8080`  
 **Tecnología:** React + Vite + TypeScript
 
 Es lo que el usuario ve en su navegador. Su única responsabilidad es mostrar información y capturar acciones del usuario (clics, formularios). No toma ninguna decisión de negocio: simplemente envía solicitudes al backend y muestra las respuestas.
@@ -94,7 +76,7 @@ Es lo que el usuario ve en su navegador. Su única responsabilidad es mostrar in
 
 #### Capa 2 — Negocio
 
-**Contenedor Docker:** `backend :8000`  
+**Contenedor Docker:** `backend :5000`  
 **Tecnología:** Node.js + Express
 
 Es el "cerebro" del sistema. Aquí se aplican todas las reglas que definen cómo funciona SalUD. Tiene tres componentes internos que trabajan en cadena:
@@ -124,7 +106,7 @@ Es el "cerebro" del sistema. Aquí se aplican todas las reglas que definen cómo
 
 #### Capa 3 — Datos
 
-**Contenedor Docker:** `backend :8000` *(mismo contenedor que Capa 2, separación lógica por carpetas)*  
+**Contenedor Docker:** `backend :5000` *(mismo contenedor que Capa 2, separación lógica por carpetas)*  
 **Tecnología:** Sequelize ORM
 
 Esta capa es el "traductor" entre el código JavaScript y la base de datos SQL. **No aplica reglas de negocio**: su única función es convertir las instrucciones del código en consultas SQL y devolver los resultados.
@@ -167,16 +149,12 @@ Es donde los datos viven de forma permanente. No tiene lógica de programación:
 Los datos se guardan en un **volumen Docker** llamado `db_data`, lo que garantiza que no se pierdan cuando el contenedor se reinicia.
 
 ---
+
 ## 3. Arquitectura Detallada de Capas — Microservicio Medicamentos
 
-
-El microservicio de medicamentos es un sistema **completamente independiente** del monolito: tiene su propio lenguaje de programacion, su propio servidor y su propia base de datos. Aunque comparte el mismo servidor fisico (Azure), funciona de forma autonoma.
+El microservicio de medicamentos es un sistema **completamente independiente** del monolito: tiene su propio lenguaje de programacion, sus propios servicios de despliegue y su propia base de datos. No comparte servidor ni infraestructura con el monolito — cada componente corre en un servicio cloud diferente.
 
 Tambien sigue una arquitectura en 4 capas, pero adaptada al lenguaje Python y al framework FastAPI.
-
-![Diagrama Capas Microservicio](Diagramas/Diagrama_Capas_Microservicio.jpg)
-
-> **Diferencia clave con el monolito:** En Node.js existen Routes y Controllers por separado. En Python/FastAPI, el **Router** cumple ambas funciones en un solo archivo — recibe la peticion Y la coordina al Service directamente, sin necesitar un Controller aparte.
 
 ---
 
@@ -184,8 +162,8 @@ Tambien sigue una arquitectura en 4 capas, pero adaptada al lenguaje Python y al
 
 #### Capa 1 — Presentacion
 
-**Contenedor Docker:** `medicaments-microfrontend :8081`
-**Tecnologia:** React + Vite + TypeScript
+**Despliegue:** Azure Static Apps  
+**Tecnologia:** React + Vite + TypeScript — Puerto: 8081
 
 Es la pantalla que ve el gestor de medicamentos para consultar y gestionar medicamentos. Es una aplicacion React completamente independiente que se incrusta dentro del Frontend Principal usando **Module Federation** — el medico no nota que es un sistema separado, lo ve todo como una sola aplicacion.
 
@@ -195,14 +173,14 @@ Es la pantalla que ve el gestor de medicamentos para consultar y gestionar medic
 | `MedicamentsModule.tsx` | Modulo principal expuesto al frontend via Module Federation |
 | `medicamentsService.ts` | Llamadas HTTP al medicaments-service |
 
-**Comunicacion con la capa siguiente:** HTTP REST al medicaments-service en el puerto 8001.
+**Comunicacion con la capa siguiente:** HTTP REST al medicaments-service en el puerto 5010.
 
 ---
 
 #### Capa 2 — Negocio
 
-**Contenedor Docker:** `medicaments-service :8001`
-**Tecnologia:** Python + FastAPI
+**Despliegue:** Azure Container Apps  
+**Tecnologia:** Python + FastAPI — Puerto: 5010
 
 Es el cerebro del microservicio. Valida y aplica las reglas del negocio de medicamentos. A diferencia del monolito, en FastAPI el **Router** hace el trabajo de Routes y Controllers al mismo tiempo.
 
@@ -227,7 +205,7 @@ Es el cerebro del microservicio. Valida y aplica las reglas del negocio de medic
 
 #### Capa 3 — Datos
 
-**Contenedor Docker:** `medicaments-service :8001` *(mismo contenedor que Capa 2, separacion logica por carpetas)*
+**Despliegue:** Azure Container Apps *(mismo contenedor que Capa 2, separacion logica por carpetas)*  
 **Tecnologia:** SQLAlchemy ORM + Repository Pattern
 
 Esta capa tiene dos partes. Los **Models** definen como se ven los datos en Python, y los **Repositories** son los unicos autorizados a hablar con la base de datos.
@@ -250,16 +228,18 @@ Esta capa tiene dos partes. Los **Models** definen como se ven los datos en Pyth
 | `inventory_repository.py` | Consultas y actualizaciones de inventario |
 | `movement_repository.py` | Registro del historial de movimientos |
 
-**Comunicacion con la capa siguiente:** Genera y ejecuta consultas SQL hacia PostgreSQL BD2.
+**Comunicacion con la capa siguiente:** Genera y ejecuta consultas SQL hacia Neon Serverless Postgres via connection string.
 
 ---
 
 #### Capa 4 — Persistencia
 
-**Contenedor Docker:** `postgres BD2 :5433`
-**Tecnologia:** PostgreSQL 15
+**Despliegue:** Neon Serverless Postgres (neon.tech) — servicio externo  
+**Tecnologia:** PostgreSQL Serverless
 
 Es la base de datos **exclusiva del microservicio** — completamente separada de la base de datos principal del monolito. Esta separacion es una de las caracteristicas mas importantes de los microservicios: cada servicio es dueño de sus propios datos.
+
+A diferencia del monolito (que usa un contenedor Docker con PostgreSQL), el microservicio usa **Neon**, un proveedor externo de PostgreSQL serverless. Esto significa que la base de datos no corre en un servidor propio sino que es gestionada por Neon.tech, y el microservicio se conecta a ella mediante una connection string.
 
 | Tabla | Contenido |
 |---|---|
@@ -271,12 +251,12 @@ Es la base de datos **exclusiva del microservicio** — completamente separada d
 
 ### Resumen del Microservicio
 
-| # | Capa | Contenedor | Tecnologia | Responsabilidad |
+| # | Capa | Despliegue | Tecnologia | Responsabilidad |
 |---|---|---|---|---|
-| 1 | Presentacion | `medicaments-microfrontend :8081` | React + Vite | Interfaz del medico para medicamentos |
-| 2 | Negocio | `medicaments-service :8001` | Python + FastAPI | Router + Services (reglas del sistema) |
-| 3 | Datos | `medicaments-service :8001` | SQLAlchemy + Repositories | Acceso y traduccion a SQL |
-| 4 | Persistencia | `postgres BD2 :5433` | PostgreSQL 15 | Base de datos exclusiva del microservicio |
+| 1 | Presentacion | Azure Static Apps — `:8081` | React + Vite | Interfaz del medico para medicamentos |
+| 2 | Negocio | Azure Container Apps — `:5010` | Python + FastAPI | Router + Services (reglas del sistema) |
+| 3 | Datos | Azure Container Apps — `:5010` | SQLAlchemy + Repositories | Acceso y traduccion a SQL |
+| 4 | Persistencia | Neon Serverless Postgres (externo) | PostgreSQL Serverless | Base de datos exclusiva del microservicio |
 
 ---
 
@@ -288,4 +268,3 @@ Los diagramas pueden ser editados directamente en **Draw.io** (diagrams.net).
 | :--- | :--- |
 | **1. Arquitectura General** | [🔗 Abrir en Google Drive](https://drive.google.com/file/d/1Ei3xqrRgfZiZRDCt526HMs2Pqmkhk7eP/view?usp=sharing)|
 | **2. Diagrama de Capas** | [🔗 Abrir en Google Drive](https://drive.google.com/file/d/1b0HxPSArQGBfAZN1CvM3dtpBij3eoq98/view?usp=sharing) |
-
