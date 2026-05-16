@@ -57,10 +57,6 @@ export default defineConfig(({ mode }) => {
          port: parseInt(env.PORT || '8080'),
          cors: true,
       },
-      test: {
-         environment: 'jsdom',
-         globals: true,
-      },
       preview: {
          host: '0.0.0.0',
          port: parseInt(env.PORT || '8080'),
