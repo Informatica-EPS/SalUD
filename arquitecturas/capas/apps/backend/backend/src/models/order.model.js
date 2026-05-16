@@ -12,9 +12,9 @@ const Order = sequelize.define(
     idCita: {
       type: DataTypes.INTEGER,
     },
-    // idMedicamento: {
-    //   type: DataTypes.INTEGER,
-    // },
+    idMedicamento: {
+      type: DataTypes.INTEGER,
+    },
     fechaVencimiento: {
       type: DataTypes.DATE,
     },

@@ -13,35 +13,43 @@ const specialtyService = require("./specialty.service");
 
 class OrderService {
   async create(data, auditUserId) {
+    console.log("create ->", { data });
+
     const order = await Order.create({
       ...data,
       creadoPor: auditUserId,
       actualizadoPor: auditUserId,
     });
 
-    const { dataValues: specialty } = await specialtyService.getSpecialty(
-      order.especialidad,
-    );
+    if (order.especialidad) {
+      const { dataValues: specialty } = await specialtyService.getSpecialty(
+        order.especialidad,
+      );
 
-    console.log({ specialty });
+      if (!specialty) {
+        throw new Error("Especialidad no encontrada");
+      }
 
-    if (!specialty) {
-      throw new Error("Especialidad no encontrada");
+      order.dataValues.specialtyName = specialty.nombre;
+
+      console.log({ order });
+
+      const rabbitService = new RabbitMQService();
+      const publisher = rabbitService.getPublisherService();
+      await publisher.setUp("clinic_events");
+
+      await publisher.publishEvent("order.created", {
+        ...order,
+      });
+
+      return order;
     }
 
-    order.dataValues.specialtyName = specialty.nombre;
+    if (order.idMedicamento) {
+      console.log("Orden de medicamento creada");
 
-    console.log({ order });
-
-    const rabbitService = new RabbitMQService();
-    const publisher = rabbitService.getPublisherService();
-    await publisher.setUp("clinic_events");
-
-    await publisher.publishEvent("order.created", {
-      ...order,
-    });
-
-    return order;
+      return order;
+    }
   }
 
   async findAll(queryParams) {
