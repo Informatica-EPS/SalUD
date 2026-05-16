@@ -29,7 +29,10 @@ class MedicamentsService:
 
     async def dispatch_medicaments(self, body: MedicamentDispatchRequest):
         # validar orden con servicio de ordenes
-        data = {"idPaciente": body.idPaciente, "idOrden": body.idOrden}
+        data = {"idPaciente": body.idPaciente, "idOrden": body.idOrden,
+                "idMedicamento": body.idMedicamento}
+
+        print(f"data -> {body.idMedicamento}")
 
         try:
             async with httpx.AsyncClient() as client:

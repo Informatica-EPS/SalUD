@@ -123,6 +123,7 @@ const validateOrder = async (req, res, next) => {
     const result = await orderService.validatePatientHasMedicamentOrder(
       body.idPaciente,
       body.idOrden,
+      body.idMedicamento,
       appointmentService,
     );
     res.json({ success: true, message: result });

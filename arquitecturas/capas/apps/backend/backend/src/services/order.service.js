@@ -348,8 +348,17 @@ class OrderService {
     };
   }
 
-  async validatePatientHasMedicamentOrder(idPaciente, idOrder) {
-    console.log("validatePatientHasMedicamentOrder", { idPaciente, idOrder });
+  async validatePatientHasMedicamentOrder(
+    idPaciente,
+    idOrder,
+    idMedicamento,
+    AppointmentService,
+  ) {
+    console.log("validatePatientHasMedicamentOrder", {
+      idPaciente,
+      idOrder,
+      idMedicamento,
+    });
 
     const order = await Order.findByPk(idOrder);
 
@@ -358,7 +367,11 @@ class OrderService {
     if (order.estado !== ordersStatus.AUTHORIZED)
       throw Error("Orden no autorizada para medicamento");
 
-    const AppointmentService = require("./appointment.service");
+    console.log({ order, idMedicamento });
+    if (order.idMedicamento !== idMedicamento)
+      throw Error(
+        "Este medicamento no esta autorizado para ser despachado en esta orden",
+      );
 
     const appointment = await AppointmentService.findById(order.idCita);
 
