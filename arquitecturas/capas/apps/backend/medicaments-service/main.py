@@ -11,7 +11,8 @@ app.add_middleware(
     allow_origins=["http://localhost:8080",
                    "http://localhost:3000",
                    "http://localhost:8081",
-                   "https://blue-rock-0a2badb0f.7.azurestaticapps.net"
+                   "https://blue-rock-0a2badb0f.7.azurestaticapps.net",
+                   "http://salud.mexicocentral.cloudapp.azure.com"
                    ],
     allow_credentials=True,
     allow_methods=["*"],
