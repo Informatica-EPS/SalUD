@@ -342,12 +342,15 @@ class OrderService {
 
   async validatePatientHasMedicamentOrder(idPaciente, idOrder) {
     console.log("validatePatientHasMedicamentOrder", { idPaciente, idOrder });
-    // //valida si el paciente tiene una order idOrden autorizada para despachar un medicamento
+
+    const order = await Order.findByPk(idOrder);
 
     if (!order) throw Error("No existe la orden");
 
     if (order.estado !== ordersStatus.AUTHORIZED)
       throw Error("Orden no autorizada para medicamento");
+
+    const AppointmentService = require("./appointment.service");
 
     const appointment = await AppointmentService.findById(order.idCita);
 
