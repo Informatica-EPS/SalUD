@@ -38,12 +38,14 @@ const ErrorFallback = () => (
   </Box>
 );
 
+const MEDICAMENTS_URL = import.meta.env.VITE_MEDICAMENTS_REMOTE_URL || 'http://localhost:8081';
+
 export const MedicamentsRemoteWrapper: React.FC = () => {
   const [hasError, setHasError] = React.useState(false);
 
   React.useEffect(() => {
     // Verificar si el microfrontend está disponible
-    fetch('http://localhost:8081/remoteEntry.js')
+    fetch(`${MEDICAMENTS_URL}/remoteEntry.js`)
       .catch(() => setHasError(true));
   }, []);
 

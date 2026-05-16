@@ -17,7 +17,7 @@ def get_medicaments_service(db: Session = Depends(get_db)):
     return MedicamentsService(MedicamentsRepository(db), InventoryService(InventoryRepository(db)), MovementService(MovementRepository(db)))
 
 
-@router.get("/", status_code=status.HTTP_200_OK)
+@router.get("", status_code=status.HTTP_200_OK)
 def list_medicaments(service: MedicamentsService = Depends(get_medicaments_service)):
     return service.get_all_medicaments()
 
