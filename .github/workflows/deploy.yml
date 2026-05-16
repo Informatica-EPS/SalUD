@@ -6,7 +6,7 @@ name: CI/CD Pipeline to Azure VM
 on:
   push:
     branches:
-      - feat131f
+      - prod
     paths-ignore:
       - 'arquitecturas/capas/apps/backend/medicaments-service/**'
       - 'arquitecturas/capas/apps/frontend/medicaments-microfrontend/**'
@@ -64,10 +64,10 @@ jobs:
           script: |
             cd ~/SalUD/arquitecturas/capas
             
-            # Traer los últimos cambios de la rama feat131f
-            git fetch origin feat131f
-            git checkout feat131f
-            git reset --hard origin/feat131f
+            # Traer los últimos cambios de la rama prod
+            git fetch origin prod
+            git checkout prod
+            git reset --hard origin/prod
 
             # 🔑 Script para agregar secrets solo si no existen
             add_if_not_exists() {

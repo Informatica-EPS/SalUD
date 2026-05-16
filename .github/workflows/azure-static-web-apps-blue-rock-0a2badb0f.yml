@@ -3,13 +3,13 @@ name: Azure Static Web Apps CI/CD
 on:
   push:
     branches:
-      - feat131f
+      - prod
     paths:
       - 'arquitecturas/capas/apps/frontend/medicaments-microfrontend/**'
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:
-      - feat131f
+      - prod
 
 jobs:
   build_and_deploy_job:
