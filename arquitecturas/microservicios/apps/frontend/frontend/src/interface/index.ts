@@ -1,0 +1,20 @@
+export type { IMedico, ICitaMedica, ICitaDisponible } from './ICitaMedica';
+export type {
+   IUser,
+   IRole,
+   IPatient,
+   IDoctor,
+   ITimeSlot,
+   IAppointment,
+   IAppointmentDetail,
+   ICreatePatientRequest,
+   ICreateDoctorRequest,
+   ICreateTimeSlotRequest,
+   ICreateBatchTimeSlotsRequest,
+   ICreateAppointmentRequest,
+   IRescheduleAppointmentRequest,
+   ICreateAppointmentDetailRequest,
+   IPaginatedResponse,
+   IApiResponse,
+   IClinicalHistoryResponse,
+} from './IBackend';
