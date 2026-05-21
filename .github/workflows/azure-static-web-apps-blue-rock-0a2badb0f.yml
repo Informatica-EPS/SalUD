@@ -21,19 +21,34 @@ jobs:
         with:
           submodules: true
           lfs: false
+          
+      # 1. Configurar Node.js (necesario para correr los test)
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18' # Puedes cambiarlo a la versión exacta que uses localmente (20, etc.)
+          
+      # 2. Instalar dependencias 
+      - name: Install Dependencies
+        working-directory: ./arquitecturas/capas/apps/frontend/medicaments-microfrontend
+        run: npm ci # "ci" es más seguro que "install" para despliegues automáticos
+        
+      # 3. Ejecutar las 2 pruebas automáticas que creamos
+      - name: Run Automated Tests
+        working-directory: ./arquitecturas/capas/apps/frontend/medicaments-microfrontend
+        run: npm run test
+
+      # 4. Despliegue en Azure (Solo se ejecutará si las pruebas de arriba fueron exitosas)
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_BLUE_ROCK_0A2BADB0F }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }} # Used for Github integrations (i.e. PR comments)
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
-          # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
-          app_location: "./arquitecturas/capas/apps/frontend/medicaments-microfrontend" # App source code path
-          api_location: "" # Api source code path - optional
-          output_location: "dist" # Built app content directory - optional
-          ###### End of Repository/Build Configurations ######
+          app_location: "./arquitecturas/capas/apps/frontend/medicaments-microfrontend"
+          api_location: "" 
+          output_location: "dist" 
         env:
           VITE_MEDICAMENTS_API_URL: "${{ secrets.VITE_MEDICAMENTS_API_URL }}/api"
 

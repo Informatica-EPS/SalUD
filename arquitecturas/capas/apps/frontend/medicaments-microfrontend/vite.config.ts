@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config'; 
 import react from '@vitejs/plugin-react';
 import federation from '@originjs/vite-plugin-federation';
 
@@ -54,5 +54,9 @@ export default defineConfig({
     port: 8081,
     cors: true,
     strictPort: true,
+  },
+  test: {
+    environment: 'happy-dom',
+    globals: true,
   },
 });
