@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
-    "test": "cross-env NODE_ENV=test jest --runInBand --detectOpenHandles",
+    "test": "cross-env NODE_ENV=test jest --runInBand --detectOpenHandles --coverage",
     "db:diff:schema": "node ./scripts/sequelize-schema-diff.js --models-path ./src/models --config ./src/config/database/config.js --migrations-path ./src/migrations"
   },
   "dependencies": {
