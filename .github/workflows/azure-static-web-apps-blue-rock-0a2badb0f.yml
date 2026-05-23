@@ -5,7 +5,7 @@ on:
     branches:
       - prod
     paths:
-      - 'arquitecturas/capas/apps/frontend/medicaments-microfrontend/**'
+      - 'arquitecturas/microservicios/apps/frontend/medicaments-microfrontend/**'
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:
@@ -30,12 +30,12 @@ jobs:
           
       # 2. Instalar dependencias 
       - name: Install Dependencies
-        working-directory: ./arquitecturas/capas/apps/frontend/medicaments-microfrontend
+        working-directory: ./arquitecturas/microservicios/apps/frontend/medicaments-microfrontend
         run: npm ci # "ci" es más seguro que "install" para despliegues automáticos
         
       # 3. Ejecutar las 2 pruebas automáticas que creamos
       - name: Run Automated Tests
-        working-directory: ./arquitecturas/capas/apps/frontend/medicaments-microfrontend
+        working-directory: ./arquitecturas/microservicios/apps/frontend/medicaments-microfrontend
         run: npm run test
 
       # 4. Despliegue en Azure (Solo se ejecutará si las pruebas de arriba fueron exitosas)
@@ -46,7 +46,7 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_BLUE_ROCK_0A2BADB0F }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "./arquitecturas/capas/apps/frontend/medicaments-microfrontend"
+          app_location: "./arquitecturas/microservicios/apps/frontend/medicaments-microfrontend"
           api_location: "" 
           output_location: "dist" 
         env:
