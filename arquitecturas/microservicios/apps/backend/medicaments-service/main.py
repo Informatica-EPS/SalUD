@@ -7,6 +7,10 @@ from app.routers import medicaments_route
 app = FastAPI(title="Medicaments Service", version="1.0")
 
 app.add_middleware(GZipMiddleware)
+
+app.add_middleware(ErrorHandlerMiddleware)
+
+app.include_router(medicaments_route.router, prefix="/api")
 # Configuración de CORS
 app.add_middleware(
     CORSMiddleware,
@@ -21,6 +25,3 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.add_middleware(ErrorHandlerMiddleware)
-
-app.include_router(medicaments_route.router, prefix="/api")
