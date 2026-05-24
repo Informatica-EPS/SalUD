@@ -1,7 +1,7 @@
 FROM node:18-alpine AS base
 WORKDIR /app
 COPY package*.json ./
-RUN npm install --ignore-scripts --frozen-lockfile
+RUN npm ci --ignore-scripts
 COPY . .
 
 FROM base AS development
