@@ -37,7 +37,7 @@ interface TabPanelProps {
    value: number;
 }
 
-function TabPanel(props: TabPanelProps) {
+function TabPanel(props: Readonly<TabPanelProps>) {
    const { children, value, index, ...other } = props;
    return (
       <div hidden={value !== index} {...other}>
@@ -115,7 +115,7 @@ export const GestionHorariosPage = () => {
    };
 
    const handleEliminar = async (slotId: number) => {
-      if (window.confirm('¿Está seguro de eliminar este horario?')) {
+      if (globalThis.confirm('¿Está seguro de eliminar este horario?')) {
          const result = await deleteTimeSlot(slotId);
          
          if (result.success) {
@@ -165,8 +165,8 @@ export const GestionHorariosPage = () => {
 
    const groupedAvailable = groupSlotsByDate(availableSlots);
    const groupedAll = groupSlotsByDate(allSlots);
-   const sortedDates = Object.keys(groupedAvailable).sort();
-   const sortedAllDates = Object.keys(groupedAll).sort();
+   const sortedDates = Object.keys(groupedAvailable).sort((a, b) => a.localeCompare(b));
+   const sortedAllDates = Object.keys(groupedAll).sort((a, b) => a.localeCompare(b));
 
    return (
       <Container maxWidth="lg" sx={{ py: 4 }}>

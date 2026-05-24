@@ -9,7 +9,7 @@ RUN apt-get update && apt-get --no-install-recommends install -y \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir --only-binary :all: -r requirements.txt
+RUN pip install --only-binary :all: --no-cache-dir -r requirements.txt
 
 COPY . .
 
