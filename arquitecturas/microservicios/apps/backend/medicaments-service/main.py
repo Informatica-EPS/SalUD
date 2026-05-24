@@ -1,10 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from app.core.error_handler import ErrorHandlerMiddleware
 from app.routers import medicaments_route
 
 app = FastAPI(title="Medicaments Service", version="1.0")
 
+app.add_middleware(GZipMiddleware)
 # Configuración de CORS
 app.add_middleware(
     CORSMiddleware,
