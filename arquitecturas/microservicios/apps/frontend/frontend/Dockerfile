@@ -1,7 +1,7 @@
 FROM node:18-alpine AS base
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN npm install --ignore-scripts --frozen-lockfile
 COPY . .
 
 FROM base AS development
@@ -14,7 +14,7 @@ FROM base AS build
 ENV NODE_OPTIONS="--max-old-space-size=2048"
 ARG VITE_MEDICAMENTS_REMOTE_URL
 ENV VITE_MEDICAMENTS_REMOTE_URL=$VITE_MEDICAMENTS_REMOTE_URL
-RUN npm run build
+RUN npm run build --ignore-scripts
 
 # Producción (Nginx ultraligero para Azure)
 FROM nginx:stable-alpine AS production

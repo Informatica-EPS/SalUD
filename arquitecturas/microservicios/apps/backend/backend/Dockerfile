@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instalamos las dependencias
-RUN npm install
+RUN npm install --ignore-scripts --frozen-lockfile
 
 # Copiamos el resto del código
 COPY . .
