@@ -9,8 +9,8 @@
  * @returns
  */
 const paginate = async (SequelizeModel, queryParams, dbOption = {}) => {
-  const page = parseInt(queryParams.page) || 1;
-  const limitValue = parseInt(queryParams.limit) || 10;
+  const page = Number.parseInt(queryParams.page, 10) || 1;
+  const limitValue = Number.parseInt(queryParams.limit, 10) || 10;
   const offset = (page - 1) * limitValue;
 
   const queryOptions = {

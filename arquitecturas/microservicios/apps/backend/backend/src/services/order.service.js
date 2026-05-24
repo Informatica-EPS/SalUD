@@ -54,7 +54,7 @@ class OrderService {
 
   async findAll(queryParams) {
     console.log("Query Params:", queryParams);
-    let idCita = undefined;
+    let idCita;
     if (queryParams.idCita) {
       idCita = Number(queryParams.idCita, 10);
     }
@@ -424,21 +424,21 @@ class OrderService {
 
     const order = await Order.findByPk(idOrder);
 
-    if (!order) throw Error("No existe la orden");
+    if (!order) throw new Error("No existe la orden");
 
     if (order.estado !== ordersStatus.AUTHORIZED)
-      throw Error("Orden no autorizada para medicamento");
+      throw new Error("Orden no autorizada para medicamento");
 
     console.log({ order, idMedicamento });
     if (order.idMedicamento !== idMedicamento)
-      throw Error(
+      throw new Error(
         "Este medicamento no esta autorizado para ser despachado en esta orden",
       );
 
     const appointment = await AppointmentService.findById(order.idCita);
 
     if (appointment.idPaciente !== idPaciente)
-      throw Error("El paciente no tiene esa orden asociada");
+      throw new Error("El paciente no tiene esa orden asociada");
 
     return await order.update({ estado: ordersStatus.COMPLETED });
   }

@@ -54,12 +54,12 @@ export default defineConfig(({ mode }) => {
       },
       server: {
          host: '0.0.0.0',
-         port: parseInt(env.PORT || '8080'),
+         port: Number.parseInt(env.PORT || '8080'),
          cors: true,
       },
       preview: {
          host: '0.0.0.0',
-         port: parseInt(env.PORT || '8080'),
+         port: Number.parseInt(env.PORT || '8080'),
          cors: true,
          strictPort: true,
       },
