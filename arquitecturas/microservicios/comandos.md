@@ -2,7 +2,9 @@
 
 ## Prender
 
-docker compose -f docker-compose.dev.yaml up --buildsudo docker compose -f docker-compose.dev.yaml up --builddocker compose -f docker-compose.dev.yaml up -d --build # detached
+docker compose -f docker-compose.dev.yaml up --build
+sudo docker compose -f docker-compose.dev.yaml up --build
+docker compose -f docker-compose.dev.yaml up -d --build # detached
 docker compose --env-file dev.env -f docker-compose.dev.yaml up -d --build # con dev.env
 docker compose --env-file dev.env -f docker-compose.prod.yaml up -d --build db
 docker compose --env-file dev.env -f docker-compose.dev.yaml up -d --build -V # renueva los volúmenes anónimos
@@ -25,7 +27,8 @@ docker compose -f docker-compose.prod.yaml logs -f salud-db-prod
 
 # reiniciar un contenedor
 
-docker compose -f docker-compose.dev.yaml restart backenddocker compose -f docker-compose.prod.yaml restart salud-db-proddocker compose -f docker-compose.dev.yaml restart notifications-servicedocker compose -f docker-compose.dev.yaml restart medicaments-service
+docker compose -f docker-compose.dev.yaml restart backenddocker compose -f docker-compose.prod.yaml restart salud-db-proddocker compose -f docker-compose.dev.yaml restart notifications-service
+docker compose -f docker-compose.dev.yaml restart medicaments-service
 
 # Para apagar SOLO el frontend y liberar recursos
 
