@@ -1,4 +1,5 @@
 const appointmentClient = require("../appointment.client");
+const configCatClient = require("../configcat-service");
 const NotificationsService = require("../notifications-service");
 const rabbitMq = require("./rabbitMq");
 
@@ -65,6 +66,9 @@ class NotificationsConsumer {
   }
 
   async handleOrderCreated(payload) {
+    const ffBackend = await configCatClient.getValueAsync("backend_ff", false);
+    console.log("backend_ff: " + ffBackend);
+    // const ffBackend = false;
     console.log("test", { payload });
 
     const data = payload.data.dataValues;
@@ -92,10 +96,27 @@ class NotificationsConsumer {
 
       `;
 
+    const alternativeBodyMessage = `
+        ✅ ¡Tu orden médica está lista!
+
+        Acabamos de crear la orden #${data.id} para ti. Aquí tienes un resumen:
+
+          🩺 Especialidad ——— ${data.specialtyName || "N/A"}
+          📝 Descripción  ——— ${data.descripcion}
+          📅 Vence el     ——— ${new Date(data.fechaVencimiento).toLocaleDateString()}
+
+        Recuerda atender esta orden antes de su fecha de vencimiento.
+
+        Con cariño,
+        El equipo de SalUD 💙
+        `;
+
     await notificationService.sendEmailNotification({
       recipient: this.concatRecipients([email, "afarizal@udistrital.edu.co"]),
       subject: `${primer_nombre}! Tienes una nueva orden autorizada`,
-      content: bodyMesagge.replace(/\n/g, "<br>"),
+      content: ffBackend
+        ? alternativeBodyMessage.replace(/\n/g, "<br>")
+        : bodyMesagge.replace(/\n/g, "<br>"),
     });
     console.log("[order.created] procesado con éxito.");
   }
