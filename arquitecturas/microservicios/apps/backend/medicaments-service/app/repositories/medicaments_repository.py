@@ -10,8 +10,8 @@ class MedicamentsRepository:
     def get_by_id(self, id: int) -> Medicament | None:
         return self.db.query(Medicament).filter(Medicament.id == id).first()
 
-    def create(self, name: str, description: str) -> Medicament:
-        medicament = Medicament(name=name, description=description)
+    def create(self, data: dict) -> Medicament:
+        medicament = Medicament(**data)
         self.db.add(medicament)
         self.db.commit()
         self.db.refresh(medicament)

@@ -1,59 +1,83 @@
--- Script de inicialización de la base de datos de medicamentos
--- Fecha: 2026-05-09
+-- Script de inicializacion de la base de datos de medicamentos
+-- Estructura unicamente (sin datos)
 
--- ===================================
--- CREACIÓN DE TABLAS
--- ===================================
+DO $$
+BEGIN
+    CREATE DOMAIN dom_tipo_movimiento AS VARCHAR(20)
+    CHECK (VALUE IN ('entrada', 'salida'));
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END $$;
 
--- Tabla: medicamentos
 CREATE TABLE IF NOT EXISTS medicamentos (
-    id SERIAL PRIMARY KEY,
-    nombre VARCHAR NOT NULL
+    id BIGSERIAL PRIMARY KEY,
+    nombre VARCHAR(20) NOT NULL,
+    cantidad VARCHAR(20) NOT NULL,
+    presentacion VARCHAR(20) NOT NULL,
+    concentracion VARCHAR(20) NOT NULL,
+    fecha_creacion TIMESTAMPTZ DEFAULT NOW(),
+    creado_por VARCHAR(100),
+    ultima_actualizacion TIMESTAMPTZ,
+    actualizado_por VARCHAR(100)
 );
 
--- Índice para la tabla medicamentos
 CREATE INDEX IF NOT EXISTS ix_medicamentos_id ON medicamentos(id);
 
--- Tabla: inventario
 CREATE TABLE IF NOT EXISTS inventario (
-    id INTEGER PRIMARY KEY,
-    total INTEGER NOT NULL,
-    CONSTRAINT fk_inventario_medicamento FOREIGN KEY (id) REFERENCES medicamentos(id) ON DELETE CASCADE
+    id_medicamento BIGINT PRIMARY KEY,
+    total INT NOT NULL DEFAULT 0,
+    CONSTRAINT inventario_total_nonnegative_ck CHECK (total >= 0),
+    CONSTRAINT fk_inventario_medicamento
+      FOREIGN KEY (id_medicamento) REFERENCES medicamentos(id)
+      ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- Tabla: movimientos
 CREATE TABLE IF NOT EXISTS movimientos (
-    id SERIAL PRIMARY KEY,
-    id_medicamento INTEGER,
-    tipo_movimiento VARCHAR NOT NULL,
-    cantidad INTEGER NOT NULL,
-    created_by VARCHAR NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_movimientos_medicamento FOREIGN KEY (id_medicamento) REFERENCES medicamentos(id) ON DELETE CASCADE
+    id BIGSERIAL PRIMARY KEY,
+    id_medicamento BIGINT,
+    tipo_movimiento dom_tipo_movimiento NOT NULL,
+    cantidad INT NOT NULL DEFAULT 0,
+    id_orden BIGINT,
+    creado_por VARCHAR(100),
+    fecha_creacion TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT movimientos_cantidad_positive_ck CHECK (cantidad > 0),
+    CONSTRAINT fk_movimientos_medicamento
+      FOREIGN KEY (id_medicamento) REFERENCES medicamentos(id)
+      ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- Índices para la tabla movimientos
 CREATE INDEX IF NOT EXISTS ix_movimientos_id ON movimientos(id);
 CREATE INDEX IF NOT EXISTS ix_movimientos_id_medicamento ON movimientos(id_medicamento);
 
--- ===================================
--- INSERCIÓN DE DATOS DE EJEMPLO
--- ===================================
+-- Tabla de auditoria para medicamentos
+CREATE TABLE IF NOT EXISTS auditoria_medicamentos (
+    id_medicamento BIGINT,
+    nombre VARCHAR(20),
+    cantidad VARCHAR(20),
+    presentacion VARCHAR(20),
+    concentracion VARCHAR(20),
+    momento TIMESTAMPTZ DEFAULT NOW(),
+    usuario_bd VARCHAR(100) DEFAULT CURRENT_USER,
+    movimiento VARCHAR(20),
+    PRIMARY KEY (id_medicamento, momento)
+);
 
--- Medicamentos de ejemplo
-INSERT INTO medicamentos (nombre) VALUES 
-    ('N/A'),
-    ('Acetaminofén 500mg'),
-    ('Ibuprofeno 400mg'),
-    ('Amoxicilina 500mg'),
-    ('Omeprazol 20mg'),
-    ('Loratadina 10mg'),
-    ('Aspirina 100mg'),
-    ('Metformina 850mg'),
-    ('Losartán 50mg'),
-    ('Atorvastatina 20mg'),
-    ('Salbutamol Inhalador')
-ON CONFLICT DO NOTHING;
+-- Funcion para el trigger de auditoria
+CREATE OR REPLACE FUNCTION fn_auditoria_medicamentos()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (TG_OP = 'DELETE') THEN
+        INSERT INTO auditoria_medicamentos (id_medicamento, nombre, cantidad, presentacion, concentracion, movimiento)
+        VALUES (OLD.id, OLD.nombre, OLD.cantidad, OLD.presentacion, OLD.concentracion, 'DELETE');
+        RETURN OLD;
+    ELSIF (TG_OP = 'UPDATE') THEN
+        INSERT INTO auditoria_medicamentos (id_medicamento, nombre, cantidad, presentacion, concentracion, movimiento)
+        VALUES (OLD.id, OLD.nombre, OLD.cantidad, OLD.presentacion, OLD.concentracion, 'UPDATE');
+        RETURN NEW;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
 
 -- Inventario inicial
 INSERT INTO inventario (id, total) VALUES 
@@ -110,3 +134,16 @@ SELECT
     'Movimientos' as tabla, 
     COUNT(*) as registros 
 FROM movimientos;
+-- Trigger para UPDATE
+DROP TRIGGER IF EXISTS tr_auditoria_medicamentos_update ON medicamentos;
+CREATE TRIGGER tr_auditoria_medicamentos_update
+AFTER UPDATE ON medicamentos
+FOR EACH ROW
+EXECUTE FUNCTION fn_auditoria_medicamentos();
+
+-- Trigger para DELETE
+DROP TRIGGER IF EXISTS tr_auditoria_medicamentos_delete ON medicamentos;
+CREATE TRIGGER tr_auditoria_medicamentos_delete
+AFTER DELETE ON medicamentos
+FOR EACH ROW
+EXECUTE FUNCTION fn_auditoria_medicamentos();

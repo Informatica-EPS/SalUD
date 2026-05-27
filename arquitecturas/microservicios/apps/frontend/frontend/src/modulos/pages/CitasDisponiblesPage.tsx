@@ -83,20 +83,8 @@ export const CitasDisponiblesPage = () => {
          }
          
          // Si hay filtro de doctor específico, usar endpoint especializado
-         if (selectedDoctor !== 'todos') {
-            const data = await timeSlotsService.getAvailableByDoctor(
-               parseInt(selectedDoctor)
-            );
-            // Aplicar filtro de fecha si existe
-            let filteredData = data;
-            if (selectedDate !== 'todas') {
-               filteredData = data.filter(slot => slot.fecha === selectedDate);
-            }
-            setSlots(filteredData);
-            setTotalPages(1);
-            setTotalItems(filteredData.length);
-            setCurrentPage(1);
-         } else {
+         if (selectedDoctor === 'todos') {
+
             // Cargar todos los horarios con paginación
             const data = await timeSlotsService.getAvailable(
                currentPage, 
@@ -114,6 +102,21 @@ export const CitasDisponiblesPage = () => {
             setTotalPages(data.totalPages);
             setTotalItems(data.totalItems);
             setCurrentPage(data.currentPage);
+            
+         } else {
+            const data = await timeSlotsService.getAvailableByDoctor(
+               Number.parseInt(selectedDoctor, 10)
+            );
+            // Aplicar filtro de fecha si existe
+            let filteredData = data;
+            if (selectedDate !== 'todas') {
+               filteredData = data.filter(slot => slot.fecha === selectedDate);
+            }
+            setSlots(filteredData);
+            setTotalPages(1);
+            setTotalItems(filteredData.length);
+            setCurrentPage(1);
+
          }
       } catch (err) {
          setError('Error al cargar horarios disponibles');
@@ -124,7 +127,7 @@ export const CitasDisponiblesPage = () => {
    };
 
    // Obtener fechas únicas de todos los slots cargados
-   const uniqueDates = Array.from(new Set((slots || []).map((slot) => slot.fecha))).sort();
+   //No se usa const uniqueDates = Array.from(new Set((slots || []).map((slot) => slot.fecha))).sort();
 
    const handleFilterChange = (filterType: 'doctor' | 'date', value: string) => {
       if (filterType === 'doctor') {
@@ -191,7 +194,7 @@ export const CitasDisponiblesPage = () => {
          }
          
          const data = await timeSlotsService.getAvailable(1, 1000, filtroTipo);
-         const dates = Array.from(new Set(data.franjasHorarias.map(slot => slot.fecha))).sort();
+         const dates = Array.from(new Set(data.franjasHorarias.map(slot => slot.fecha))).sort((a, b) => a.localeCompare(b));
          setAllDates(dates);
       } catch (err) {
          console.error('Error al cargar fechas:', err);
@@ -213,6 +216,11 @@ export const CitasDisponiblesPage = () => {
       );
    }
 
+   const newLocal = tipoCita === 'ESPECIALIDAD' ? 'Especialidad' :
+      // Tipos futuros:
+      // tipoCita === 'CONTROL' ? 'Control' :
+      // tipoCita === 'URGENCIA' ? 'Urgencia' :
+      'Otro';
    return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
          {/* Header */}
@@ -272,12 +280,6 @@ export const CitasDisponiblesPage = () => {
                   Se mostrarán solo horarios de médicos especialistas
                </Alert>
             )}
-            {/* Alertas para tipos de cita futuros: */}
-            {/* {(tipoCita === 'CONTROL' || tipoCita === 'URGENCIA') && (
-               <Alert severity="info" sx={{ mt: 2 }}>
-                  Se mostrarán horarios de todos los médicos disponibles
-               </Alert>
-            )} */}
          </Paper>
 
          {/* Filtros */}
@@ -525,11 +527,7 @@ export const CitasDisponiblesPage = () => {
                         <Typography variant="subtitle2" gutterBottom>
                            Tipo de cita: <strong>{
                               tipoCita === 'MEDICINA_GENERAL' ? 'Medicina General' :
-                              tipoCita === 'ESPECIALIDAD' ? 'Especialidad' :
-                              // Tipos futuros:
-                              // tipoCita === 'CONTROL' ? 'Control' :
-                              // tipoCita === 'URGENCIA' ? 'Urgencia' :
-                              'Otro'
+                              newLocal
                            }</strong>
                         </Typography>
                      </Alert>

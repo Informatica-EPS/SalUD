@@ -22,8 +22,22 @@ class MedicamentsService:
             {
                 "id": m.id,
                 "nombre": m.nombre,
-                "inventario": m.inventario.total,
-                "movimientos": m.movimientos
+                "cantidad": m.cantidad,
+                "presentacion": m.presentacion,
+                "concentracion": m.concentracion,
+                "inventario": {
+                    "total": m.inventario.total if m.inventario else 0
+                } if m.inventario is not None else None,
+                "movimientos": [
+                    {
+                        "id": movimiento.id,
+                        "tipo_movimiento": movimiento.tipo_movimiento,
+                        "cantidad": movimiento.cantidad,
+                        "id_orden": movimiento.id_orden,
+                        "created_at": movimiento.created_at,
+                    }
+                    for movimiento in m.movimientos
+                ],
             }
             for m in medicaments
         ]
@@ -84,7 +98,7 @@ class MedicamentsService:
             medicament_id, quantity)
 
         self.movement_service.create_dispatch_event(
-            medicament_id, quantity, "admin")
+            medicament_id, body.idOrden, quantity, "admin")
 
         return {"message": "Medicamento despachado con éxito"}
         

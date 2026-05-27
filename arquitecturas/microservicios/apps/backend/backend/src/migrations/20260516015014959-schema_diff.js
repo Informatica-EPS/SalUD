@@ -3,13 +3,16 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.addColumn("ordenes", "id_medicamento", {
-      type: Sequelize.INTEGER,
-      allowNull: true,
-    });
+    await queryInterface.sequelize.query(`
+      ALTER TABLE ordenes
+      ADD COLUMN IF NOT EXISTS id_medicamento BIGINT;
+    `);
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.removeColumn("ordenes", "id_medicamento");
+    await queryInterface.sequelize.query(`
+      ALTER TABLE ordenes
+      DROP COLUMN IF EXISTS id_medicamento;
+    `);
   },
 };

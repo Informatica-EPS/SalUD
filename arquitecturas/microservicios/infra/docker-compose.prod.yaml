@@ -81,6 +81,7 @@ services:
       - PORT=5001
       - DB_DIALECT=postgres
       - RABBITMQ_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672
+      - CONFIG_CAT_KEY=${CONFIG_CAT_KEY}
     depends_on:
       db:
         condition: service_healthy
@@ -97,12 +98,13 @@ services:
       target: production
       args:
         - VITE_MEDICAMENTS_REMOTE_URL=${VITE_MEDICAMENTS_REMOTE_URL}
+        - VITE_API_URL=${VITE_API_URL}
     container_name: salud-frontend-prod
     restart: always
     environment:
       VITE_MEDICAMENTS_REMOTE_URL: ${VITE_MEDICAMENTS_REMOTE_URL}
     ports:
-      - "80:80"
+      - "80:8080"
     depends_on:
       - backend
     networks:

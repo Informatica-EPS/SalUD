@@ -2,46 +2,46 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
 const TimeSlot = sequelize.define(
-  "TimeSlot", // Antes: "TimeSlot"
+  "TimeSlot",
   {
     id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       primaryKey: true,
       autoIncrement: true,
     },
-    fecha: {
-      // Antes: date
-      type: DataTypes.DATEONLY,
-    },
+    fecha: DataTypes.DATEONLY,
     horaInicio: {
-      // Antes: startTime
       type: DataTypes.TIME,
+      field: "hora_inicio",
     },
     horaFin: {
-      // Antes: endTime
       type: DataTypes.TIME,
+      field: "hora_fin",
     },
-    estado: {
-      // Antes: status
-      type: DataTypes.STRING,
-    },
+    estado: DataTypes.STRING(20),
     idDoctor: {
-      // Antes: doctorId
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
+      field: "id_medico",
     },
-    // Auditoría
-    creadoPor: {
-      // Antes: createdBy
-      type: DataTypes.INTEGER,
+    createdBy: {
+      type: DataTypes.STRING(100),
+      field: "creado_por",
     },
-    actualizadoPor: {
-      // Antes: updatedBy
-      type: DataTypes.INTEGER,
+    updatedBy: {
+      type: DataTypes.STRING(100),
+      field: "actualizado_por",
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      field: "fecha_creacion",
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      field: "ultima_actualizacion",
     },
   },
   {
-    tableName: "horarios",
-    underscored: true,
+    tableName: "franja_horaria",
     timestamps: true,
   },
 );

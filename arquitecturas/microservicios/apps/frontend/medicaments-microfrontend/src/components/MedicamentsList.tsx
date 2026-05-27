@@ -659,7 +659,7 @@ export const MedicamentsList: React.FC = () => {
             <Box>
               <Typography variant="h6">{selectedMedicament?.nombre}</Typography>
               <Typography variant="body2" color="text.secondary">
-                Inventario actual: {selectedMedicament?.inventario} unidades
+                Inventario actual: {selectedMedicament?.inventario?.total ?? 0} unidades
               </Typography>
             </Box>
           </Box>

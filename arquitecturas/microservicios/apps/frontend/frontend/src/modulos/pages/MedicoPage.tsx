@@ -93,7 +93,7 @@ export default function MedicoPage() {
          setLoading(true);
          setError(null);
          const data = await appointmentsService.getByDoctor(doctorId);
-         console.log('Citas recibidas:', data);
+         console.log('Citas recibidas (RAW):', data); // Debug log
          
          // Manejar respuesta paginada o array directo
          let citasArray: IAppointment[] = [];
@@ -108,11 +108,12 @@ export default function MedicoPage() {
          // Normalizar la estructura: mapear Patient -> paciente, TimeSlot -> horario, AppointmentDetail -> detalles
          const normalizedAppointments = citasArray.map((cita: any) => ({
             ...cita,
+            id: cita.id,
             paciente: cita.Patient || cita.paciente,
             horario: cita.TimeSlot || cita.horario,
             detalles: cita.AppointmentDetail || cita.detalles,
          }));
-         
+         console.log('normalizados', normalizedAppointments);
          setAppointments(normalizedAppointments);
       } catch (err) {
          setError('Error al cargar las citas');
@@ -123,7 +124,7 @@ export default function MedicoPage() {
       }
    };
 
-   console.log(user)
+   //console.log(user)
 
    const handleCrearOrden = (appointment: IAppointment) => {
       navigate('/crear-orden', {
@@ -214,7 +215,7 @@ export default function MedicoPage() {
 
          if (existingDetail) {
             // Actualizar detalle existente
-            await appointmentDetailsService.update(existingDetail.id, detailData);
+            await appointmentDetailsService.update(existingDetail.idCita, detailData);
             setSuccess('Detalles actualizados exitosamente');
          } else {
             // Crear nuevo detalle
@@ -258,7 +259,7 @@ export default function MedicoPage() {
          };
 
          if (existingDetail) {
-            await appointmentDetailsService.update(existingDetail.id, detailData);
+            await appointmentDetailsService.update(existingDetail.idCita, detailData);
          } else {
             await appointmentDetailsService.create(detailData);
          }

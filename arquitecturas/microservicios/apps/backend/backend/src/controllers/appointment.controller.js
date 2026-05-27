@@ -177,7 +177,6 @@ module.exports = {
   getAppointmentsByDoctor,
   getAppointmentsByPatient,
   getAppointmentsBySpecialty,
-  getAppointmentsByPatient,
   getAppointments,
   updateAppointment,
   updateRescheduledAppointment,
