@@ -17,6 +17,7 @@ class OrderService {
 
     const order = await Order.create({
       ...data,
+      tipo: data.tipo || (data.idMedicamento ? "medicamento" : "especialidad"),
       creadoPor: auditUserId,
       actualizadoPor: auditUserId,
     });

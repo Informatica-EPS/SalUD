@@ -1,263 +1,201 @@
 'use strict';
 
 module.exports = {
-  up: async (queryInterface, Sequelize) => {
-    // ── 1. usuarios ────────────────────────────────────────────────
-    await queryInterface.createTable('usuarios', {
-      id: {
-        type: Sequelize.BIGINT,
-        autoIncrement: true,
-        primaryKey: true,
-      },
-      primer_nombre:       { type: Sequelize.STRING(100) },
-      segundo_nombre:      { type: Sequelize.STRING(100) },
-      primer_apellido:     { type: Sequelize.STRING(100) },
-      segundo_apellido:    { type: Sequelize.STRING(100) },
-      fecha_nacimiento:    { type: Sequelize.DATEONLY },
-      lugar_nacimiento:    { type: Sequelize.STRING(150) },
-      direccion:           { type: Sequelize.STRING(200) },
-      documento:           { type: Sequelize.STRING(64), unique: true },
-      tipo_documento:      { type: Sequelize.STRING(30) },
-      usuario:             { type: Sequelize.STRING(80), unique: true },
-      email:               { type: Sequelize.STRING(150), unique: true },
-      password:            { type: Sequelize.STRING(64) },
-      creado_por:          { type: Sequelize.STRING(100) },
-      fecha_creacion:      { type: Sequelize.DATE, defaultValue: Sequelize.NOW },
-      ultima_actualizacion:{ type: Sequelize.DATE },
-      actualizado_por:     { type: Sequelize.STRING(100) },
-    });
+  up: async (queryInterface) => {
+    await queryInterface.sequelize.query(`
+      DO $$
+      BEGIN
+        CREATE DOMAIN dom_tipo_documento AS VARCHAR(30)
+          CHECK (VALUE IN ('CC', 'CE', 'PAS', 'PE', 'TI', 'RC'));
+      EXCEPTION
+        WHEN duplicate_object THEN NULL;
+      END $$;
 
-    await queryInterface.sequelize.query('CREATE UNIQUE INDEX IF NOT EXISTS "usuarios_documento_unique" ON "usuarios" ("documento");');
-    await queryInterface.sequelize.query('CREATE UNIQUE INDEX IF NOT EXISTS "usuarios_usuario_unique"   ON "usuarios" ("usuario");');
-    await queryInterface.sequelize.query('CREATE UNIQUE INDEX IF NOT EXISTS "usuarios_email_unique"     ON "usuarios" ("email");');
+      DO $$
+      BEGIN
+        CREATE DOMAIN dom_sexo AS VARCHAR(1)
+          CHECK (VALUE IN ('M', 'F'));
+      EXCEPTION
+        WHEN duplicate_object THEN NULL;
+      END $$;
 
-    // ── 2. rol ─────────────────────────────────────────────────────
-    await queryInterface.createTable('rol', {
-      id: {
-        type: Sequelize.BIGINT,
-        autoIncrement: true,
-        primaryKey: true,
-      },
-      nombre:              { type: Sequelize.STRING(100), allowNull: false },
-      descripcion:         { type: Sequelize.STRING(200) },
-      creado_por:          { type: Sequelize.STRING(100) },
-      fecha_creacion:      { type: Sequelize.DATE },
-      ultima_actualizacion:{ type: Sequelize.DATE },
-      actualizado_por:     { type: Sequelize.STRING(100) },
-    });
+      CREATE TABLE IF NOT EXISTS usuarios (
+        id BIGSERIAL PRIMARY KEY,
+        primer_nombre VARCHAR(100) NOT NULL,
+        segundo_nombre VARCHAR(100) NOT NULL,
+        primer_apellido VARCHAR(100) NOT NULL,
+        segundo_apellido VARCHAR(100) NOT NULL,
+        fecha_nacimiento DATE NOT NULL,
+        lugar_nacimiento VARCHAR(150),
+        direccion VARCHAR(200),
+        documento VARCHAR(64) NOT NULL UNIQUE,
+        tipo_documento dom_tipo_documento NOT NULL,
+        usuario VARCHAR(80) NOT NULL UNIQUE,
+        email VARCHAR(150) NOT NULL UNIQUE,
+        password VARCHAR(64) NOT NULL,
+        creado_por VARCHAR(100),
+        fecha_creacion TIMESTAMPTZ DEFAULT NOW(),
+        ultima_actualizacion TIMESTAMPTZ,
+        actualizado_por VARCHAR(100),
+        CONSTRAINT usuarios_tipo_documento_documento_uq UNIQUE (tipo_documento, documento)
+      );
 
-    // ── 3. especialidades ──────────────────────────────────────────
-    await queryInterface.createTable('especialidades', {
-      id:          { type: Sequelize.STRING, primaryKey: true },
-      nombre:      { type: Sequelize.STRING(50), allowNull: false },
-      descripcion: { type: Sequelize.STRING(200) },
-    });
+      CREATE TABLE IF NOT EXISTS roles (
+        id BIGSERIAL PRIMARY KEY,
+        nombre VARCHAR(100) NOT NULL,
+        descripcion VARCHAR(200),
+        creado_por VARCHAR(100),
+        fecha_creacion TIMESTAMPTZ DEFAULT NOW(),
+        ultima_actualizacion TIMESTAMPTZ,
+        actualizado_por VARCHAR(100)
+      );
 
-    // ── 4. doctores ────────────────────────────────────────────────
-    await queryInterface.createTable('doctores', {
-      id: {
-        type: Sequelize.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
-      },
-      licencia_medica: { type: Sequelize.STRING, allowNull: false },
-      especialidad: {
-        type: Sequelize.STRING,
-        allowNull: true,
-        references: { model: 'especialidades', key: 'id' },
-        onDelete: 'SET NULL',
-        onUpdate: 'CASCADE',
-      },
-      id_usuario: {
-        type: Sequelize.BIGINT,
-        unique: true,
-        allowNull: true,
-        references: { model: 'usuarios', key: 'id' },
-        onDelete: 'SET NULL',
-        onUpdate: 'CASCADE',
-      },
-      creado_por:      { type: Sequelize.INTEGER },
-      actualizado_por: { type: Sequelize.INTEGER },
-      created_at:      { type: Sequelize.DATE, allowNull: false },
-      updated_at:      { type: Sequelize.DATE, allowNull: false },
-    });
+      CREATE TABLE IF NOT EXISTS especialidades (
+        id BIGSERIAL PRIMARY KEY,
+        nombre VARCHAR(50) NOT NULL,
+        descripcion VARCHAR(200)
+      );
 
-    await queryInterface.sequelize.query('CREATE UNIQUE INDEX IF NOT EXISTS "doctores_id_usuario_unique" ON "doctores" ("id_usuario");');
+      CREATE TABLE IF NOT EXISTS medicos (
+        id BIGSERIAL PRIMARY KEY,
+        registro_medico VARCHAR NOT NULL,
+        especialidad BIGINT,
+        creado_por VARCHAR(100),
+        fecha_creacion TIMESTAMPTZ DEFAULT NOW(),
+        ultima_actualizacion TIMESTAMPTZ,
+        actualizado_por VARCHAR(100),
+        id_usuario BIGINT UNIQUE,
+        CONSTRAINT medicos_especialidad_fkey
+          FOREIGN KEY (especialidad) REFERENCES especialidades(id)
+          ON DELETE SET NULL ON UPDATE CASCADE,
+        CONSTRAINT medicos_id_usuario_fkey
+          FOREIGN KEY (id_usuario) REFERENCES usuarios(id)
+          ON DELETE SET NULL ON UPDATE CASCADE
+      );
 
-    // ── 5. pacientes ───────────────────────────────────────────────
-    await queryInterface.createTable('pacientes', {
-      id: {
-        type: Sequelize.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
-      },
-      ocupacion:        { type: Sequelize.STRING },
-      discapacidad:     { type: Sequelize.STRING },
-      religion:         { type: Sequelize.STRING },
-      etnia:            { type: Sequelize.STRING },
-      identidad_genero: { type: Sequelize.STRING },
-      sexo:             { type: Sequelize.STRING },
-      id_usuario: {
-        type: Sequelize.BIGINT,
-        allowNull: true,
-        references: { model: 'usuarios', key: 'id' },
-        onDelete: 'SET NULL',
-        onUpdate: 'CASCADE',
-      },
-      creado_por:      { type: Sequelize.INTEGER },
-      actualizado_por: { type: Sequelize.INTEGER },
-      created_at:      { type: Sequelize.DATE, allowNull: false },
-      updated_at:      { type: Sequelize.DATE, allowNull: false },
-    });
+      CREATE TABLE IF NOT EXISTS pacientes (
+        id BIGSERIAL PRIMARY KEY,
+        ocupacion VARCHAR(50),
+        discapacidad VARCHAR(50),
+        religion VARCHAR(50),
+        etnia VARCHAR(50),
+        identidad_genero VARCHAR(50) NOT NULL,
+        sexo dom_sexo NOT NULL,
+        creado_por VARCHAR(100),
+        fecha_creacion TIMESTAMPTZ DEFAULT NOW(),
+        ultima_actualizacion TIMESTAMPTZ,
+        actualizado_por VARCHAR(100),
+        id_usuario BIGINT UNIQUE,
+        CONSTRAINT pacientes_id_usuario_fkey
+          FOREIGN KEY (id_usuario) REFERENCES usuarios(id)
+          ON DELETE SET NULL ON UPDATE CASCADE
+      );
 
-    // ── 6. horarios ────────────────────────────────────────────────
-    await queryInterface.createTable('horarios', {
-      id: {
-        type: Sequelize.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
-      },
-      fecha:       { type: Sequelize.DATEONLY },
-      hora_inicio: { type: Sequelize.TIME },
-      hora_fin:    { type: Sequelize.TIME },
-      estado:      { type: Sequelize.STRING },
-      id_doctor: {
-        type: Sequelize.INTEGER,
-        allowNull: true,
-        references: { model: 'doctores', key: 'id' },
-        onDelete: 'SET NULL',
-        onUpdate: 'CASCADE',
-      },
-      creado_por:      { type: Sequelize.INTEGER },
-      actualizado_por: { type: Sequelize.INTEGER },
-      created_at:      { type: Sequelize.DATE, allowNull: false },
-      updated_at:      { type: Sequelize.DATE, allowNull: false },
-    });
+      CREATE TABLE IF NOT EXISTS franja_horaria (
+        id BIGSERIAL PRIMARY KEY,
+        fecha DATE,
+        hora_inicio TIME,
+        hora_fin TIME,
+        estado VARCHAR(20),
+        creado_por VARCHAR(100),
+        fecha_creacion TIMESTAMPTZ DEFAULT NOW(),
+        ultima_actualizacion TIMESTAMPTZ,
+        actualizado_por VARCHAR(100),
+        id_medico BIGINT NOT NULL,
+        CONSTRAINT franja_horaria_rango_hora_ck CHECK (hora_inicio < hora_fin),
+        CONSTRAINT franja_horaria_medico_fecha_hora_uq UNIQUE (id_medico, fecha, hora_inicio, hora_fin),
+        CONSTRAINT franja_horaria_id_medico_fkey
+          FOREIGN KEY (id_medico) REFERENCES medicos(id)
+          ON DELETE CASCADE ON UPDATE CASCADE
+      );
 
-    // ── 7. citas ───────────────────────────────────────────────────
-    await queryInterface.createTable('citas', {
-      id: {
-        type: Sequelize.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
-      },
-      tipo_cita: { type: Sequelize.STRING },
-      estado:    { type: Sequelize.STRING },
-      id_paciente: {
-        type: Sequelize.INTEGER,
-        allowNull: true,
-        references: { model: 'pacientes', key: 'id' },
-        onDelete: 'SET NULL',
-        onUpdate: 'CASCADE',
-      },
-      id_doctor: {
-        type: Sequelize.INTEGER,
-        allowNull: true,
-        references: { model: 'doctores', key: 'id' },
-        onDelete: 'SET NULL',
-        onUpdate: 'CASCADE',
-      },
-      id_horario: {
-        type: Sequelize.INTEGER,
-        allowNull: true,
-        references: { model: 'horarios', key: 'id' },
-        onDelete: 'SET NULL',
-        onUpdate: 'CASCADE',
-      },
-      creado_por:      { type: Sequelize.INTEGER },
-      actualizado_por: { type: Sequelize.INTEGER },
-      created_at:      { type: Sequelize.DATE, allowNull: false },
-      updated_at:      { type: Sequelize.DATE, allowNull: false },
-    });
+      CREATE TABLE IF NOT EXISTS citas (
+        id BIGSERIAL PRIMARY KEY,
+        tipo_cita VARCHAR(20) NOT NULL,
+        estado VARCHAR(20) NOT NULL,
+        creado_por VARCHAR(100),
+        fecha_creacion TIMESTAMPTZ DEFAULT NOW(),
+        ultima_actualizacion TIMESTAMPTZ,
+        actualizado_por VARCHAR(100),
+        id_paciente BIGINT NOT NULL,
+        id_medico BIGINT NOT NULL,
+        id_franja_horaria BIGINT NOT NULL,
+        CONSTRAINT citas_id_paciente_fkey
+          FOREIGN KEY (id_paciente) REFERENCES pacientes(id)
+          ON DELETE CASCADE ON UPDATE CASCADE,
+        CONSTRAINT citas_id_medico_fkey
+          FOREIGN KEY (id_medico) REFERENCES medicos(id)
+          ON DELETE CASCADE ON UPDATE CASCADE,
+        CONSTRAINT citas_id_franja_horaria_fkey
+          FOREIGN KEY (id_franja_horaria) REFERENCES franja_horaria(id)
+          ON DELETE CASCADE ON UPDATE CASCADE
+      );
 
-    // ── 8. detalles_cita ───────────────────────────────────────────
-    await queryInterface.createTable('detalles_cita', {
-      id: {
-        type: Sequelize.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
-      },
-      motivo:            { type: Sequelize.TEXT },
-      antecedentes:      { type: Sequelize.TEXT },
-      anamnesis:         { type: Sequelize.TEXT },
-      revision_sistemas: { type: Sequelize.TEXT },
-      examen_fisico:     { type: Sequelize.TEXT },
-      diagnostico:       { type: Sequelize.TEXT },
-      plan_manejo:       { type: Sequelize.TEXT },
-      evolucion:         { type: Sequelize.TEXT },
-      id_cita: {
-        type: Sequelize.INTEGER,
-        allowNull: true,
-        references: { model: 'citas', key: 'id' },
-        onDelete: 'SET NULL',
-        onUpdate: 'CASCADE',
-      },
-      created_at: { type: Sequelize.DATE, allowNull: false },
-      updated_at: { type: Sequelize.DATE, allowNull: false },
-    });
+      CREATE TABLE IF NOT EXISTS detalle_cita (
+        id_cita BIGINT PRIMARY KEY,
+        motivo TEXT,
+        antecedentes TEXT,
+        anamnesis TEXT,
+        revision_sistemas TEXT,
+        examen_fisico TEXT,
+        diagnostico TEXT,
+        plan_manejo TEXT,
+        evolucion TEXT,
+        CONSTRAINT detalle_cita_id_cita_fkey
+          FOREIGN KEY (id_cita) REFERENCES citas(id)
+          ON DELETE CASCADE ON UPDATE CASCADE
+      );
 
-    // ── 9. ordenes ─────────────────────────────────────────────────
-    await queryInterface.createTable('ordenes', {
-      id: {
-        type: Sequelize.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
-      },
-      id_cita: {
-        type: Sequelize.INTEGER,
-        allowNull: true,
-        references: { model: 'citas', key: 'id' },
-        onDelete: 'SET NULL',
-        onUpdate: 'CASCADE',
-      },
-      fecha_vencimiento: { type: Sequelize.DATE },
-      estado:            { type: Sequelize.STRING(50) },
-      entidad_destino:   { type: Sequelize.STRING(100) },
-      especialidad: {
-        type: Sequelize.STRING,
-        allowNull: true,
-        references: { model: 'especialidades', key: 'id' },
-        onDelete: 'CASCADE',
-        onUpdate: 'CASCADE',
-      },
-      descripcion: { type: Sequelize.STRING(200) },
-      created_at:  { type: Sequelize.DATE, allowNull: false },
-      updated_at:  { type: Sequelize.DATE, allowNull: false },
-    });
+      CREATE TABLE IF NOT EXISTS ordenes (
+        id BIGSERIAL PRIMARY KEY,
+        tipo VARCHAR(20) NOT NULL,
+        id_medicamento BIGINT,
+        id_cita BIGINT NOT NULL,
+        fecha_vencimiento TIMESTAMPTZ NOT NULL,
+        estado VARCHAR(50),
+        entidad_destino VARCHAR(100),
+        especialidad BIGINT,
+        descripcion VARCHAR(200),
+        fecha_creacion TIMESTAMPTZ DEFAULT NOW(),
+        fecha_actualizacion TIMESTAMPTZ,
+        creado_por VARCHAR(100),
+        actualizado_por VARCHAR(100),
+        CONSTRAINT ordenes_id_cita_fkey
+          FOREIGN KEY (id_cita) REFERENCES citas(id)
+          ON DELETE CASCADE ON UPDATE CASCADE,
+        CONSTRAINT ordenes_especialidad_fkey
+          FOREIGN KEY (especialidad) REFERENCES especialidades(id)
+          ON DELETE SET NULL ON UPDATE CASCADE
+      );
 
-    // ── 10. roles_usuario ──────────────────────────────────────────
-    await queryInterface.createTable('roles_usuario', {
-      id_rol: {
-        type: Sequelize.BIGINT,
-        allowNull: false,
-        primaryKey: true,
-        references: { model: 'rol', key: 'id' },
-        onDelete: 'CASCADE',
-        onUpdate: 'CASCADE',
-      },
-      id_usuario: {
-        type: Sequelize.BIGINT,
-        allowNull: false,
-        primaryKey: true,
-        references: { model: 'usuarios', key: 'id' },
-        onDelete: 'CASCADE',
-        onUpdate: 'CASCADE',
-      },
-    });
-
-    await queryInterface.sequelize.query('CREATE UNIQUE INDEX IF NOT EXISTS "roles_usuario_id_rol_id_usuario_unique" ON "roles_usuario" ("id_rol", "id_usuario");');
+      CREATE TABLE IF NOT EXISTS roles_usuario (
+        id_rol BIGINT NOT NULL,
+        id_usuario BIGINT NOT NULL,
+        PRIMARY KEY (id_rol, id_usuario),
+        CONSTRAINT roles_usuario_id_rol_fkey
+          FOREIGN KEY (id_rol) REFERENCES roles(id)
+          ON DELETE CASCADE ON UPDATE CASCADE,
+        CONSTRAINT roles_usuario_id_usuario_fkey
+          FOREIGN KEY (id_usuario) REFERENCES usuarios(id)
+          ON DELETE CASCADE ON UPDATE CASCADE
+      );
+    `);
   },
 
   down: async (queryInterface) => {
-    await queryInterface.dropTable('roles_usuario');
-    await queryInterface.dropTable('ordenes');
-    await queryInterface.dropTable('detalles_cita');
-    await queryInterface.dropTable('citas');
-    await queryInterface.dropTable('horarios');
-    await queryInterface.dropTable('pacientes');
-    await queryInterface.dropTable('doctores');
-    await queryInterface.dropTable('especialidades');
-    await queryInterface.dropTable('rol');
-    await queryInterface.dropTable('usuarios');
+    await queryInterface.sequelize.query(`
+      DROP TABLE IF EXISTS roles_usuario;
+      DROP TABLE IF EXISTS ordenes;
+      DROP TABLE IF EXISTS detalle_cita;
+      DROP TABLE IF EXISTS citas;
+      DROP TABLE IF EXISTS franja_horaria;
+      DROP TABLE IF EXISTS pacientes;
+      DROP TABLE IF EXISTS medicos;
+      DROP TABLE IF EXISTS especialidades;
+      DROP TABLE IF EXISTS roles;
+      DROP TABLE IF EXISTS usuarios;
+      DROP DOMAIN IF EXISTS dom_sexo;
+      DROP DOMAIN IF EXISTS dom_tipo_documento;
+    `);
   },
 };

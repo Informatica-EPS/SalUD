@@ -27,6 +27,7 @@ jest.mock("../../utils/functions", () => ({
 
 jest.mock("../../utils", () => ({
   appointmentsStatus: {
+    PROGRAMADO: "programado",
     REALIZADO: "realizado",
     CANCELADO: "cancelado",
   },
@@ -72,7 +73,13 @@ describe("appointment service", () => {
       expect(DoctorModel.findByPk).toHaveBeenCalledWith(1);
       expect(SpecialtyModel.findByPk).toHaveBeenCalledWith(null);
       expect(TimeSlotService.markAsScheduled).toHaveBeenCalledWith(2);
-      expect(Appointment.create).toHaveBeenCalledWith(data);
+      expect(Appointment.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ...data,
+          tipoCita: "general",
+          estado: "programado",
+        })
+      );
       expect(result).toEqual(mockAppointment);
     });
 
@@ -448,7 +455,7 @@ describe("appointment service", () => {
           TimeSlot: { fecha: "2026-05-20", horaInicio: "10:00", horaFin: "10:30" },
           AppointmentDetail: { motivo: "Fiebre" },
           Doctor: {
-            licencia_medica: "LIC-123",
+            licenciaMedica: "LIC-123",
             User: { primer_nombre: "Juan", primer_apellido: "Pérez", email: "juan@med.com" },
             Specialty: { nombre: "Pediatría" },
           },
@@ -504,7 +511,13 @@ describe("appointment service", () => {
       expect(orderService.validatePatientHasAuthorizedOrders).toHaveBeenCalledWith(3, 5);
       expect(orderService.setCompletedOrder).toHaveBeenCalledWith(100);
       expect(TimeSlotService.markAsScheduled).toHaveBeenCalledWith(2);
-      expect(Appointment.create).toHaveBeenCalledWith(data);
+      expect(Appointment.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ...data,
+          tipoCita: "general",
+          estado: "programado",
+        })
+      );
       expect(result).toEqual(mockAppointment);
     });
 

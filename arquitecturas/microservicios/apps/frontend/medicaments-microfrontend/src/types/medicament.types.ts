@@ -7,10 +7,14 @@ export interface Movimiento {
   created_at: string;
 }
 
+export interface Inventory {
+  total: number;
+}
+
 export interface Medicament {
   id: number;
   nombre: string;
-  inventario: number;
+  inventario?: Inventory;
   movimientos: Movimiento[];
 }
 
