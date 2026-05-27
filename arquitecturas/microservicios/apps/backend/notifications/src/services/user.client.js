@@ -2,7 +2,7 @@ const axios = require("axios");
 
 class UsersClient {
   constructor() {
-    this.baseURL = process.env.USERS_API_URL || "http://backend:5000";
+    this.baseURL = process.env.USERS_API_URL || "http://salud.mexicocentral.cloudapp.azure.com";
 
     this.axiosClient = axios.create({
       baseURL: this.baseURL,

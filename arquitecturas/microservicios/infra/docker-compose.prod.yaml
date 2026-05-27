@@ -81,7 +81,6 @@ services:
       - PORT=5001
       - DB_DIALECT=postgres
       - RABBITMQ_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672
-      - USERS_API_URL=http://salud.mexicocentral.cloudapp.azure.com
     depends_on:
       db:
         condition: service_healthy
