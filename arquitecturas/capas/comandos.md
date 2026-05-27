@@ -45,12 +45,26 @@ docker stats
 
 # Conectar a PostreSQL
 
-docker compose -f docker-compose.dev.yaml exec db psql -U user_admin -d mi_base_de_datosdocker compose -f docker-compose.dev.yaml exec backend clear
-basic commands\dt : Lists all tables\d : Shows schema\l : List all databases\q : Quit
+docker compose -f docker-compose.dev.yaml exec db psql -U user_admin -d mi_base_de_datos
+docker compose -f docker-compose.dev.yaml exec backend clear
+basic commands
+
+\dt : Lists all tables
+\d : Shows schema
+\l : List all databases
+\q : Quit
 
 # crear migración
 
-## docker compose -f docker-compose.dev.yaml exec backend npx sequelize-cli migration:generate --name create-patientsdocker compose -f docker-compose.dev.yaml exec backend npx sequelize-cli migration:generate --name create-patientsdocker compose -f docker-compose.dev.yaml exec backend npx sequelize-cli db:migrate:undodocker compose -f docker-compose.dev.yaml exec backend npx sequelize-cli db:migrate:undo:alldocker compose -f docker-compose.dev.yaml exec backend npx sequelize-cli db:dropdocker compose -f docker-compose.dev.yaml exec backend npx sequelize-cli db:createdocker compose -f docker-compose.dev.yaml exec backend npx sequelize-cli db:migratedocker compose -f docker-compose.dev.yaml exec backend npm run db:diff:schema
+docker compose -f docker-compose.dev.yaml exec backend npx sequelize-cli migration:generate --name create-patients
+docker compose -f docker-compose.dev.yaml exec backend npx sequelize-cli migration:generate --name create-patients
+docker compose -f docker-compose.dev.yaml exec backend npx sequelize-cli db:migrate:undo
+docker compose -f docker-compose.dev.yaml exec backend npx sequelize-cli db:migrate:undo:all
+docker compose -f docker-compose.dev.yaml exec backend npx sequelize-cli db:drop
+docker compose -f docker-compose.dev.yaml exec backend npx sequelize-cli db:create
+docker compose -f docker-compose.dev.yaml exec backend npx sequelize-cli db:migrate
+docker compose -f docker-compose.dev.yaml exec backend npm run db:diff:schema
+docker compose -f docker-compose.dev.yaml exec backend npx sequelize-cli db:migrate:status
 
 # seeders
 

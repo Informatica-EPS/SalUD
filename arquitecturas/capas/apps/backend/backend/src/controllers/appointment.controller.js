@@ -1,4 +1,4 @@
-const appointmentService = require("../services/appointmet.service");
+const appointmentService = require("../services/appointment.service");
 
 const createAppointment = async (req, res, next) => {
   try {
