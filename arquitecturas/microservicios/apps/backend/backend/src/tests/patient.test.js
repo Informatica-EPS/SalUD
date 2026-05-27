@@ -14,6 +14,8 @@ it('POST /api/patients - Debería crear un nuevo paciente', async () => {
     const newPatient = {
       name: 'Juan Perez',
       email: 'juan@test.com',
+      identidadGenero: 'Masculino',
+      sexo: 'M',
       // Agrega aquí los campos obligatorios exactos de tu modelo
     };
 

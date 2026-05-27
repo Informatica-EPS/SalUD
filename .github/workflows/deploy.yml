@@ -132,6 +132,7 @@ jobs:
 
             # Agregar VITE_MEDICAMENTS_REMOTE_URL a infra/dev.env
             add_to_infra "VITE_MEDICAMENTS_REMOTE_URL" "${{ secrets.VITE_MEDICAMENTS_REMOTE_URL }}"
+            add_to_infra "VITE_API_URL" "${{ secrets.VITE_API_URL }}"
             
             echo "Contenido de infra/dev.env:"
             cat infra/dev.env

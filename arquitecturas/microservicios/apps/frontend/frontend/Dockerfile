@@ -16,6 +16,8 @@ FROM base AS build
 ENV NODE_OPTIONS="--max-old-space-size=2048"
 ARG VITE_MEDICAMENTS_REMOTE_URL
 ENV VITE_MEDICAMENTS_REMOTE_URL=$VITE_MEDICAMENTS_REMOTE_URL
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
 RUN npm run build --ignore-scripts
 
 # Producción (Nginx ultraligero para Azure)
