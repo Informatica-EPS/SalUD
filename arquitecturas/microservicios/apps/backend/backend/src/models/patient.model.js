@@ -19,7 +19,7 @@ const Patient = sequelize.define(
       field: "identidad_genero",
     },
     sexo: {
-      type: DataTypes.STRING(1),
+      type: DataTypes.STRING(100),
       allowNull: false,
     },
     idUsuario: {
