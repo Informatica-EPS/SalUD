@@ -3,6 +3,7 @@ from app.repositories.medicaments_repository import MedicamentsRepository
 from app.schemas.medicament_schema import MedicamentResponse, MedicamentDispatchRequest, MedicamentUpdateRequest, MedicamentCreateRequest
 from app.services.inventory_service import InventoryService
 from app.services.movement_service import MovementService
+from app.core.constants import MovementType, ErrorMessages
 from app.core.config import settings
 import httpx
 
@@ -100,8 +101,12 @@ class MedicamentsService:
         self.inventory_service.update_inventory(medicament_id, body.total)
 
         if diferencia > 0:
-            self.movement_service.create_entry_event(medicament_id, diferencia, "admin")
+            self.movement_service.create_adjustment_event(
+                medicament_id, diferencia, MovementType.ENTRY, "admin"
+            )
         else:
-            self.movement_service.create_dispatch_event(medicament_id, abs(diferencia), "admin")
+            self.movement_service.create_adjustment_event(
+                medicament_id, abs(diferencia), MovementType.EXIT, "admin"
+            )
 
         return {"message": "Inventario actualizado con éxito"}

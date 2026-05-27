@@ -138,7 +138,8 @@ CREATE TABLE ordenes (
     especialidad     INTEGER REFERENCES especialidades(id) ON DELETE CASCADE ON UPDATE CASCADE,
     descripcion      VARCHAR(200),
     created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    cantidad_medicamento   INTEGER DEFAULT 0
 );
 
 CREATE TABLE roles_usuario (

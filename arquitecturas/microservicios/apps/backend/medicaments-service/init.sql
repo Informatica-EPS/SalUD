@@ -72,7 +72,6 @@ ON CONFLICT DO NOTHING;
 
 -- Movimientos iniciales (entradas al inventario)
 INSERT INTO movimientos (id_medicamento, tipo_movimiento, cantidad, created_by, created_at) VALUES 
-    (1, 'entrada', 150, 'admin', CURRENT_TIMESTAMP - INTERVAL '10 days'),
     (2, 'entrada', 200, 'admin', CURRENT_TIMESTAMP - INTERVAL '10 days'),
     (3, 'entrada', 100, 'admin', CURRENT_TIMESTAMP - INTERVAL '9 days'),
     (4, 'entrada', 200, 'admin', CURRENT_TIMESTAMP - INTERVAL '9 days'),

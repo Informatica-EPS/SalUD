@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 from app.repositories.movement_repository import MovementRepository
-from app.core.constants import MovementType
+from app.core.constants import MovementType, ErrorMessages
 
 
 class MovementService:
@@ -24,3 +24,12 @@ class MovementService:
                 "created_by": created_by
             }
             return self.repository.create(event)
+
+    def create_adjustment_event(self, id_medicamento: int, cantidad: int, tipo: str, created_by: str):
+        event = {
+            "id_medicamento": id_medicamento,
+            "tipo_movimiento": tipo,
+            "cantidad": cantidad,
+            "created_by": created_by
+        }
+        return self.repository.create(event)

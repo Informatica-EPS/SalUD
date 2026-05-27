@@ -25,7 +25,7 @@ import {
   TableRow,
   Paper,
   useMediaQuery,
-  Menu,
+  Menu, 
   MenuItem,
   IconButton,
   ListItemIcon,
@@ -129,6 +129,10 @@ export const MedicamentsList: React.FC = () => {
 
   const [dispatchOpen, setDispatchOpen] = useState(false);
 
+  const visibleMedicaments = medicaments.filter(
+    (medicament) => medicament.id !== 1
+  );
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
@@ -221,7 +225,17 @@ export const MedicamentsList: React.FC = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box
+  sx={{
+    p: {
+      xs: 2,
+      md: 4,
+    },
+    background:
+      'linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%)',
+    minHeight: '100vh',
+  }}
+>
       <Box
   sx={{
     mb: 4,
@@ -387,20 +401,97 @@ export const MedicamentsList: React.FC = () => {
   )}
 </Box>
 
-      <TextField
-        fullWidth
-        placeholder="Buscar medicamentos..."
-        value={searchQuery}
-        onChange={(e) => handleSearch(e.target.value)}
-        sx={{ mb: 3 }}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon />
-            </InputAdornment>
-          ),
-        }}
-      />
+<Grid container spacing={2} sx={{ mb: 4 }}>
+  <Grid item xs={12} md={4}>
+    <Paper
+      sx={{
+        p: 3,
+        borderRadius: '20px',
+      }}
+    >
+      <Typography color="text.secondary">
+        Total medicamentos
+      </Typography>
+
+      <Typography variant="h4" fontWeight={700}>
+        {visibleMedicaments.length}
+      </Typography>
+    </Paper>
+  </Grid>
+
+  <Grid item xs={12} md={4}>
+    <Paper
+      sx={{
+        p: 3,
+        borderRadius: '20px',
+      }}
+    >
+      <Typography color="text.secondary">
+        Inventario bajo
+      </Typography>
+
+      <Typography variant="h4" fontWeight={700}>
+        {
+          visibleMedicaments.filter(
+            (m) => m.inventario <= 50
+          ).length
+        }
+      </Typography>
+    </Paper>
+  </Grid>
+
+  <Grid item xs={12} md={4}>
+    <Paper
+      sx={{
+        p: 3,
+        borderRadius: '20px',
+      }}
+    >
+      <Typography color="text.secondary">
+        Movimientos
+      </Typography>
+
+      <Typography variant="h4" fontWeight={700}>
+        {
+          visibleMedicaments.reduce(
+            (acc, m) => acc + m.movimientos.length,
+            0
+          )
+        }
+      </Typography>
+    </Paper>
+  </Grid>
+</Grid>
+
+      <Paper
+  elevation={0}
+  sx={{
+    p: 1,
+    px: 2,
+    mb: 4,
+    borderRadius: '20px',
+    border: '1px solid #e3edf7',
+    background: 'rgba(255,255,255,0.75)',
+    backdropFilter: 'blur(10px)',
+    boxShadow: '0 8px 24px rgba(15,23,42,0.06)',
+  }}
+>
+  <TextField
+    fullWidth
+    placeholder="Buscar medicamentos..."
+    value={searchQuery}
+    onChange={(e) => handleSearch(e.target.value)}
+    variant="standard"
+    InputProps={{
+      disableUnderline: true,
+      startAdornment: (
+        <InputAdornment position="start">
+          <SearchIcon sx={{ color: '#1976d2' }} />
+        </InputAdornment>
+      ),
+    }}
+  />
+</Paper>
 
       {error && (
         <Alert severity="error" sx={{ mb: 3 }}>
@@ -416,19 +507,79 @@ export const MedicamentsList: React.FC = () => {
         )
     .map((medicament) => (
       <Grid item xs={12} sm={6} md={4} key={medicament.id}>
-        <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-          <CardContent sx={{ flexGrow: 1 }}>
-            <Typography variant="h6" component="h2" gutterBottom>
+        <Card
+  sx={{
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    borderRadius: '24px',
+    background: 'rgba(255,255,255,0.82)',
+    backdropFilter: 'blur(12px)',
+    border: '1px solid rgba(255,255,255,0.7)',
+    boxShadow: '0 10px 30px rgba(15,23,42,0.08)',
+    transition: 'all .25s ease',
+    overflow: 'hidden',
+
+    '&:hover': {
+      transform: 'translateY(-6px)',
+      boxShadow: '0 18px 40px rgba(15,23,42,0.14)',
+    },
+  }}
+>
+          <CardContent
+  sx={{
+    flexGrow: 1,
+    p: 3,
+  }}
+>
+            <Typography
+  variant="h6"
+  component="h2"
+  sx={{
+    fontWeight: 700,
+    color: '#16324f',
+    mb: 2,
+    lineHeight: 1.3,
+  }}
+>
               {medicament.nombre}
             </Typography>
 
             <Box sx={{ mb: 2 }}>
               <Chip
-                label={`Inventario: ${medicament.inventario}`}
-                size="medium"
-                color={getStockColor(medicament.inventario)}
-                sx={{ fontWeight: 'bold' }}
-              />
+  label={`${medicament.inventario} unidades`}
+  color={getStockColor(medicament.inventario)}
+  sx={{
+    fontWeight: 700,
+    borderRadius: '10px',
+    px: 1,
+    fontSize: '0.82rem',
+  }}
+/>
+{/* <Box sx={{ mt: 2 }}>
+  <Box
+    sx={{
+      height: 8,
+      borderRadius: 999,
+      background: '#edf2f7',
+      overflow: 'hidden',
+    }}
+  >
+    <Box
+      sx={{
+        width: `${Math.min(medicament.inventario, 100)}%`,
+        height: '100%',
+        borderRadius: 999,
+        background:
+          medicament.inventario >= 100
+            ? 'linear-gradient(90deg,#22c55e,#4ade80)'
+            : medicament.inventario > 50
+            ? 'linear-gradient(90deg,#f59e0b,#fbbf24)'
+            : 'linear-gradient(90deg,#ef4444,#f87171)',
+      }}
+    />
+  </Box>
+</Box> */}
             </Box>
 
             <Box sx={{ mb: 1 }}>
@@ -440,17 +591,42 @@ export const MedicamentsList: React.FC = () => {
               </Typography>
             </Box>
           </CardContent>
-          <CardActions>
-            <Button size="small" onClick={() => handleOpenDetails(medicament)}>
-              Ver Detalles
-            </Button>
-            <Button size="small" onClick={() => handleEdit(medicament.id)}>
-              Editar
-            </Button>
-            {/* <Button size="small" color="error" onClick={() => handleDelete(medicament.id)}>
-              Eliminar
-            </Button> */}
-          </CardActions>
+          <CardActions
+  sx={{
+    px: 3,
+    pb: 3,
+    pt: 0,
+    gap: 1.5,
+  }}
+>
+  <Button
+    fullWidth
+    variant="outlined"
+    onClick={() => handleOpenDetails(medicament)}
+    sx={{
+      borderRadius: '12px',
+      textTransform: 'none',
+      fontWeight: 600,
+    }}
+  >
+    Ver detalles
+  </Button>
+
+  <Button
+    fullWidth
+    variant="contained"
+    onClick={() => handleEdit(medicament.id)}
+    sx={{
+      borderRadius: '12px',
+      textTransform: 'none',
+      fontWeight: 700,
+      background:
+        'linear-gradient(135deg,#1976d2,#42a5f5)',
+    }}
+  >
+    Editar
+  </Button>
+</CardActions>
         </Card>
       </Grid>
     ))}
@@ -470,6 +646,12 @@ export const MedicamentsList: React.FC = () => {
         onClose={handleCloseDetails}
         maxWidth="md"
         fullWidth
+        PaperProps={{
+  sx: {
+    borderRadius: '24px',
+    overflow: 'hidden',
+  },
+}}
       >
         <DialogTitle>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -484,7 +666,10 @@ export const MedicamentsList: React.FC = () => {
         </DialogTitle>
         <DialogContent>
           {selectedMedicament && selectedMedicament.movimientos.length > 0 ? (
-            <TableContainer component={Paper} elevation={0}>
+            <TableContainer component={Paper} elevation={0} sx={{
+  borderRadius: '18px',
+  border: '1px solid #edf2f7',
+}}>
               <Table>
                 <TableHead>
                   <TableRow>
@@ -536,7 +721,15 @@ export const MedicamentsList: React.FC = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDetails}>Cerrar</Button>
+            <Button
+    variant="outlined"
+    onClick={handleCloseDetails}
+    sx={{
+      borderRadius: '12px',
+      textTransform: 'none',
+      fontWeight: 600,
+    }}
+  >Cerrar</Button>
         </DialogActions>
       </Dialog>
     </Box>
