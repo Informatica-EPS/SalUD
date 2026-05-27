@@ -11,8 +11,8 @@ END $$;
 
 DO $$
 BEGIN
-    CREATE DOMAIN dom_sexo AS VARCHAR(1)
-    CHECK (VALUE IN ('M', 'F'));
+    CREATE DOMAIN dom_sexo AS VARCHAR(15)
+    CHECK (VALUE IN ('M', 'F','masculino', 'femenino', 'intersexual', 'no_responde'));
 EXCEPTION
     WHEN duplicate_object THEN NULL;
 END $$;
@@ -71,23 +71,23 @@ CREATE TABLE IF NOT EXISTS medicos (
         ON DELETE SET NULL ON UPDATE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS pacientes (
-    id BIGSERIAL PRIMARY KEY,
-    ocupacion VARCHAR(50),
-    discapacidad VARCHAR(50),
-    religion VARCHAR(50),
-    etnia VARCHAR(50),
-    identidad_genero VARCHAR(50) NOT NULL,
-    sexo dom_sexo NOT NULL,
-    creado_por VARCHAR(100),
-    fecha_creacion TIMESTAMPTZ DEFAULT NOW(),
-    ultima_actualizacion TIMESTAMPTZ,
-    actualizado_por VARCHAR(100),
-    id_usuario BIGINT UNIQUE,
-    CONSTRAINT pacientes_id_usuario_fkey
-        FOREIGN KEY (id_usuario) REFERENCES usuarios(id)
-        ON DELETE SET NULL ON UPDATE CASCADE
-);
+    CREATE TABLE IF NOT EXISTS pacientes (
+        id BIGSERIAL PRIMARY KEY,
+        ocupacion VARCHAR(50),
+        discapacidad VARCHAR(50),
+        religion VARCHAR(50),
+        etnia VARCHAR(50),
+        identidad_genero VARCHAR(50) NOT NULL,
+        sexo dom_sexo NOT NULL,
+        creado_por VARCHAR(100),
+        fecha_creacion TIMESTAMPTZ DEFAULT NOW(),
+        ultima_actualizacion TIMESTAMPTZ,
+        actualizado_por VARCHAR(100),
+        id_usuario BIGINT UNIQUE,
+        CONSTRAINT pacientes_id_usuario_fkey
+            FOREIGN KEY (id_usuario) REFERENCES usuarios(id)
+            ON DELETE SET NULL ON UPDATE CASCADE
+    );
 
 CREATE TABLE IF NOT EXISTS franja_horaria (
     id BIGSERIAL PRIMARY KEY,

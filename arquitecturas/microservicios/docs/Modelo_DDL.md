@@ -17,8 +17,8 @@ CHECK (VALUE IN ('CC', 'CE', 'PAS', 'PE', 'TI', 'RC'));
 CREATE DOMAIN dom_tipo_movimiento AS VARCHAR(20)
 CHECK (VALUE IN ('entrada', 'salida'));
 
-CREATE DOMAIN dom_sexo AS VARCHAR(1)
-CHECK (VALUE IN ('M', 'F'));
+CREATE DOMAIN dom_sexo AS VARCHAR(15)
+CHECK (VALUE IN ('M', 'F','masculino', 'femenino', 'intersexual', 'no_responde'));
 ```
 
 ## Checks
