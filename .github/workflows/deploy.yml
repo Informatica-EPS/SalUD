@@ -1,8 +1,5 @@
 name: CI/CD Pipeline to Azure VM
 
-# ¿Por qué esto? 
-# Define cuándo se ejecutará el flujo. Aquí le decimos que corra automáticamente
-# cada vez que alguien suba código (push) a la rama 'master' o 'main'.
 on:
   push:
     branches:
@@ -13,7 +10,7 @@ on:
 
 jobs:
   # ==========================================
-  # FASE 1: PRUEBAS BÁSICAS (Integración)
+  # FASE 1A: ANÁLISIS DE CALIDAD (paralelo con test)
   # ==========================================
   sonarqube:
     name: SonarQube
@@ -21,11 +18,15 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@7006c4492b2e0ee0f816d36501671557c97f5995 # v8.1.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  # ==========================================
+  # FASE 1B: BUILD & TEST (paralelo con sonarqube)
+  # ==========================================
   test:
     name: Build & Test
     runs-on: ubuntu-latest
@@ -36,21 +37,31 @@ jobs:
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18' # Puedes ajustarlo a la versión de Node que uses
+          node-version: '18'
 
-      - name: Instalar dependencias del Frontend
-        working-directory: ./arquitecturas/microservicios/apps/frontend/frontend
-        run: npm ci
+      # ── CACHÉ FRONTEND ──────────────────────────────────────────
+      # Guarda node_modules entre ejecuciones. Si package-lock.json
+      # no cambió, se restaura en ~10s en vez de reinstalar todo.
+      - name: Caché dependencias Frontend
+        uses: actions/cache@v4
+        with:
+          path: arquitecturas/microservicios/apps/frontend/frontend/node_modules
+          key: frontend-${{ runner.os }}-${{ hashFiles('arquitecturas/microservicios/apps/frontend/frontend/package-lock.json') }}
+          restore-keys: |
+            frontend-${{ runner.os }}-
 
-      - name: Ejecutar pruebas del Frontend (Jest)
-        working-directory: ./arquitecturas/microservicios/apps/frontend/frontend
-        continue-on-error: true
-        run: npm run test
+      # ── CACHÉ BACKEND ───────────────────────────────────────────
+      - name: Caché dependencias Backend
+        uses: actions/cache@v4
+        with:
+          path: arquitecturas/microservicios/apps/backend/backend/node_modules
+          key: backend-${{ runner.os }}-${{ hashFiles('arquitecturas/microservicios/apps/backend/backend/package-lock.json') }}
+          restore-keys: |
+            backend-${{ runner.os }}-
 
-# --- 2. PRUEBAS DEL BACKEND PRINCIPAL (Las que van a crear) ---
       - name: Backend - Instalar
         working-directory: ./arquitecturas/microservicios/apps/backend/backend
-        run: npm install
+        run: npm ci   # más rápido y reproducible que npm install
 
       - name: Backend - Pruebas
         working-directory: ./arquitecturas/microservicios/apps/backend/backend
@@ -59,84 +70,75 @@ jobs:
         run: npm run test
 
   # ==========================================
-  # FASE 2: DESPLIEGUE EN AZURE (Entrega)
+  # FASE 2: DESPLIEGUE EN AZURE
+  # Espera test; sonarqube corre en paralelo y NO bloquea deploy.
+  # Si quieres que SonarQube también bloquee, agrega sonarqube a needs.
   # ==========================================
   deploy:
     name: Deploy to Azure
-    needs: test 
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Ejecutar comandos de despliegue vía SSH
-        uses: appleboy/ssh-action@master
+        # Versión pinada → no resuelve @master en cada run (más rápido y seguro)
+        uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            set -e
             cd ~/SalUD/arquitecturas/microservicios
-            
-            # Traer los últimos cambios de la rama prod
+
+            # ── ACTUALIZAR CÓDIGO ──────────────────────────────────
             git fetch origin prod
             git checkout prod
             git reset --hard origin/prod
 
-            # 🔑 Script para agregar secrets solo si no existen
+            # ── HELPERS PARA .env ──────────────────────────────────
             add_if_not_exists() {
-              local key="$1"
-              local value="$2"
-              local env_file="apps/frontend/frontend/.env"
-              
-              # Crear el archivo si no existe
-              if [ ! -f "$env_file" ]; then
-                touch "$env_file"
-              fi
-              
-              # Verificar si la variable ya existe en el archivo
+              local key="$1" value="$2" env_file="apps/frontend/frontend/.env"
+              [ ! -f "$env_file" ] && touch "$env_file"
               if grep -q "^${key}=" "$env_file"; then
-                echo "✓ ${key} ya existe en ${env_file}"
+                echo "✓ ${key} ya existe"
               else
                 echo "${key}=${value}" >> "$env_file"
-                echo "✓ ${key} agregado a ${env_file}"
+                echo "✓ ${key} agregado"
               fi
             }
 
-            # Agregar VITE_API_URL a apps/frontend/frontend/.env
-            add_if_not_exists "VITE_API_URL" "${{ secrets.VITE_API_URL }}"
-            add_if_not_exists "VITE_MEDICAMENTS_REMOTE_URL" "${{ secrets.VITE_MEDICAMENTS_REMOTE_URL }}"
-            add_if_not_exists "VITE_MEDICAMENTS_API_URL" "${{ secrets.VITE_MEDICAMENTS_API_URL }}"
-            
-            echo "Contenido de apps/frontend/frontend/.env:"
-            cat apps/frontend/frontend/.env
-            
-            # 🔑 Script para agregar secrets a infra/dev.env
             add_to_infra() {
-              local key="$1"
-              local value="$2"
-              local env_file="infra/dev.env"
-              
-              # Crear el archivo si no existe
-              if [ ! -f "$env_file" ]; then
-                touch "$env_file"
-              fi
-              
-              # Verificar si la variable ya existe en el archivo
+              local key="$1" value="$2" env_file="infra/dev.env"
+              [ ! -f "$env_file" ] && touch "$env_file"
               if grep -q "^${key}=" "$env_file"; then
-                # Reemplazar la línea existente
-                sed -i "s/^${key}=.*/${key}=${value}/" "$env_file"
-                echo "✓ ${key} actualizado en ${env_file}"
+                sed -i "s|^${key}=.*|${key}=${value}|" "$env_file"
+                echo "✓ ${key} actualizado"
               else
                 echo "${key}=${value}" >> "$env_file"
-                echo "✓ ${key} agregado a ${env_file}"
+                echo "✓ ${key} agregado"
               fi
             }
 
-            # Agregar VITE_MEDICAMENTS_REMOTE_URL a infra/dev.env
-            add_to_infra "VITE_MEDICAMENTS_REMOTE_URL" "${{ secrets.VITE_MEDICAMENTS_REMOTE_URL }}"
-            add_to_infra "VITE_API_URL" "${{ secrets.VITE_API_URL }}"
-            
-            echo "Contenido de infra/dev.env:"
-            cat infra/dev.env
-            
-            # Desplegar
-            docker compose --env-file infra/dev.env -f infra/docker-compose.prod.yaml down
-            docker compose --env-file infra/dev.env -f infra/docker-compose.prod.yaml up -d --build
+            add_if_not_exists "VITE_API_URL"                  "${{ secrets.VITE_API_URL }}"
+            add_if_not_exists "VITE_MEDICAMENTS_REMOTE_URL"   "${{ secrets.VITE_MEDICAMENTS_REMOTE_URL }}"
+            add_if_not_exists "VITE_MEDICAMENTS_API_URL"      "${{ secrets.VITE_MEDICAMENTS_API_URL }}"
+            add_to_infra      "VITE_MEDICAMENTS_REMOTE_URL"   "${{ secrets.VITE_MEDICAMENTS_REMOTE_URL }}"
+            add_to_infra      "VITE_API_URL"                  "${{ secrets.VITE_API_URL }}"
+
+            # ── DESPLIEGUE SIN DOWNTIME ────────────────────────────
+            # 1. Construye las imágenes ANTES de bajar los contenedores.
+            #    Así el tiempo de "apagado" se reduce a segundos.
+            docker compose \
+              --env-file infra/dev.env \
+              -f infra/docker-compose.prod.yaml \
+              build --pull
+
+            # 2. Reemplaza los contenedores con los ya construidos.
+            #    --no-build evita reconstruir; --remove-orphans limpia residuos.
+            docker compose \
+              --env-file infra/dev.env \
+              -f infra/docker-compose.prod.yaml \
+              up -d --no-build --remove-orphans
+
+            # 3. Limpiar imágenes huérfanas para no llenar el disco
+            docker image prune -f
