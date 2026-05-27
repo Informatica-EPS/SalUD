@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { DispatchDialog } from './DispatchDialog';
 import {
   Box,
   Button,
@@ -23,13 +24,23 @@ import {
   TableHead,
   TableRow,
   Paper,
+  useMediaQuery,
+  Menu,
+  MenuItem,
+  IconButton,
+  ListItemIcon,
+  ListItemText,
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import Swal from 'sweetalert2';
 import {
   Search as SearchIcon,
   Add as AddIcon,
   LocalPharmacy as PharmacyIcon,
   TrendingUp as TrendingUpIcon,
   TrendingDown as TrendingDownIcon,
+  LocalShipping as LocalShippingIcon,
+  MoreVert as MoreVertIcon,
 } from '@mui/icons-material';
 import { medicamentsService } from '../services/medicamentsService';
 import { Medicament } from '../types/medicament.types';
@@ -60,36 +71,21 @@ export const MedicamentsList: React.FC = () => {
     }
   };
 
-  const handleSearch = async (query: string) => {
+  const handleSearch = (query: string) => {
     setSearchQuery(query);
-    if (query.trim() === '') {
-      loadMedicaments();
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const data = await medicamentsService.search(query);
-      setMedicaments(data);
-    } catch (err) {
-      setError('Error al buscar medicamentos');
-      console.error('Error searching medicaments:', err);
-    } finally {
-      setLoading(false);
-    }
   };
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('¿Está seguro de eliminar este medicamento?')) {
-      try {
-        await medicamentsService.delete(id);
-        loadMedicaments();
-      } catch (err) {
-        setError('Error al eliminar el medicamento');
-        console.error('Error deleting medicament:', err);
-      }
-    }
-  };
+  // const handleDelete = async (id: number) => {
+  //   if (window.confirm('¿Está seguro de eliminar este medicamento?')) {
+  //     try {
+  //       await medicamentsService.delete(id);
+  //       loadMedicaments();
+  //     } catch (err) {
+  //       setError('Error al eliminar el medicamento');
+  //       console.error('Error deleting medicament:', err);
+  //     }
+  //   }
+  // };
 
   const getStockColor = (inventario: number): 'success' | 'warning' | 'error' => {
     if (inventario >= 100) return 'success';
@@ -118,6 +114,21 @@ export const MedicamentsList: React.FC = () => {
     });
   };
 
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const [dispatchOpen, setDispatchOpen] = useState(false);
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
@@ -126,23 +137,255 @@ export const MedicamentsList: React.FC = () => {
     );
   }
 
+   const handleEdit = async (medicamentId: number) => {
+    const medicament = medicaments.find(m => m.id === medicamentId);
+    if (!medicament) return;
+
+    const { value: formValues } = await Swal.fire({
+      title: 'Editar Medicamento',
+      html: `
+        <label style="display:block; text-align:left; margin-bottom:4px; font-weight:600;">Nombre</label>
+        <input id="nombre" class="swal2-input" value="${medicament.nombre}">
+        <label style="display:block; text-align:left; margin-bottom:4px; font-weight:600; margin-top:12px;">Inventario</label>
+        <input id="inventario" class="swal2-input" type="number" min="0" value="${medicament.inventario}">
+      `,
+      showCancelButton: true,
+      cancelButtonText: 'Cancelar',
+      confirmButtonText: 'Guardar',
+      preConfirm: () => {
+        const nombre = (document.getElementById('nombre') as HTMLInputElement).value;
+        const inventario = Number((document.getElementById('inventario') as HTMLInputElement).value);
+        if (!nombre.trim()) {
+          Swal.showValidationMessage('El nombre es requerido');
+          return false;
+        }
+        if (inventario < 0) {
+          Swal.showValidationMessage('El inventario no puede ser negativo');
+          return false;
+        }
+        return { nombre, inventario };
+      },
+    });
+
+    if (!formValues) return;
+
+    try {
+      const [updated] = await Promise.all([
+        medicamentsService.update(medicamentId, { nombre: formValues.nombre }),
+        medicamentsService.updateInventory(medicamentId, formValues.inventario),
+      ]);
+      setMedicaments(prev => prev.map(m =>
+        m.id === medicamentId ? { ...updated, inventario: formValues.inventario } : m
+      ));
+      Swal.fire('Éxito', 'Medicamento actualizado correctamente', 'success');
+      await loadMedicaments(); 
+    } catch {
+      Swal.fire('Error', 'No se pudo actualizar el medicamento', 'error');
+    }
+  };
+
+  const handleCreate = async () => {
+    const { value: formValues } = await Swal.fire({
+      title: 'Nuevo Medicamento',
+      html: `
+        <label style="display:block; text-align:left; margin-bottom:4px; font-weight:600;">Nombre del medicamento</label>
+        <input id="nombre" class="swal2-input" placeholder="Ej: Ibuprofeno 400mg">
+        
+        <label style="display:block; text-align:left; margin-bottom:4px; font-weight:600; margin-top:12px;">Inventario inicial</label>
+        <input id="inventario" class="swal2-input" placeholder="0" type="number" min="0" value="0">
+      `,
+      showCancelButton: true,
+      cancelButtonText: 'Cancelar',
+      confirmButtonText: 'Crear',
+      preConfirm: () => {
+        const nombre = (document.getElementById('nombre') as HTMLInputElement).value;
+        const inventario = (document.getElementById('inventario') as HTMLInputElement).value;
+        if (!nombre.trim()) {
+          Swal.showValidationMessage('El nombre es requerido');
+          return false;
+        }
+        return { nombre, inventario_inicial: Number(inventario) };
+      },
+    });
+
+    if (!formValues) return;
+
+    try {
+      const created = await medicamentsService.create(formValues);
+      setMedicaments(prev => [...prev, created]);
+      Swal.fire('Éxito', 'Medicamento creado correctamente', 'success');
+      await loadMedicaments();
+    } catch {
+      Swal.fire('Error', 'No se pudo crear el medicamento', 'error');
+    }
+  };
+
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <PharmacyIcon sx={{ fontSize: 40, color: 'primary.main' }} />
-          <Typography variant="h4" component="h1">
-            Gestión de Medicamentos
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => console.log('Agregar medicamento')}
+      <Box
+  sx={{
+    mb: 4,
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: {
+      xs: 'flex-start',
+      sm: 'center',
+    },
+    flexDirection: {
+      xs: 'column',
+      sm: 'row',
+    },
+    gap: 2,
+  }}
+>
+  {/* Título */}
+  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+    <Box
+      sx={{
+        background: 'linear-gradient(135deg, #1976d2, #42a5f5)',
+        borderRadius: '16px',
+        p: 1.2,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxShadow: '0 4px 14px rgba(25, 118, 210, 0.25)',
+      }}
+    >
+      <PharmacyIcon sx={{ fontSize: 32, color: '#fff' }} />
+    </Box>
+
+    <Box>
+      <Typography
+        variant="h4"
+        component="h1"
+        sx={{
+          fontWeight: 700,
+          fontSize: {
+            xs: '1.6rem',
+            sm: '2rem',
+          },
+        }}
+      >
+        Gestión de Medicamentos
+      </Typography>
+
+      <Typography variant="body2" color="text.secondary">
+        Administra inventario y movimientos
+      </Typography>
+    </Box>
+  </Box>
+
+  {/* Desktop */}
+  {!isMobile ? (
+    <Box sx={{ display: 'flex', gap: 2 }}>
+      <Button
+        variant="outlined"
+        startIcon={<LocalShippingIcon />}
+        onClick={() => setDispatchOpen(true)}
+        sx={{
+          borderRadius: '14px',
+          px: 3,
+          py: 1.2,
+          textTransform: 'none',
+          fontWeight: 600,
+          borderWidth: '2px',
+          transition: 'all .2s ease',
+          '&:hover': {
+            borderWidth: '2px',
+            transform: 'translateY(-2px)',
+            boxShadow: '0 6px 18px rgba(0,0,0,0.1)',
+          },
+        }}
+      >
+        Despachar
+      </Button>
+
+      <Button
+        variant="contained"
+        startIcon={<AddIcon />}
+        onClick={handleCreate}
+        sx={{
+          borderRadius: '14px',
+          px: 3,
+          py: 1.2,
+          textTransform: 'none',
+          fontWeight: 700,
+          boxShadow: '0 8px 20px rgba(25,118,210,0.25)',
+          background: 'linear-gradient(135deg, #1976d2, #42a5f5)',
+          transition: 'all .2s ease',
+          '&:hover': {
+            transform: 'translateY(-2px)',
+            boxShadow: '0 10px 24px rgba(25,118,210,0.35)',
+            background: 'linear-gradient(135deg, #1565c0, #1e88e5)',
+          },
+        }}
+      >
+        Nuevo Medicamento
+      </Button>
+      <DispatchDialog
+        open={dispatchOpen}
+        onClose={() => setDispatchOpen(false)}
+        medicaments={medicaments}
+        onSuccess={loadMedicaments}
+      />
+    </Box>
+  ) : (
+    <>
+      {/* Mobile */}
+      <IconButton
+        onClick={handleMenuOpen}
+        sx={{
+          alignSelf: 'flex-end',
+          border: '1px solid',
+          borderColor: 'divider',
+          borderRadius: '12px',
+          backgroundColor: 'background.paper',
+          boxShadow: 1,
+        }}
+      >
+        <MoreVertIcon />
+      </IconButton>
+
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+        PaperProps={{
+          sx: {
+            borderRadius: '16px',
+            mt: 1,
+            minWidth: 220,
+            boxShadow: '0 10px 30px rgba(0,0,0,0.12)',
+          },
+        }}
+      >
+        <MenuItem
+          onClick={() => {
+            handleCreate();
+            handleMenuClose();
+          }}
         >
-          Nuevo Medicamento
-        </Button>
-      </Box>
+          <ListItemIcon>
+            <LocalShippingIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Despachar</ListItemText>
+        </MenuItem>
+
+        <MenuItem
+          onClick={() => {
+            handleCreate();
+            handleMenuClose();
+          }}
+        >
+          <ListItemIcon>
+            <AddIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Nuevo Medicamento</ListItemText>
+        </MenuItem>
+      </Menu>
+    </>
+  )}
+</Box>
 
       <TextField
         fullWidth
@@ -166,47 +409,52 @@ export const MedicamentsList: React.FC = () => {
       )}
 
       <Grid container spacing={3}>
-        {medicaments.map((medicament) => (
-          <Grid item xs={12} sm={6} md={4} key={medicament.id}>
-            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <CardContent sx={{ flexGrow: 1 }}>
-                <Typography variant="h6" component="h2" gutterBottom>
-                  {medicament.nombre}
-                </Typography>
-                
-                <Box sx={{ mb: 2 }}>
-                  <Chip
-                    label={`Inventario: ${medicament.inventario}`}
-                    size="medium"
-                    color={getStockColor(medicament.inventario)}
-                    sx={{ fontWeight: 'bold' }}
-                  />
-                </Box>
+  {medicaments
+    .filter((medicament) => medicament.id !== 1)
+    .filter((medicament) =>
+          medicament.nombre.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+    .map((medicament) => (
+      <Grid item xs={12} sm={6} md={4} key={medicament.id}>
+        <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+          <CardContent sx={{ flexGrow: 1 }}>
+            <Typography variant="h6" component="h2" gutterBottom>
+              {medicament.nombre}
+            </Typography>
 
-                <Box sx={{ mb: 1 }}>
-                  <Typography variant="caption" color="text.secondary">
-                    Total de movimientos:
-                  </Typography>
-                  <Typography variant="body2">
-                    {medicament.movimientos.length} registros
-                  </Typography>
-                </Box>
-              </CardContent>
-              <CardActions>
-                <Button size="small" onClick={() => handleOpenDetails(medicament)}>
-                  Ver Detalles
-                </Button>
-                <Button size="small" onClick={() => console.log('Editar', medicament.id)}>
-                  Editar
-                </Button>
-                <Button size="small" color="error" onClick={() => handleDelete(medicament.id)}>
-                  Eliminar
-                </Button>
-              </CardActions>
-            </Card>
-          </Grid>
-        ))}
+            <Box sx={{ mb: 2 }}>
+              <Chip
+                label={`Inventario: ${medicament.inventario}`}
+                size="medium"
+                color={getStockColor(medicament.inventario)}
+                sx={{ fontWeight: 'bold' }}
+              />
+            </Box>
+
+            <Box sx={{ mb: 1 }}>
+              <Typography variant="caption" color="text.secondary">
+                Total de movimientos:
+              </Typography>
+              <Typography variant="body2">
+                {medicament.movimientos.length} registros
+              </Typography>
+            </Box>
+          </CardContent>
+          <CardActions>
+            <Button size="small" onClick={() => handleOpenDetails(medicament)}>
+              Ver Detalles
+            </Button>
+            <Button size="small" onClick={() => handleEdit(medicament.id)}>
+              Editar
+            </Button>
+            {/* <Button size="small" color="error" onClick={() => handleDelete(medicament.id)}>
+              Eliminar
+            </Button> */}
+          </CardActions>
+        </Card>
       </Grid>
+    ))}
+</Grid>
 
       {medicaments.length === 0 && !loading && (
         <Box sx={{ textAlign: 'center', py: 8 }}>

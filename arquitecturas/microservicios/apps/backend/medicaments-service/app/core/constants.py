@@ -1,5 +1,6 @@
 class MovementType:
     DISPATCH = "despacho"
+    ENTRY = "entrada"
 
 
 class ErrorMessages:

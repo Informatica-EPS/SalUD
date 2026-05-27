@@ -114,15 +114,22 @@ services:
     build:
       context: ../apps/frontend/medicaments-microfrontend
       dockerfile: Dockerfile
-      target: preview
+      target: development
+    volumes:
+    - ../apps/frontend/medicaments-microfrontend:/app
+    - /app/node_modules
     ports:
       - "8081:8081"
     stdin_open: true
+    environment:
+    - CHOKIDAR_USEPOLLING=true
+    - WATCHPACK_POLLING=true
 
   medicaments-service:
     build:
       context: ../apps/backend/medicaments-service
       dockerfile: Dockerfile
+    command: uvicorn main:app --reload --host 0.0.0.0 --port 5010
     volumes:
       - ../apps/backend/medicaments-service:/app
     ports:

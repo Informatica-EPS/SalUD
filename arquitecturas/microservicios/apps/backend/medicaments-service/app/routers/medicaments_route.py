@@ -7,7 +7,7 @@ from app.repositories.movement_repository import MovementRepository
 from app.services.medicaments_service import MedicamentsService
 from app.services.inventory_service import InventoryService
 from app.services.movement_service import MovementService
-from app.schemas.medicament_schema import MedicamentDispatchRequest
+from app.schemas.medicament_schema import MedicamentDispatchRequest, MedicamentUpdateRequest, MedicamentCreateRequest, InventoryUpdateRequest
 
 
 router = APIRouter(prefix="/medicaments", tags=["Medicaments"])
@@ -25,3 +25,15 @@ def list_medicaments(service: MedicamentsService = Depends(get_medicaments_servi
 @router.post("/dispatch", status_code=status.HTTP_201_CREATED)
 async def dispatch_medicaments_route(body: MedicamentDispatchRequest, service: MedicamentsService = Depends(get_medicaments_service)):
     return await service.dispatch_medicaments(body)
+
+@router.put("/{id}", status_code=status.HTTP_200_OK)
+def update_medicament(id: int, body: MedicamentUpdateRequest, service: MedicamentsService = Depends(get_medicaments_service)):
+    return service.update_medicament(id, body)
+
+@router.post("", status_code=status.HTTP_201_CREATED)
+def create_medicament(body: MedicamentCreateRequest, service: MedicamentsService = Depends(get_medicaments_service)):
+    return service.create_medicament(body)
+
+@router.put("/{id}/inventory", status_code=status.HTTP_200_OK)
+def update_inventory(id: int, body: InventoryUpdateRequest, service: MedicamentsService = Depends(get_medicaments_service)):
+    return service.update_inventory(id, body)

@@ -95,6 +95,7 @@ export const CrearOrdenPage = () => {
       descripcion: '',
       estado: 'pendiente',
       fechaVencimiento: '',
+      cantidad_medicamento: 0,
    });
 
    useEffect(() => {
@@ -178,6 +179,10 @@ export const CrearOrdenPage = () => {
          setError('Debe ingresar una descripción de la orden');
          return false;
       }
+      if (Number(formData.idMedicamento) > 1 && formData.cantidad_medicamento < 0) {
+         setError('La cantidad de medicamento no puede ser negativa');
+         return false;
+      }
       if (formData.fechaVencimiento) {
          const hoy = new Date().setHours(0, 0, 0, 0);
          const fecha = new Date(formData.fechaVencimiento).setHours(0, 0, 0, 0);
@@ -207,6 +212,7 @@ export const CrearOrdenPage = () => {
          descripcion: formData.descripcion,
          estado: formData.estado as 'pendiente' | 'programada' | 'ejecutada' | 'cancelada',
          fechaVencimiento: formData.fechaVencimiento || undefined,
+         cantidad_medicamento: formData.cantidad_medicamento,
          creadoPor: user?.id,
          actualizadoPor: user?.id,
       });
@@ -800,6 +806,21 @@ export const CrearOrdenPage = () => {
                   ))}
                </TextField>
             </Grid>
+
+            {Number(formData.idMedicamento) > 1 && (
+               <Grid item xs={12} sm={6}>
+                  <TextField
+                     fullWidth
+                     type="number"
+                     label="Cantidad de medicamento"
+                     name="cantidad_medicamento"
+                     value={formData.cantidad_medicamento}
+                     onChange={handleChange}
+                     inputProps={{ min: 0 }}
+                     helperText="Unidades a dispensar"
+                  />
+               </Grid>
+            )}
 
             {/* 🔹 SECCIÓN: DETALLES */}
             <Grid item xs={12} mt={2}>

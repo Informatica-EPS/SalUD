@@ -15,3 +15,12 @@ class MovementService:
             "created_by": created_by
         }
         return self.repository.create(event)
+
+    def create_entry_event(self, id_medicamento: int, cantidad: int, created_by: str):
+            event = {
+                "id_medicamento": id_medicamento,
+                "tipo_movimiento": MovementType.ENTRY,
+                "cantidad": cantidad,
+                "created_by": created_by
+            }
+            return self.repository.create(event)

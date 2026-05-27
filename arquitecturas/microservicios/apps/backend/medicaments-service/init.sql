@@ -57,7 +57,7 @@ ON CONFLICT DO NOTHING;
 
 -- Inventario inicial
 INSERT INTO inventario (id, total) VALUES 
-    (1, 0),  -- Acetaminofén
+    (1, 0),  -- N/A
     (2, 150),  -- Acetaminofén
     (3, 200),  -- Ibuprofeno
     (4, 100),  -- Amoxicilina

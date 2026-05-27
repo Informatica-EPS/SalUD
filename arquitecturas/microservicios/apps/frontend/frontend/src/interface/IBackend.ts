@@ -291,6 +291,7 @@ export interface ICreateOrderRequest {
    descripcion: string;
    creadoPor?: number;
    actualizadoPor?: number;
+   cantidad_medicamento?: number;
 }
 
 // Request para actualizar Orden

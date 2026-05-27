@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Medicament, MedicamentCreate, MedicamentUpdate } from '../types/medicament.types';
+import { Medicament, MedicamentCreate, MedicamentUpdate, DispatchRequest } from '../types/medicament.types';
 
 const API_BASE_URL = import.meta.env.VITE_MEDICAMENTS_API_URL || 'http://localhost:5010/api';
 
@@ -54,6 +54,18 @@ export const medicamentsService = {
     const response = await apiClient.get<Medicament[]>('/medicaments/search', {
       params: { q: query },
     });
+    return response.data;
+  },
+
+  // Despecho de medicamentos
+  dispatch: async (data: DispatchRequest): Promise<{ message: string }> => {
+    const response = await apiClient.post('/medicaments/dispatch', data);
+    return response.data;
+  },
+
+  // Actualizar inventario de un medicamento
+  updateInventory: async (id: number, total: number): Promise<{ message: string }> => {
+    const response = await apiClient.put(`/medicaments/${id}/inventory`, { total });
     return response.data;
   },
 };
