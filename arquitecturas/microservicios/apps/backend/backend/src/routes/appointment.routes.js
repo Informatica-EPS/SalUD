@@ -40,7 +40,6 @@ router.post(
   appointmentController.createAppointmentBySpecialty,
 );
 
-router.get;
 router.put("/:idAppointment", appointmentController.updateAppointment);
 router.get("/:idAppointment", appointmentController.getAppointmentById);
 router.delete("/:idAppointment", appointmentController.deleteAppointment);
