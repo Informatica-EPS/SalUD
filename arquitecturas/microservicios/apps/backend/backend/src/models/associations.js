@@ -22,82 +22,82 @@ Role.belongsToMany(User, {
 });
 
 User.hasMany(Doctor, {
-  foreignKey: "id_usuario",
+  foreignKey: "idUsuario",
   sourceKey: "id",
 });
 
 Doctor.belongsTo(User, {
-  foreignKey: "id_usuario",
+  foreignKey: "idUsuario",
   targetKey: "id",
 });
 
 User.hasMany(Patient, {
-  foreignKey: "id_usuario",
+  foreignKey: "idUsuario",
   sourceKey: "id",
 });
 
 Patient.belongsTo(User, {
-  foreignKey: "id_usuario",
+  foreignKey: "idUsuario",
   targetKey: "id",
 });
 
 Doctor.hasMany(TimeSlot, {
-  foreignKey: "id_doctor",
+  foreignKey: "idDoctor",
   sourceKey: "id",
 });
 
 TimeSlot.belongsTo(Doctor, {
-  foreignKey: "id_doctor",
+  foreignKey: "idDoctor",
   targetKey: "id",
 });
 
 Patient.hasMany(Appointment, {
-  foreignKey: "id_paciente",
+  foreignKey: "idPaciente",
   sourceKey: "id",
 });
 
 Appointment.belongsTo(Patient, {
-  foreignKey: "id_paciente",
+  foreignKey: "idPaciente",
   targetKey: "id",
 });
 
 Doctor.hasMany(Appointment, {
-  foreignKey: "id_doctor",
+  foreignKey: "idDoctor",
   sourceKey: "id",
 });
 
 Appointment.belongsTo(Doctor, {
-  foreignKey: "id_doctor",
+  foreignKey: "idDoctor",
   targetKey: "id",
 });
 
 TimeSlot.hasOne(Appointment, {
-  foreignKey: "id_horario",
+  foreignKey: "idHorario",
   sourceKey: "id",
 });
 
 Appointment.belongsTo(TimeSlot, {
-  foreignKey: "id_horario",
+  foreignKey: "idHorario",
   targetKey: "id",
 });
 
 Appointment.hasOne(AppointmentDetail, {
-  foreignKey: "id_cita",
+  foreignKey: "idCita",
   sourceKey: "id",
 });
 
 AppointmentDetail.belongsTo(Appointment, {
-  foreignKey: "id_cita",
+  foreignKey: "idCita",
   targetKey: "id",
 });
 
 Appointment.hasMany(Order, {
-  foreignKey: "id_cita",
+  foreignKey: "idCita",
   sourceKey: "id",
 });
 
 Order.belongsTo(Appointment, {
-  foreignKey: "id_cita",
+  foreignKey: "idCita",
   targetKey: "id",
 });
 

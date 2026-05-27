@@ -32,13 +32,22 @@ class TestMedicamentsService(unittest.IsolatedAsyncioTestCase):
         mock_medicament_1 = MagicMock()
         mock_medicament_1.id = 1
         mock_medicament_1.nombre = "Paracetamol"
-        mock_medicament_1.inventario.total = 100
-        mock_medicament_1.movimientos = ["mov1", "mov2"]
+        mock_medicament_1.cantidad = "500"
+        mock_medicament_1.presentacion = "tableta"
+        mock_medicament_1.concentracion = "500mg"
+        mock_medicament_1.inventario = MagicMock(total=100)
+        mock_medicament_1.movimientos = [
+            MagicMock(id=1, tipo_movimiento="entrada", cantidad=100, id_orden=None, created_at="2026-05-01T00:00:00Z"),
+            MagicMock(id=2, tipo_movimiento="salida", cantidad=5, id_orden=10, created_at="2026-05-02T00:00:00Z"),
+        ]
 
         mock_medicament_2 = MagicMock()
         mock_medicament_2.id = 2
         mock_medicament_2.nombre = "Ibuprofeno"
-        mock_medicament_2.inventario.total = 50
+        mock_medicament_2.cantidad = "400"
+        mock_medicament_2.presentacion = "tableta"
+        mock_medicament_2.concentracion = "400mg"
+        mock_medicament_2.inventario = MagicMock(total=50)
         mock_medicament_2.movimientos = []
 
         self.repository.get_all.return_value = [mock_medicament_1, mock_medicament_2]
@@ -49,10 +58,13 @@ class TestMedicamentsService(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(result), 2)
         self.assertEqual(result[0]["id"], 1)
         self.assertEqual(result[0]["nombre"], "Paracetamol")
-        self.assertEqual(result[0]["inventario"], 100)
-        self.assertEqual(result[0]["movimientos"], ["mov1", "mov2"])
+        self.assertEqual(result[0]["cantidad"], "500")
+        self.assertEqual(result[0]["presentacion"], "tableta")
+        self.assertEqual(result[0]["concentracion"], "500mg")
+        self.assertEqual(result[0]["inventario"], {"total": 100})
+        self.assertEqual(result[0]["movimientos"][1]["id_orden"], 10)
         self.assertEqual(result[1]["id"], 2)
-        self.assertEqual(result[1]["inventario"], 50)
+        self.assertEqual(result[1]["inventario"], {"total": 50})
 
     @patch("app.services.medicaments_service.httpx.AsyncClient")
     async def test_dispatch_medicaments_success(self, mock_async_client_class):
@@ -84,7 +96,7 @@ class TestMedicamentsService(unittest.IsolatedAsyncioTestCase):
         )
         mock_response.raise_for_status.assert_called_once()
         self.inventory_service.dispatch_medicaments.assert_called_once_with(1, 5)
-        self.movement_service.create_dispatch_event.assert_called_once_with(1, 5, "admin")
+        self.movement_service.create_dispatch_event.assert_called_once_with(1, 10, 5, "admin")
         self.assertEqual(result, {"message": "Medicamento despachado con éxito"})
 
     @patch("app.services.medicaments_service.httpx.AsyncClient")

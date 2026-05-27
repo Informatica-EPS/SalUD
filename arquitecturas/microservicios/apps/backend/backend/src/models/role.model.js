@@ -15,13 +15,22 @@ const Role = sequelize.define(
     },
     descripcion: DataTypes.STRING(200),
     creado_por: DataTypes.STRING(100),
-    fecha_creacion: DataTypes.DATE,
-    ultima_actualizacion: DataTypes.DATE,
-    actualizado_por: DataTypes.STRING(100),
+    actualizado_por: {
+      type: DataTypes.STRING(100),
+      field: "actualizado_por",
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      field: "fecha_creacion",
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      field: "ultima_actualizacion",
+    },
   },
   {
-    tableName: "rol",
-    timestamps: false,
+    tableName: "roles",
+    timestamps: true,
   },
 );
 

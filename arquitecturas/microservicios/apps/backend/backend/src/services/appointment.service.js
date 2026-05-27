@@ -18,6 +18,11 @@ const orderService = require("./order.service");
 class AppointmentService {
   async create(data) {
     const { idDoctor, idHorario, idPaciente } = data;
+    const appointmentData = {
+      ...data,
+      tipoCita: data.tipoCita || "general",
+      estado: data.estado || appointmentsStatus.PROGRAMADO,
+    };
 
     await this.validateIsGeneralSpecialty(idDoctor);
     await this.validateMustBeFutureDate(idHorario);
@@ -26,7 +31,7 @@ class AppointmentService {
     await TimeSlotService.markAsScheduled(idHorario);
 
     return await Appointment.create({
-      ...data,
+      ...appointmentData,
     });
   }
 
@@ -563,9 +568,6 @@ class AppointmentService {
         idDoctor: a.idDoctor,
         idHorario: a.idHorario,
         createdAt: a.createdAt,
-        id_paciente: 1,
-        id_doctor: 1,
-        id_horario: 3,
         horario: this.mapTimeSlot(a.TimeSlot),
         detalles: this.mapAppointmentDetail(a.AppointmentDetail),
         doctor: this.mapDoctor(a.Doctor),
@@ -578,7 +580,7 @@ class AppointmentService {
     if (!doctor) return null;
     return {
       doctorNombreCompleto: `${doctor.User.primer_nombre} ${doctor.User.segundo_nombre || ""} ${doctor.User.primer_apellido} ${doctor.User.segundo_apellido || ""}`,
-      doctorLicencia: doctor.licencia_medica,
+      doctorLicencia: doctor.licenciaMedica,
       doctorEmail: doctor.User.email,
       doctorEspecialidad: doctor.Specialty
         ? doctor.Specialty.nombre
@@ -774,8 +776,14 @@ class AppointmentService {
     await orderService.setCompletedOrder(order.dataValues.id);
     await TimeSlotService.markAsScheduled(idHorario);
 
-    return await Appointment.create({
+    const appointmentData = {
       ...data,
+      tipoCita: data.tipoCita || "general",
+      estado: data.estado || appointmentsStatus.PROGRAMADO,
+    };
+
+    return await Appointment.create({
+      ...appointmentData,
     });
   }
 }

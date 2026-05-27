@@ -30,22 +30,30 @@ const User = sequelize.define(
       type: DataTypes.STRING(150),
       unique: true,
     },
-    password: DataTypes.STRING(64), // guardada en SHA256
-    creado_por: DataTypes.STRING(100),
-    fecha_creacion: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
+    password: DataTypes.STRING(64),
+    creado_por: {
+      type: DataTypes.STRING(100),
+      field: "creado_por",
     },
-    ultima_actualizacion: DataTypes.DATE,
-    actualizado_por: DataTypes.STRING(100),
+    actualizado_por: {
+      type: DataTypes.STRING(100),
+      field: "actualizado_por",
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      field: "fecha_creacion",
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      field: "ultima_actualizacion",
+    },
   },
   {
     tableName: "usuarios",
-    timestamps: false,
+    timestamps: true,
   },
 );
 
-// Comparar contraseña con SHA256
 User.prototype.comparePassword = async function (password) {
   const hashedPassword = crypto
     .createHash("sha256")

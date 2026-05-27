@@ -13,10 +13,16 @@ const paginate = async (SequelizeModel, queryParams, dbOption = {}) => {
   const limitValue = parseInt(queryParams.limit) || 10;
   const offset = (page - 1) * limitValue;
 
+  const primaryKeyAttribute = Object.entries(SequelizeModel.rawAttributes || {})
+    .find(([, attribute]) => attribute.primaryKey)?.[0];
+  const defaultOrderColumn = SequelizeModel.rawAttributes?.createdAt
+    ? "createdAt"
+    : primaryKeyAttribute || "id";
+
   const queryOptions = {
     limit: limitValue,
     offset,
-    order: [["createdAt", "DESC"]],
+    order: [[defaultOrderColumn, "DESC"]],
     ...dbOption,
   };
 
