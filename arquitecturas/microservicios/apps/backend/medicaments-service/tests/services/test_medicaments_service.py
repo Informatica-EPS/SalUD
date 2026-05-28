@@ -25,19 +25,19 @@ class TestMedicamentsService(unittest.IsolatedAsyncioTestCase):
         mock_medicament_1 = MagicMock()
         mock_medicament_1.id = 1
         mock_medicament_1.nombre = "Paracetamol"
-        mock_medicament_1.cantidad = "500"
+        # mock_medicament_1.cantidad = "500"
         mock_medicament_1.presentacion = "tableta"
         mock_medicament_1.concentracion = "500mg"
         mock_medicament_1.inventario = MagicMock(total=100)
         mock_medicament_1.movimientos = [
-            MagicMock(id=1, tipo_movimiento="entrada", cantidad=100, id_orden=None, created_at="2026-05-01T00:00:00Z"),
-            MagicMock(id=2, tipo_movimiento="salida", cantidad=5, id_orden=10, created_at="2026-05-02T00:00:00Z"),
+            MagicMock(id=1, tipo_movimiento="entrada", id_orden=None, created_at="2026-05-01T00:00:00Z"),
+            MagicMock(id=2, tipo_movimiento="salida", id_orden=10, created_at="2026-05-02T00:00:00Z"),
         ]
 
         mock_medicament_2 = MagicMock()
         mock_medicament_2.id = 2
         mock_medicament_2.nombre = "Ibuprofeno"
-        mock_medicament_2.cantidad = "400"
+        # mock_medicament_2.cantidad = "400"
         mock_medicament_2.presentacion = "tableta"
         mock_medicament_2.concentracion = "400mg"
         mock_medicament_2.inventario = MagicMock(total=50)
@@ -51,7 +51,7 @@ class TestMedicamentsService(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(result), 2)
         self.assertEqual(result[0]["id"], 1)
         self.assertEqual(result[0]["nombre"], "Paracetamol")
-        self.assertEqual(result[0]["cantidad"], "500")
+        # self.assertEqual(result[0]["cantidad"], "500")
         self.assertEqual(result[0]["presentacion"], "tableta")
         self.assertEqual(result[0]["concentracion"], "500mg")
         self.assertEqual(result[0]["inventario"], {"total": 100})
@@ -76,7 +76,7 @@ class TestMedicamentsService(unittest.IsolatedAsyncioTestCase):
 
         # Request body
         body = MedicamentDispatchRequest(
-            idMedicamento=1, idOrden=10, idPaciente=100, cantidad=5
+            idMedicamento=1, idOrden=10, idPaciente=100
         )
 
         result = await self.service.dispatch_medicaments(body)
@@ -102,7 +102,7 @@ class TestMedicamentsService(unittest.IsolatedAsyncioTestCase):
         mock_async_client_class.return_value = mock_client
 
         body = MedicamentDispatchRequest(
-            idMedicamento=1, idOrden=10, idPaciente=100, cantidad=5
+            idMedicamento=1, idOrden=10, idPaciente=100
         )
 
         with self.assertRaises(Exception) as context:
@@ -122,7 +122,7 @@ class TestMedicamentsService(unittest.IsolatedAsyncioTestCase):
         mock_async_client_class.return_value = mock_client
 
         body = MedicamentDispatchRequest(
-            idMedicamento=1, idOrden=10, idPaciente=100, cantidad=5
+            idMedicamento=1, idOrden=10, idPaciente=100
         )
 
         with self.assertRaises(Exception) as context:
@@ -150,7 +150,7 @@ class TestMedicamentsService(unittest.IsolatedAsyncioTestCase):
         mock_client.post.return_value = mock_response
 
         body = MedicamentDispatchRequest(
-            idMedicamento=1, idOrden=10, idPaciente=100, cantidad=5
+            idMedicamento=1, idOrden=10, idPaciente=100
         )
 
         with self.assertRaises(HTTPException) as context:
@@ -180,7 +180,7 @@ class TestMedicamentsService(unittest.IsolatedAsyncioTestCase):
         mock_client.post.return_value = mock_response
 
         body = MedicamentDispatchRequest(
-            idMedicamento=1, idOrden=10, idPaciente=100, cantidad=5
+            idMedicamento=1, idOrden=10, idPaciente=100
         )
 
         with self.assertRaises(HTTPException) as context:
