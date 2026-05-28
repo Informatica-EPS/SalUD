@@ -13,6 +13,7 @@ RUN pip install --only-binary :all: --no-cache-dir -r requirements.txt
 
 # 3. Copiar el código y cederle los permisos al usuario seguro de una vez
 COPY --chown=appuser:appuser --chmod=0555 app/ ./app/
+COPY --chown=appuser:appuser --chmod=0555 main.py . 
 COPY --chown=appuser:appuser --chmod=0555 migrations/ ./migrations/
 COPY --chown=appuser:appuser --chmod=0444 alembic.ini ./
 
