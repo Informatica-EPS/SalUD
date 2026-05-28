@@ -1,18 +1,18 @@
 -- Seed de datos para microservicio medicamentos
 
-INSERT INTO medicamentos (nombre, cantidad, presentacion, concentracion, creado_por)
+INSERT INTO medicamentos (nombre, presentacion, concentracion, creado_por)
 VALUES
-    ('N/A', '0', 'N/A', 'N/A', 'admin'),
-    ('Acetaminofen', '500', 'tableta', '500mg', 'admin'),
-    ('Ibuprofeno', '400', 'tableta', '400mg', 'admin'),
-    ('Amoxicilina', '500', 'capsula', '500mg', 'admin'),
-    ('Omeprazol', '20', 'capsula', '20mg', 'admin'),
-    ('Loratadina', '10', 'tableta', '10mg', 'admin'),
-    ('Aspirina', '100', 'tableta', '100mg', 'admin'),
-    ('Metformina', '850', 'tableta', '850mg', 'admin'),
-    ('Losartan', '50', 'tableta', '50mg', 'admin'),
-    ('Atorvastatina', '20', 'tableta', '20mg', 'admin'),
-    ('Salbutamol', '1', 'inhalador', '100mcg', 'admin')
+    ('N/A', 'N/A', 'N/A', 'admin'),
+    ('Acetaminofen', 'tableta', '500mg', 'admin'),
+    ('Ibuprofeno', 'tableta', '400mg', 'admin'),
+    ('Amoxicilina', 'capsula', '500mg', 'admin'),
+    ('Omeprazol', 'capsula', '20mg', 'admin'),
+    ('Loratadina', 'tableta', '10mg', 'admin'),
+    ('Aspirina', 'tableta', '100mg', 'admin'),
+    ('Metformina', 'tableta', '850mg', 'admin'),
+    ('Losartan', 'tableta', '50mg', 'admin'),
+    ('Atorvastatina', 'tableta', '20mg', 'admin'),
+    ('Salbutamol', 'inhalador', '100mcg', 'admin')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO inventario (id_medicamento, total)

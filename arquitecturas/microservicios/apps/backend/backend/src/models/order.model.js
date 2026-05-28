@@ -42,7 +42,8 @@ const Order = sequelize.define(
     },
     cantidad_medicamento: {
       type: DataTypes.INTEGER,
-      defaultValue: 0,
+      defaultValue: 0
+    },
     creadoPor: {
       type: DataTypes.STRING(100),
       field: "creado_por",

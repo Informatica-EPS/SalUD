@@ -271,10 +271,10 @@ ON CONFLICT (id_cita) DO NOTHING;
 -- ---------------------------------------------------------------
 -- 7. Insertar órdenes (DDL: table 'ordenes')
 -- ---------------------------------------------------------------
-INSERT INTO ordenes (tipo, id_medicamento, id_cita, fecha_vencimiento, estado, entidad_destino, especialidad, descripcion, creado_por)
+INSERT INTO ordenes (tipo, id_medicamento, id_cita, fecha_vencimiento, estado, entidad_destino, especialidad, descripcion, cantidad_medicamento, creado_por)
 VALUES
-    ('medicamento', 2, 1, NOW() + INTERVAL '30 days', 'autorizada', 'Farmacia EPS', 2, 'Acetaminofen 500mg cada 8h', 'seed'),
-    ('medicamento', 3, 2, NOW() + INTERVAL '45 days', 'autorizada', 'Farmacia EPS', 2, 'Ibuprofeno 400mg cada 12h', 'seed');
+    ('medicamento', 2, 1, NOW() + INTERVAL '30 days', 'autorizada', 'Farmacia EPS', 2, 'Acetaminofen 500mg cada 8h', 10, 'seed'),
+    ('medicamento', 3, 2, NOW() + INTERVAL '45 days', 'autorizada', 'Farmacia EPS', 2, 'Ibuprofeno 400mg cada 12h', 20, 'seed');
 
 -- ---------------------------------------------------------------
 -- 8. Insertar roles de usuario (DDL: table 'roles_usuario')

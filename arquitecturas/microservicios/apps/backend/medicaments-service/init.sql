@@ -4,7 +4,7 @@
 DO $$
 BEGIN
     CREATE DOMAIN dom_tipo_movimiento AS VARCHAR(20)
-    CHECK (VALUE IN ('entrada', 'salida'));
+    CHECK (VALUE IN ('entrada', 'salida', 'despacho'));
 EXCEPTION
     WHEN duplicate_object THEN NULL;
 END $$;
@@ -12,9 +12,8 @@ END $$;
 CREATE TABLE IF NOT EXISTS medicamentos (
     id BIGSERIAL PRIMARY KEY,
     nombre VARCHAR(20) NOT NULL,
-    cantidad VARCHAR(20) NOT NULL,
-    presentacion VARCHAR(20) NOT NULL,
-    concentracion VARCHAR(20) NOT NULL,
+    presentacion VARCHAR(20),
+    concentracion VARCHAR(20),
     fecha_creacion TIMESTAMPTZ DEFAULT NOW(),
     creado_por VARCHAR(100),
     ultima_actualizacion TIMESTAMPTZ,
@@ -53,7 +52,6 @@ CREATE INDEX IF NOT EXISTS ix_movimientos_id_medicamento ON movimientos(id_medic
 CREATE TABLE IF NOT EXISTS auditoria_medicamentos (
     id_medicamento BIGINT,
     nombre VARCHAR(20),
-    cantidad VARCHAR(20),
     presentacion VARCHAR(20),
     concentracion VARCHAR(20),
     momento TIMESTAMPTZ DEFAULT NOW(),
@@ -67,12 +65,12 @@ CREATE OR REPLACE FUNCTION fn_auditoria_medicamentos()
 RETURNS TRIGGER AS $$
 BEGIN
     IF (TG_OP = 'DELETE') THEN
-        INSERT INTO auditoria_medicamentos (id_medicamento, nombre, cantidad, presentacion, concentracion, movimiento)
-        VALUES (OLD.id, OLD.nombre, OLD.cantidad, OLD.presentacion, OLD.concentracion, 'DELETE');
+        INSERT INTO auditoria_medicamentos (id_medicamento, nombre, presentacion, concentracion, movimiento)
+        VALUES (OLD.id, OLD.nombre, OLD.presentacion, OLD.concentracion, 'DELETE');
         RETURN OLD;
     ELSIF (TG_OP = 'UPDATE') THEN
-        INSERT INTO auditoria_medicamentos (id_medicamento, nombre, cantidad, presentacion, concentracion, movimiento)
-        VALUES (OLD.id, OLD.nombre, OLD.cantidad, OLD.presentacion, OLD.concentracion, 'UPDATE');
+        INSERT INTO auditoria_medicamentos (id_medicamento, nombre, presentacion, concentracion, movimiento)
+        VALUES (OLD.id, OLD.nombre, OLD.presentacion, OLD.concentracion, 'UPDATE');
         RETURN NEW;
     END IF;
     RETURN NULL;

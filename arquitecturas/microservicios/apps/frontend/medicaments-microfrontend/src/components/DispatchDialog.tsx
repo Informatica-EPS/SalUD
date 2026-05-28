@@ -71,7 +71,7 @@ export const DispatchDialog: React.FC<Props> = ({ open, onClose, medicaments, on
   };
 
   const medicamentoDeOrden = (orden: OrdenMedicamento) =>
-    medicaments.find(m => m.id === orden.idMedicamento);
+    medicaments.find(m => Number(m.id) === Number(orden.idMedicamento));
 
   const handleConfirmar = async () => {
     if (!ordenSeleccionada) return;
@@ -79,8 +79,10 @@ export const DispatchDialog: React.FC<Props> = ({ open, onClose, medicaments, on
     const med = medicamentoDeOrden(ordenSeleccionada);
     if (!med) return;
 
-    if (cantidad > med.inventario) {
-      setError(`Stock insuficiente. Solo hay ${med.inventario} unidades disponibles.`);
+    const stockDisponible = med.inventario?.total ?? 0;
+
+    if (cantidad > stockDisponible) {
+      setError(`Stock insuficiente. Solo hay ${stockDisponible} unidades disponibles.`);
       return;
     }
 
@@ -208,7 +210,7 @@ export const DispatchDialog: React.FC<Props> = ({ open, onClose, medicaments, on
                 <PillIcon color="info" />
                 <Box>
                   <Typography variant="body2" fontWeight={500} color="info.main">{med.nombre}</Typography>
-                  <Typography variant="caption" color="info.main">Inventario disponible: {med.inventario} unidades</Typography>
+                  <Typography variant="caption" color="info.main">Inventario disponible: {med.inventario?.total ?? 0} unidades</Typography>
                 </Box>
               </Box>
 
@@ -217,7 +219,7 @@ export const DispatchDialog: React.FC<Props> = ({ open, onClose, medicaments, on
                 label="Cantidad a despachar"
                 type="number"
                 value={cantidad}
-                onChange={e => setCantidad(Math.max(1, Math.min(med.inventario, Number(e.target.value))))}
+                onChange={e => setCantidad(Math.max(1, Math.min(med.inventario?.total ?? 0, Number(e.target.value))))}
                 inputProps={{ min: 1 }}
                 size="small"
                 helperText={`Cantidad autorizada en la orden`}

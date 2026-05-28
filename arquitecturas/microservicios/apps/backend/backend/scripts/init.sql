@@ -154,6 +154,7 @@ CREATE TABLE IF NOT EXISTS ordenes (
     entidad_destino VARCHAR(100),
     especialidad BIGINT,
     descripcion VARCHAR(200),
+    cantidad_medicamento INT DEFAULT 0,
     fecha_creacion TIMESTAMPTZ DEFAULT NOW(),
     fecha_actualizacion TIMESTAMPTZ,
     creado_por VARCHAR(100),
@@ -453,6 +454,7 @@ CREATE TABLE IF NOT EXISTS auditoria_ordenes (
     entidad_destino VARCHAR(100),
     especialidad BIGINT,
     descripcion VARCHAR(200),
+    cantidad_medicamento INT,
     momento TIMESTAMPTZ DEFAULT NOW(),
     usuario_bd VARCHAR(100) DEFAULT CURRENT_USER,
     movimiento VARCHAR(20),
@@ -462,12 +464,12 @@ CREATE TABLE IF NOT EXISTS auditoria_ordenes (
 CREATE OR REPLACE FUNCTION fn_auditoria_ordenes() RETURNS TRIGGER AS $$
 BEGIN
     IF (TG_OP = 'DELETE') THEN
-        INSERT INTO auditoria_ordenes (id_orden, tipo, id_medicamento, id_cita, fecha_vencimiento, estado, entidad_destino, especialidad, descripcion, movimiento)
-        VALUES (OLD.id, OLD.tipo, OLD.id_medicamento, OLD.id_cita, OLD.fecha_vencimiento, OLD.estado, OLD.entidad_destino, OLD.especialidad, OLD.descripcion, 'DELETE');
+        INSERT INTO auditoria_ordenes (id_orden, tipo, id_medicamento, id_cita, fecha_vencimiento, estado, entidad_destino, especialidad, descripcion, cantidad_medicamento, movimiento)
+        VALUES (OLD.id, OLD.tipo, OLD.id_medicamento, OLD.id_cita, OLD.fecha_vencimiento, OLD.estado, OLD.entidad_destino, OLD.especialidad, OLD.descripcion, OLD.cantidad_medicamento, 'DELETE');
         RETURN OLD;
     ELSIF (TG_OP = 'UPDATE') THEN
-        INSERT INTO auditoria_ordenes (id_orden, tipo, id_medicamento, id_cita, fecha_vencimiento, estado, entidad_destino, especialidad, descripcion, movimiento)
-        VALUES (OLD.id, OLD.tipo, OLD.id_medicamento, OLD.id_cita, OLD.fecha_vencimiento, OLD.estado, OLD.entidad_destino, OLD.especialidad, OLD.descripcion, 'UPDATE');
+        INSERT INTO auditoria_ordenes (id_orden, tipo, id_medicamento, id_cita, fecha_vencimiento, estado, entidad_destino, especialidad, descripcion, cantidad_medicamento, movimiento)
+        VALUES (OLD.id, OLD.tipo, OLD.id_medicamento, OLD.id_cita, OLD.fecha_vencimiento, OLD.estado, OLD.entidad_destino, OLD.especialidad, OLD.descripcion, OLD.cantidad_medicamento, 'UPDATE');
         RETURN NEW;
     END IF;
     RETURN NULL;
