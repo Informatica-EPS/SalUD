@@ -8,9 +8,8 @@ class Medicament(Base):
 
   id = Column(BigInteger, primary_key=True, index=True, autoincrement=True)
   nombre = Column(String(20), nullable=False)
-  cantidad = Column(String(20), nullable=False)
-  presentacion = Column(String(20), nullable=False)
-  concentracion = Column(String(20), nullable=False)
+  presentacion = Column(String(20), nullable=True)
+  concentracion = Column(String(20), nullable=True)
   fechaCreacion = Column("fecha_creacion", DateTime(timezone=True))
   creadoPor = Column("creado_por", String(100))
   ultimaActualizacion = Column("ultima_actualizacion", DateTime(timezone=True))

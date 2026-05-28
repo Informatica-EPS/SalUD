@@ -3,7 +3,6 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --ignore-scripts
 COPY src/ ./src/
-COPY public/ ./public/
 COPY index.html vite.config.ts tsconfig*.json ./
 
 

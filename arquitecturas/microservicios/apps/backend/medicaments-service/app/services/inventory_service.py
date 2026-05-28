@@ -23,3 +23,11 @@ class InventoryService:
         self.repository.update(medicament_inventory)
 
         return {"message": "Medicamento despachado con éxito"}
+
+    def update_inventory(self, medicament_id: int, total: int):
+        inventory = self.repository.get_by_id(medicament_id)
+        if not inventory:
+            raise HTTPException(status_code=404, detail=ErrorMessages.MEDICAMENT_NOT_FOUND)
+        inventory.total = total
+        self.repository.update(inventory)
+        return {"message": "Inventario actualizado con éxito"}

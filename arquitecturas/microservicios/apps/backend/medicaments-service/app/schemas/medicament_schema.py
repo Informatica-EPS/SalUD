@@ -36,3 +36,13 @@ class MedicamentDispatchRequest(BaseModel):
     idOrden: int
     idPaciente: int
     cantidad: int
+
+class MedicamentUpdateRequest(BaseModel):
+    nombre: str
+
+class MedicamentCreateRequest(BaseModel):
+    nombre: str
+    inventario_inicial: int = 0
+
+class InventoryUpdateRequest(BaseModel):
+    total: int

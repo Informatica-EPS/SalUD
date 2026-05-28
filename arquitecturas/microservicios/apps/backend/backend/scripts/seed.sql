@@ -4,6 +4,30 @@
 -- Usando: encode(digest('salud123', 'sha256'), 'hex')
 -- =============================================================
 
+-- ---------------------------------------------------------------
+-- 3. Datos de referencia: roles y especialidades
+-- ---------------------------------------------------------------
+
+INSERT INTO rol (nombre, descripcion, creado_por, fecha_creacion)
+VALUES
+    ('Medico',   'Rol para médicos del sistema',   'seed', NOW()),
+    ('Paciente', 'Rol para pacientes del sistema', 'seed', NOW()),
+    ('AdminMedicamentos', 'Rol para administradores de medicamentos', 'seed', NOW()),
+	('Admin', 'Rol para administradores del sistema', 'seed', NOW());
+
+INSERT INTO especialidades (id, nombre, descripcion)
+VALUES
+    (1, 'N/A',  'N/A'),
+    (2, 'Cardiología',  'Especialidad del corazón y sistema cardiovascular'),
+    (3, 'Inmunología',  'Especialidad del sistema inmunológico');
+
+-- ---------------------------------------------------------------
+-- 4. Usuarios (5 en total: 3 médicos + 2 pacientes)
+-- ---------------------------------------------------------------
+
+-- =============================================================
+-- Activar extensión para usar SHA256
+-- =============================================================
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 -- ---------------------------------------------------------------
@@ -100,10 +124,10 @@ ON CONFLICT (id_cita) DO NOTHING;
 -- ---------------------------------------------------------------
 -- 7. Insertar órdenes (DDL: table 'ordenes')
 -- ---------------------------------------------------------------
-INSERT INTO ordenes (tipo, id_medicamento, id_cita, fecha_vencimiento, estado, entidad_destino, especialidad, descripcion, creado_por)
+INSERT INTO ordenes (tipo, id_medicamento, id_cita, fecha_vencimiento, estado, entidad_destino, especialidad, descripcion, cantidad_medicamento, creado_por)
 VALUES
-    ('medicamento', 2, 1, NOW() + INTERVAL '30 days', 'autorizada', 'Farmacia EPS', 2, 'Acetaminofen 500mg cada 8h', 'seed'),
-    ('medicamento', 3, 2, NOW() + INTERVAL '45 days', 'autorizada', 'Farmacia EPS', 2, 'Ibuprofeno 400mg cada 12h', 'seed');
+    ('medicamento', 2, 1, NOW() + INTERVAL '30 days', 'autorizada', 'Farmacia EPS', 2, 'Acetaminofen 500mg cada 8h', 10, 'seed'),
+    ('medicamento', 3, 2, NOW() + INTERVAL '45 days', 'autorizada', 'Farmacia EPS', 2, 'Ibuprofeno 400mg cada 12h', 20, 'seed');
 
 -- ---------------------------------------------------------------
 -- 8. Insertar roles de usuario (DDL: table 'roles_usuario')

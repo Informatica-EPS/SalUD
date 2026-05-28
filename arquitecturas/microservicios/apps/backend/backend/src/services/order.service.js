@@ -217,13 +217,13 @@ class OrderService {
     const order = await Order.findByPk(idOrder);
 
     if (!order) throw new Error("No existe la orden");
-    if (order.estado !== ordersStatus.AUTHORIZED)
-      throw new Error("Orden no autorizada para medicamento");
-    if (order.idMedicamento !== idMedicamento)
+    if (order.estado != ordersStatus.AUTHORIZED)
+      throw new Error("Orden no autorizada para medicamento" + order.estado);
+    if (order.idMedicamento != idMedicamento)
       throw new Error("Este medicamento no esta autorizado para ser despachado en esta orden");
 
     const appointment = await AppointmentService.findById(order.idCita);
-    if (appointment.idPaciente !== idPaciente)
+    if (appointment.idPaciente != idPaciente)
       throw new Error("El paciente no tiene esa orden asociada");
 
     return await order.update({ estado: ordersStatus.COMPLETED });

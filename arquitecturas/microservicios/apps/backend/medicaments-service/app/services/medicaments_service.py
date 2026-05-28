@@ -1,8 +1,9 @@
 from fastapi import HTTPException
 from app.repositories.medicaments_repository import MedicamentsRepository
-from app.schemas.medicament_schema import MedicamentResponse, MedicamentDispatchRequest
+from app.schemas.medicament_schema import MedicamentResponse, MedicamentDispatchRequest, MedicamentUpdateRequest, MedicamentCreateRequest
 from app.services.inventory_service import InventoryService
 from app.services.movement_service import MovementService
+from app.core.constants import MovementType, ErrorMessages
 from app.core.config import settings
 import httpx
 
@@ -21,7 +22,6 @@ class MedicamentsService:
             {
                 "id": m.id,
                 "nombre": m.nombre,
-                "cantidad": m.cantidad,
                 "presentacion": m.presentacion,
                 "concentracion": m.concentracion,
                 "inventario": {
@@ -40,6 +40,26 @@ class MedicamentsService:
             }
             for m in medicaments
         ]
+    
+    def update_medicament(self, id: int, body: MedicamentUpdateRequest):
+        medicament = self.repository.update(id, body.nombre)
+        if not medicament:
+            raise HTTPException(status_code=404, detail="Medicamento no encontrado")
+        return {
+            "id": medicament.id,
+            "nombre": medicament.nombre,
+            "inventario": medicament.inventario.total,
+            "movimientos": medicament.movimientos
+        }
+
+    def create_medicament(self, body: MedicamentCreateRequest):
+        medicament = self.repository.create(body.nombre, body.inventario_inicial)
+        return {
+            "id": medicament.id,
+            "nombre": medicament.nombre,
+            "inventario": medicament.inventario.total,
+            "movimientos": medicament.movimientos
+        }
 
     async def dispatch_medicaments(self, body: MedicamentDispatchRequest):
         # validar orden con servicio de ordenes
@@ -80,3 +100,26 @@ class MedicamentsService:
             medicament_id, body.idOrden, quantity, "admin")
 
         return {"message": "Medicamento despachado con éxito"}
+        
+    def update_inventory(self, medicament_id: int, body):
+        inventory = self.inventory_service.repository.get_by_id(medicament_id)
+        if not inventory:
+            raise HTTPException(status_code=404, detail=ErrorMessages.MEDICAMENT_NOT_FOUND)
+        
+        diferencia = body.total - inventory.total
+
+        if diferencia == 0:
+            return {"message": "Sin cambios en el inventario"}
+
+        self.inventory_service.update_inventory(medicament_id, body.total)
+
+        if diferencia > 0:
+            self.movement_service.create_adjustment_event(
+                medicament_id, diferencia, MovementType.ENTRY, "admin"
+            )
+        else:
+            self.movement_service.create_adjustment_event(
+                medicament_id, abs(diferencia), MovementType.EXIT, "admin"
+            )
+
+        return {"message": "Inventario actualizado con éxito"}

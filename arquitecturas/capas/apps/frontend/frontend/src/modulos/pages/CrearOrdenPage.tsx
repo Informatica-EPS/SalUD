@@ -565,6 +565,7 @@ export const CrearOrdenPage = () => {
       const nombreEspecialidad = orden.Specialty?.nombre;
       // 👇 busca el nombre en el array que ya tienes del puerto 5010
       const medicamento = medicaments.find((m) => m.id === orden.idMedicamento);
+
       const nombreMedicamento = medicamento?.nombre || 'Medicamento no encontrado';
 
       if (esNA && tieneMedicamento) {
