@@ -176,9 +176,9 @@ export const MedicamentsList: React.FC = () => {
                 
                 <Box sx={{ mb: 2 }}>
                   <Chip
-                    label={`Inventario: ${medicament.inventario}`}
+                    label={`Inventario: ${medicament.inventario?.total ?? 0}`}
                     size="medium"
-                    color={getStockColor(medicament.inventario)}
+                    color={getStockColor(medicament.inventario?.total ?? 0)}
                     sx={{ fontWeight: 'bold' }}
                   />
                 </Box>
@@ -229,7 +229,7 @@ export const MedicamentsList: React.FC = () => {
             <Box>
               <Typography variant="h6">{selectedMedicament?.nombre}</Typography>
               <Typography variant="body2" color="text.secondary">
-                Inventario actual: {selectedMedicament?.inventario} unidades
+                Inventario actual: {selectedMedicament?.inventario?.total ?? 0} unidades
               </Typography>
             </Box>
           </Box>

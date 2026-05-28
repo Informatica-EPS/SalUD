@@ -2,46 +2,56 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
 const Appointment = sequelize.define(
-  "Appointment", // Antes: "Appointment"
+  "Appointment",
   {
     id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       primaryKey: true,
       autoIncrement: true,
     },
     tipoCita: {
-      // Antes: appointmentType
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(20),
+      allowNull: false,
+      field: "tipo_cita",
     },
     estado: {
-      // Antes: status
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(20),
+      allowNull: false,
     },
     idPaciente: {
-      // Antes: patientId
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
+      allowNull: false,
+      field: "id_paciente",
     },
     idDoctor: {
-      // Antes: doctorId
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
+      allowNull: false,
+      field: "id_medico",
     },
     idHorario: {
-      // Antes: timeSlotId
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
+      allowNull: false,
+      field: "id_franja_horaria",
     },
-    // Auditoría
     creadoPor: {
-      // Antes: createdBy
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(100),
+      field: "creado_por",
     },
     actualizadoPor: {
-      // Antes: updatedBy
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(100),
+      field: "actualizado_por",
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      field: "fecha_creacion",
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      field: "ultima_actualizacion",
     },
   },
   {
-    tableName: "citas", // Antes: "appointments"
-    underscored: true,
+    tableName: "citas",
     timestamps: true,
   },
 );

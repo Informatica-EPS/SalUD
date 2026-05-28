@@ -1,11 +1,14 @@
-from pydantic import BaseModel, EmailStr
+from datetime import datetime
+
+from pydantic import BaseModel
 
 
 class MovementsResponse(BaseModel):
     id: int
-    tipo: str
+    tipo_movimiento: str
     cantidad: int
-    created_at: str
+    id_orden: int | None = None
+    created_at: datetime
 
     model_config = {"from_attributes": True}
 
@@ -19,6 +22,9 @@ class InventoryResponse(BaseModel):
 class MedicamentResponse(BaseModel):
     id: int
     nombre: str
+    cantidad: str
+    presentacion: str
+    concentracion: str
     inventario: InventoryResponse | None = None
     movimientos: list[MovementsResponse] | None = None
 

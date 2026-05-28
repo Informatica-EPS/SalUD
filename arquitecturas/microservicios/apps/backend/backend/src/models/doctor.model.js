@@ -5,29 +5,44 @@ const Doctor = sequelize.define(
   "Doctor",
   {
     id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       primaryKey: true,
       autoIncrement: true,
     },
     licenciaMedica: {
       type: DataTypes.STRING,
       allowNull: false,
+      field: "registro_medico",
     },
     especialidad: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       allowNull: true,
     },
     idUsuario: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       unique: true,
+      field: "id_usuario",
     },
-    creadoPor: DataTypes.INTEGER,
-    actualizadoPor: DataTypes.INTEGER,
+    creadoPor: {
+      type: DataTypes.STRING(100),
+      field: "creado_por",
+    },
+    actualizadoPor: {
+      type: DataTypes.STRING(100),
+      field: "actualizado_por",
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      field: "fecha_creacion",
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      field: "ultima_actualizacion",
+    },
   },
   {
-    tableName: "doctores",
-    underscored: true,
-    timestamps: false,
+    tableName: "medicos",
+    timestamps: true,
   },
 );
 

@@ -10,7 +10,7 @@ os.environ["DB_USER"] = "test_user"
 os.environ["DB_PASSWORD"] = "test_pass"
 os.environ["DB_HOST"] = "localhost"
 os.environ["DB_PORT"] = "5432"
-os.environ["BACKEND_URL"] = "http://localhost:5000"
+os.environ["BACKEND_URL"] = "http://test-backend"
 
 from fastapi.testclient import TestClient
 from main import app

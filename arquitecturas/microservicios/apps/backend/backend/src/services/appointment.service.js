@@ -6,18 +6,105 @@ const PatientModel = require("../models/patient.model");
 const TimeSlotModel = require("../models/time-slot.model");
 const SpecialtyModel = require("../models/specialty.model");
 const { appointmentsStatus, timeSlotStatus, functions } = require("../utils");
-const TimeSlotService = require("./time-slot.service");
-const {
-  decryptSensitiveFields,
-} = require("../utils/appointment-detail-crypto");
-const timeSlotService = require("./time-slot.service");
+const TimeSlotService = require("./time-slot.service"); // ← eliminada la importación duplicada
+const { decryptSensitiveFields } = require("../utils/appointment-detail-crypto");
 const { getDateFormatUTC } = require("../utils/functions");
 const { Op } = require("sequelize");
 const orderService = require("./order.service");
 
+// ── Atributos compartidos ────────────────────────────────────────────────────
+const APPOINTMENT_DETAIL_ATTRIBUTES = [
+  "motivo", "antecedentes", "anamnesis", "revisionSistemas",
+  "examenFisico", "diagnostico", "planManejo", "evolucion",
+];
+
+const TIME_SLOT_ATTRIBUTES = ["fecha", "horaInicio", "horaFin"];
+
+const PATIENT_ATTRIBUTES = ["ocupacion", "discapacidad", "etnia", "identidadGenero", "sexo"];
+
+// User del doctor (sin id, con email)
+const DOCTOR_USER_ATTRIBUTES = [
+  "primer_nombre", "segundo_nombre", "primer_apellido", "segundo_apellido", "email",
+];
+
+// User del paciente (sin id, con direccion y email)
+const PATIENT_USER_ATTRIBUTES = [
+  "primer_nombre", "segundo_nombre", "primer_apellido", "segundo_apellido",
+  "direccion", "email",
+];
+
+// User con id, sin email (para listados de paciente/doctor/especialidad)
+const USER_ID_NAME_ATTRIBUTES = [
+  "id", "primer_nombre", "segundo_nombre", "primer_apellido", "segundo_apellido",
+];
+
+// ── Includes compartidos ─────────────────────────────────────────────────────
+const SPECIALTY_INCLUDE = {
+  model: SpecialtyModel,
+  attributes: ["id", "nombre", "descripcion"],
+};
+
+const APPOINTMENT_DETAIL_INCLUDE = {
+  model: AppointmentDetailModel,
+  attributes: APPOINTMENT_DETAIL_ATTRIBUTES,
+};
+
+// Doctor completo: licencia + usuario + especialidad (findAllPaginated / findById)
+const DOCTOR_FULL_INCLUDE = {
+  model: DoctorModel,
+  attributes: ["licenciaMedica"],
+  include: [
+    { model: UserModel, attributes: DOCTOR_USER_ATTRIBUTES },
+    SPECIALTY_INCLUDE,
+  ],
+};
+
+// Patient completo: atributos clínicos + usuario (findAllPaginated / findById)
+const PATIENT_FULL_INCLUDE = {
+  model: PatientModel,
+  attributes: PATIENT_ATTRIBUTES,
+  include: [{ model: UserModel, attributes: PATIENT_USER_ATTRIBUTES }],
+};
+
+// Include para findById y getClinicalHistory (sin filtro dinámico)
+const APPOINTMENT_DETAIL_FULL_INCLUDE = [
+  DOCTOR_FULL_INCLUDE,
+  APPOINTMENT_DETAIL_INCLUDE,
+  { model: TimeSlotModel, attributes: TIME_SLOT_ATTRIBUTES },
+  PATIENT_FULL_INCLUDE,
+];
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Desencripta el AppointmentDetail de una fila y la devuelve como objeto plano. */
+function decryptRow(row) {
+  const out = row.toJSON ? row.toJSON() : { ...row };
+  if (out.AppointmentDetail) {
+    out.AppointmentDetail = decryptSensitiveFields(out.AppointmentDetail);
+  }
+  return out;
+}
+
+/** Construye la respuesta paginada estándar con citas. */
+function toPaginatedResponse({ rows, count, page, totalPages }) {
+  return {
+    totalPages,
+    totalItems: count,
+    currentPage: page,
+    citas: rows.map(decryptRow),
+  };
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+
 class AppointmentService {
   async create(data) {
     const { idDoctor, idHorario, idPaciente } = data;
+    const appointmentData = {
+      ...data,
+      tipoCita: data.tipoCita || "general",
+      estado: data.estado || appointmentsStatus.PROGRAMADO,
+    };
 
     await this.validateIsGeneralSpecialty(idDoctor);
     await this.validateMustBeFutureDate(idHorario);
@@ -25,9 +112,7 @@ class AppointmentService {
     await this.validateDoctorHasTimeSlot(idDoctor, idHorario);
     await TimeSlotService.markAsScheduled(idHorario);
 
-    return await Appointment.create({
-      ...data,
-    });
+    return await Appointment.create({ ...appointmentData });
   }
 
   async findAll() {
@@ -36,320 +121,94 @@ class AppointmentService {
 
   async findAllPaginated(queryParams) {
     const nowObj = new Date();
-    const nowDate = nowObj.toLocaleDateString("sv-SE", {
-      timeZone: "America/Bogota",
-    });
+    const nowDate = nowObj.toLocaleDateString("sv-SE", { timeZone: "America/Bogota" });
+    const nowTime = nowObj.toLocaleTimeString("en-GB", { timeZone: "America/Bogota" });
 
-    const nowTime = nowObj.toLocaleTimeString("en-GB", {
-      timeZone: "America/Bogota",
-    });
-
-    const { rows, count, page, totalPages } = await functions.paginate(
-      Appointment,
-      queryParams,
-      {
-        include: [
-          {
-            model: TimeSlotModel,
-            attributes: ["fecha", "horaInicio", "horaFin"],
-            where: {
-              [Op.or]: [
-                {
-                  [Op.and]: [
-                    {
-                      fecha: {
-                        [Op.eq]: nowDate,
-                      },
-                    },
-                    {
-                      horaInicio: {
-                        [Op.gte]: nowTime,
-                      },
-                    },
-                  ],
-                },
-                {
-                  fecha: {
-                    [Op.gt]: nowDate,
-                  },
-                },
-              ],
-            },
-          },
-          {
-            model: DoctorModel,
-            attributes: ["licenciaMedica"],
-            include: [
+    const result = await functions.paginate(Appointment, queryParams, {
+      include: [
+        {
+          model: TimeSlotModel,
+          attributes: TIME_SLOT_ATTRIBUTES,
+          where: {
+            [Op.or]: [
               {
-                model: UserModel,
-                attributes: [
-                  "primer_nombre",
-                  "segundo_nombre",
-                  "primer_apellido",
-                  "segundo_apellido",
-                  "email",
+                [Op.and]: [
+                  { fecha: { [Op.eq]: nowDate } },
+                  { horaInicio: { [Op.gte]: nowTime } },
                 ],
               },
-              {
-                model: SpecialtyModel,
-                attributes: ["id", "nombre", "descripcion"],
-              },
+              { fecha: { [Op.gt]: nowDate } },
             ],
           },
-          {
-            model: PatientModel,
-            attributes: [
-              "ocupacion",
-              "discapacidad",
-              "etnia",
-              "identidadGenero",
-              "sexo",
-            ],
-            include: [
-              {
-                model: UserModel,
-                attributes: [
-                  "primer_nombre",
-                  "segundo_nombre",
-                  "primer_apellido",
-                  "segundo_apellido",
-                  "direccion",
-                  "email",
-                ],
-              },
-            ],
-          },
-          {
-            model: AppointmentDetailModel,
-            attributes: [
-              "motivo",
-              "antecedentes",
-              "anamnesis",
-              "revisionSistemas",
-              "examenFisico",
-              "diagnostico",
-              "planManejo",
-              "evolucion",
-            ],
-          },
-        ],
-      },
-    );
+        },
+        DOCTOR_FULL_INCLUDE,
+        PATIENT_FULL_INCLUDE,
+        APPOINTMENT_DETAIL_INCLUDE,
+      ],
+    });
 
-    return {
-      totalPages,
-      totalItems: count,
-      currentPage: page,
-      citas: rows.map((row) => {
-        const out = row.toJSON ? row.toJSON() : { ...row };
-        if (out.AppointmentDetail) {
-          out.AppointmentDetail = decryptSensitiveFields(out.AppointmentDetail);
-        }
-        return out;
-      }),
-    };
+    return toPaginatedResponse(result);
   }
 
   async findByPatient(idPaciente, queryParams) {
     console.log("Finding appointments for patient ID:", idPaciente);
 
-    const { rows, count, page, totalPages } = await functions.paginate(
-      Appointment,
-      queryParams,
-      {
-        where: { idPaciente },
-        include: [
-          {
-            model: DoctorModel,
-            include: [
-              {
-                model: UserModel,
-                attributes: [
-                  "id",
-                  "primer_nombre",
-                  "segundo_nombre",
-                  "primer_apellido",
-                  "segundo_apellido",
-                ],
-              },
-              {
-                model: SpecialtyModel,
-                attributes: ["id", "nombre", "descripcion"],
-              },
-            ],
-          },
-          {
-            model: TimeSlotModel,
-          },
-          {
-            model: AppointmentDetailModel,
-          },
-        ],
-        order: [["createdAt", "DESC"]],
-      },
-    );
+    const result = await functions.paginate(Appointment, queryParams, {
+      where: { idPaciente },
+      include: [
+        {
+          model: DoctorModel,
+          include: [
+            { model: UserModel, attributes: USER_ID_NAME_ATTRIBUTES },
+            SPECIALTY_INCLUDE,
+          ],
+        },
+        { model: TimeSlotModel },
+        { model: AppointmentDetailModel },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
 
-    return {
-      totalPages,
-      currentPage: page,
-      totalItems: count,
-      citas: rows.map((row) => {
-        const out = row.toJSON ? row.toJSON() : { ...row };
-        if (out.AppointmentDetail) {
-          out.AppointmentDetail = decryptSensitiveFields(out.AppointmentDetail);
-        }
-        return out;
-      }),
-    };
+    return toPaginatedResponse(result);
   }
 
   async findByDoctor(idDoctor, queryParams) {
-    const { rows, count, page, totalPages } = await functions.paginate(
-      Appointment,
-      queryParams,
-      {
-        where: { idDoctor },
-        include: [
-          {
-            model: PatientModel,
-            include: [
-              {
-                model: UserModel,
-                attributes: [
-                  "id",
-                  "primer_nombre",
-                  "segundo_nombre",
-                  "primer_apellido",
-                  "segundo_apellido",
-                ],
-              },
-            ],
-          },
-          {
-            model: DoctorModel,
-            include: [
-              {
-                model: UserModel,
-                attributes: [
-                  "id",
-                  "primer_nombre",
-                  "segundo_nombre",
-                  "primer_apellido",
-                  "segundo_apellido",
-                ],
-              },
-              {
-                model: SpecialtyModel,
-                attributes: ["id", "nombre", "descripcion"],
-              },
-            ],
-          },
-          {
-            model: TimeSlotModel,
-          },
-          {
-            model: AppointmentDetailModel,
-          },
-        ],
-        order: [["createdAt", "DESC"]],
-      },
-    );
+    const result = await functions.paginate(Appointment, queryParams, {
+      where: { idDoctor },
+      include: [
+        {
+          model: PatientModel,
+          include: [{ model: UserModel, attributes: USER_ID_NAME_ATTRIBUTES }],
+        },
+        {
+          model: DoctorModel,
+          include: [
+            { model: UserModel, attributes: USER_ID_NAME_ATTRIBUTES },
+            SPECIALTY_INCLUDE,
+          ],
+        },
+        { model: TimeSlotModel },
+        { model: AppointmentDetailModel },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
 
-    return {
-      totalPages,
-      currentPage: page,
-      totalItems: count,
-      citas: rows.map((row) => {
-        const out = row.toJSON ? row.toJSON() : { ...row };
-        if (out.AppointmentDetail) {
-          out.AppointmentDetail = decryptSensitiveFields(out.AppointmentDetail);
-        }
-        return out;
-      }),
-    };
+    return toPaginatedResponse(result);
   }
 
   async findById(id) {
     const row = await Appointment.findByPk(id, {
-      include: [
-        {
-          model: DoctorModel,
-          attributes: ["licenciaMedica"],
-          include: [
-            {
-              model: UserModel,
-              attributes: [
-                "primer_nombre",
-                "segundo_nombre",
-                "primer_apellido",
-                "segundo_apellido",
-                "email",
-              ],
-            },
-            {
-              model: SpecialtyModel,
-              attributes: ["id", "nombre", "descripcion"],
-            },
-          ],
-        },
-        {
-          model: AppointmentDetailModel,
-          attributes: [
-            "motivo",
-            "antecedentes",
-            "anamnesis",
-            "revisionSistemas",
-            "examenFisico",
-            "diagnostico",
-            "planManejo",
-            "evolucion",
-          ],
-        },
-        {
-          model: TimeSlotModel,
-          attributes: ["fecha", "horaInicio", "horaFin"],
-        },
-        {
-          model: PatientModel,
-          attributes: [
-            "ocupacion",
-            "discapacidad",
-            "etnia",
-            "identidadGenero",
-            "sexo",
-          ],
-          include: [
-            {
-              model: UserModel,
-              attributes: [
-                "primer_nombre",
-                "segundo_nombre",
-                "primer_apellido",
-                "segundo_apellido",
-                "direccion",
-                "email",
-              ],
-            },
-          ],
-        },
-      ],
+      include: APPOINTMENT_DETAIL_FULL_INCLUDE,
     });
     if (!row) return row;
-    const out = row.toJSON ? row.toJSON() : { ...row };
-    if (out.AppointmentDetail) {
-      out.AppointmentDetail = decryptSensitiveFields(out.AppointmentDetail);
-    }
-    return out;
+    return decryptRow(row);
   }
 
   async update(id, data, auditUserId) {
     const appointment = await Appointment.findByPk(id);
     if (!appointment) return null;
 
-    await appointment.update({
-      ...data,
-      updatedBy: auditUserId,
-    });
+    await appointment.update({ ...data, updatedBy: auditUserId });
     return appointment;
   }
 
@@ -360,7 +219,6 @@ class AppointmentService {
     await this.validateIsNotCompleted(appointment);
 
     const timeSlot = await TimeSlotService.findById(appointment.idHorario);
-
     if (timeSlot) {
       await TimeSlotService.markAsAvailable(appointment.idHorario);
     }
@@ -376,21 +234,16 @@ class AppointmentService {
 
   async validateMustBeFutureDate(idHorario) {
     const timeSlot = await TimeSlotService.findById(idHorario);
+    const timeSlotDate = getDateFormatUTC(timeSlot.fecha, timeSlot.horaInicio, "-05:00");
 
-    const nowDate = new Date();
-    const initTime = timeSlot.horaInicio;
-
-    const timeSlotDate = getDateFormatUTC(timeSlot.fecha, initTime, "-05:00");
-
-    if (timeSlotDate < nowDate) {
+    if (timeSlotDate < new Date()) {
       throw new Error("La fecha del horario debe ser futura");
     }
   }
 
   async validatePatientHasNoScheduledAppointments(idPaciente, idHorario) {
-    const newTimeSlot = await timeSlotService.findById(idHorario);
-
-    await timeSlotService.validateOverlappingSlotsForPatient(
+    const newTimeSlot = await TimeSlotService.findById(idHorario);
+    await TimeSlotService.validateOverlappingSlotsForPatient(
       newTimeSlot.horaInicio,
       newTimeSlot.horaFin,
       newTimeSlot.fecha,
@@ -402,11 +255,8 @@ class AppointmentService {
     const timeSlot = await TimeSlotService.findById(idHorario);
 
     if (!timeSlot || timeSlot.idDoctor !== idDoctor) {
-      throw new Error(
-        "El médico no tiene horario disponible para esa franja horaria",
-      );
+      throw new Error("El médico no tiene horario disponible para esa franja horaria");
     }
-
     if (timeSlot.estado === timeSlotStatus.SCHEDULED) {
       throw new Error("El horario ya está reservado");
     }
@@ -417,54 +267,34 @@ class AppointmentService {
     if (!appointment) return null;
 
     const oldSlot = await TimeSlotService.findById(appointment.idHorario);
-    if (!oldSlot) {
-      throw new Error("Old time slot not found");
-    }
+    if (!oldSlot) throw new Error("Old time slot not found");
 
     await TimeSlotService.markAsAvailable(appointment.idHorario, auditUserId);
-
     await TimeSlotService.markAsScheduled(data.idHorario);
-
-    await appointment.update({
-      ...data,
-      updatedBy: auditUserId,
-    });
+    await appointment.update({ ...data, updatedBy: auditUserId });
     return appointment;
   }
 
   async updateAppointmentCompleted(id, auditUserId = 1) {
     const appointment = await Appointment.findByPk(id, {
-      include: [
-        {
-          model: TimeSlotModel,
-          attributes: ["fecha", "horaInicio", "horaFin"],
-        },
-      ],
+      include: [{ model: TimeSlotModel, attributes: TIME_SLOT_ATTRIBUTES }],
     });
     if (!appointment) return null;
 
     await this.validateAppointmentIsCurrently(appointment);
-
-    await appointment.update({
-      estado: appointmentsStatus.REALIZADO,
-      updatedBy: auditUserId,
-    });
+    await appointment.update({ estado: appointmentsStatus.REALIZADO, updatedBy: auditUserId });
     return appointment;
   }
 
   async validateAppointmentIsCurrently(appointment) {
     const nowDate = new Date();
-    const initTime = appointment.TimeSlot.horaInicio;
-    const endTime = appointment.TimeSlot.horaFin;
+    const { fecha, horaInicio, horaFin } = appointment.TimeSlot;
 
     if (
-      nowDate <
-        getDateFormatUTC(appointment.TimeSlot.fecha, initTime, "-05:00") ||
-      nowDate > getDateFormatUTC(appointment.TimeSlot.fecha, endTime, "-05:00")
+      nowDate < getDateFormatUTC(fecha, horaInicio, "-05:00") ||
+      nowDate > getDateFormatUTC(fecha, horaFin, "-05:00")
     ) {
-      throw new Error(
-        "La cita no está en curso, no se puede marcar como realizada",
-      );
+      throw new Error("La cita no está en curso, no se puede marcar como realizada");
     }
   }
 
@@ -476,10 +306,7 @@ class AppointmentService {
       throw new Error("Appointment is already canceled");
     }
 
-    await appointment.update({
-      estado: appointmentsStatus.CANCELADO,
-      updatedBy: auditUserId,
-    });
+    await appointment.update({ estado: appointmentsStatus.CANCELADO, updatedBy: auditUserId });
     return appointment;
   }
 
@@ -487,66 +314,18 @@ class AppointmentService {
     const appointmentsHistory = await Appointment.findAll({
       where: { idPaciente },
       include: [
+        // getClinicalHistory usa Specialty con solo "nombre" (sin id/descripcion)
         {
           model: DoctorModel,
           attributes: ["licenciaMedica"],
           include: [
-            {
-              model: UserModel,
-              attributes: [
-                "primer_nombre",
-                "segundo_nombre",
-                "primer_apellido",
-                "segundo_apellido",
-                "email",
-              ],
-            },
-            {
-              model: SpecialtyModel,
-              attributes: ["nombre"],
-            },
+            { model: UserModel, attributes: DOCTOR_USER_ATTRIBUTES },
+            { model: SpecialtyModel, attributes: ["nombre"] },
           ],
         },
-        {
-          model: AppointmentDetailModel,
-          attributes: [
-            "motivo",
-            "antecedentes",
-            "anamnesis",
-            "revisionSistemas",
-            "examenFisico",
-            "diagnostico",
-            "planManejo",
-            "evolucion",
-          ],
-        },
-        {
-          model: TimeSlotModel,
-          attributes: ["fecha", "horaInicio", "horaFin"],
-        },
-        {
-          model: PatientModel,
-          attributes: [
-            "ocupacion",
-            "discapacidad",
-            "etnia",
-            "identidadGenero",
-            "sexo",
-          ],
-          include: [
-            {
-              model: UserModel,
-              attributes: [
-                "primer_nombre",
-                "segundo_nombre",
-                "primer_apellido",
-                "segundo_apellido",
-                "direccion",
-                "email",
-              ],
-            },
-          ],
-        },
+        APPOINTMENT_DETAIL_INCLUDE,
+        { model: TimeSlotModel, attributes: TIME_SLOT_ATTRIBUTES },
+        PATIENT_FULL_INCLUDE,
       ],
       order: [
         [TimeSlotModel, "fecha", "DESC"],
@@ -563,9 +342,6 @@ class AppointmentService {
         idDoctor: a.idDoctor,
         idHorario: a.idHorario,
         createdAt: a.createdAt,
-        id_paciente: 1,
-        id_doctor: 1,
-        id_horario: 3,
         horario: this.mapTimeSlot(a.TimeSlot),
         detalles: this.mapAppointmentDetail(a.AppointmentDetail),
         doctor: this.mapDoctor(a.Doctor),
@@ -578,11 +354,9 @@ class AppointmentService {
     if (!doctor) return null;
     return {
       doctorNombreCompleto: `${doctor.User.primer_nombre} ${doctor.User.segundo_nombre || ""} ${doctor.User.primer_apellido} ${doctor.User.segundo_apellido || ""}`,
-      doctorLicencia: doctor.licencia_medica,
+      doctorLicencia: doctor.licenciaMedica,
       doctorEmail: doctor.User.email,
-      doctorEspecialidad: doctor.Specialty
-        ? doctor.Specialty.nombre
-        : "General",
+      doctorEspecialidad: doctor.Specialty ? doctor.Specialty.nombre : "General",
     };
   }
 
@@ -631,122 +405,63 @@ class AppointmentService {
   }
 
   async findBySpecialty(idSpecialty, queryParams) {
-    const { rows, count, page, totalPages } = await functions.paginate(
-      Appointment,
-      queryParams,
-      {
-        include: [
-          {
-            model: DoctorModel,
-            where: { idEspecialidad: idSpecialty },
-            include: [
-              {
-                model: UserModel,
-                attributes: [
-                  "id",
-                  "primer_nombre",
-                  "segundo_nombre",
-                  "primer_apellido",
-                  "segundo_apellido",
-                ],
-              },
-            ],
-          },
-          {
-            model: PatientModel,
-            include: [
-              {
-                model: UserModel,
-                attributes: [
-                  "id",
-                  "primer_nombre",
-                  "segundo_nombre",
-                  "primer_apellido",
-                  "segundo_apellido",
-                ],
-              },
-            ],
-          },
-          {
-            model: TimeSlotModel,
-          },
-          {
-            model: AppointmentDetailModel,
-          },
-        ],
-        order: [["createdAt", "DESC"]],
-      },
-    );
+    const result = await functions.paginate(Appointment, queryParams, {
+      include: [
+        {
+          model: DoctorModel,
+          where: { idEspecialidad: idSpecialty },
+          include: [{ model: UserModel, attributes: USER_ID_NAME_ATTRIBUTES }],
+        },
+        {
+          model: PatientModel,
+          include: [{ model: UserModel, attributes: USER_ID_NAME_ATTRIBUTES }],
+        },
+        { model: TimeSlotModel },
+        { model: AppointmentDetailModel },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
 
-    return {
-      totalPages,
-      currentPage: page,
-      totalItems: count,
-      citas: rows.map((row) => {
-        const out = row.toJSON ? row.toJSON() : { ...row };
-        if (out.AppointmentDetail) {
-          out.AppointmentDetail = decryptSensitiveFields(out.AppointmentDetail);
-        }
-        return out;
-      }),
-    };
+    return toPaginatedResponse(result);
   }
 
   async validateHasOrder(idPatient, idSpecialty) {
-    const order = await orderService.validatePatientHasAuthorizedOrders(
-      idPatient,
-      idSpecialty,
-    );
+    const order = await orderService.validatePatientHasAuthorizedOrders(idPatient, idSpecialty);
 
     if (!order) {
-      throw new Error(
-        "El paciente no tiene órdenes autorizadas asociadas para esa especialidad",
-      );
+      throw new Error("El paciente no tiene órdenes autorizadas asociadas para esa especialidad");
     }
 
     await this.validateOrderAvailable(order.dataValues);
-
     return order;
   }
 
   async validateOrderAvailable(order) {
     console.log("validateOrderAvailable", { order });
 
-    // const [date, time] = order.fechaVencimiento.split(" ");
-    const deadline = new Date(`${order.fechaVencimiento}`); //getDateFormatUTC(date, time, "-05:00"); //
-    const now = new Date();
-
-    if (deadline < now) {
-      throw new Error(
-        "La orden ha vencido y no se puede usar para crear una cita",
-      );
+    if (new Date(order.fechaVencimiento) < new Date()) {
+      throw new Error("La orden ha vencido y no se puede usar para crear una cita");
     }
   }
 
   async validateIsGeneralSpecialty(idDoctor) {
     const doctor = await DoctorModel.findByPk(idDoctor);
-    if (!doctor) {
-      throw new Error("Doctor no encontrado");
-    }
+    if (!doctor) throw new Error("Doctor no encontrado");
+
     const specialty = await SpecialtyModel.findByPk(doctor.especialidad);
     if (specialty !== null) {
-      throw new Error(
-        "El paciente no puede agendar una cita general con un médico especialista",
-      );
+      throw new Error("El paciente no puede agendar una cita general con un médico especialista");
     }
   }
 
   async validateDoctorSpecialty(idDoctor, idSpecialty) {
     const doctor = await DoctorModel.findByPk(idDoctor);
-    if (!doctor) {
-      throw new Error("Doctor no encontrado");
-    }
-    
+    if (!doctor) throw new Error("Doctor no encontrado");
+
     console.log("validateDoctorSpecialty - idDoctor:", idDoctor, "tipo:", typeof idDoctor);
     console.log("validateDoctorSpecialty - idSpecialty:", idSpecialty, "tipo:", typeof idSpecialty);
     console.log("validateDoctorSpecialty - doctor.especialidad:", doctor.especialidad, "tipo:", typeof doctor.especialidad);
-    
-    // Convertir ambos a número para comparar correctamente
+
     if (Number(doctor.especialidad) !== Number(idSpecialty)) {
       throw new Error("El médico no pertenece a la especialidad seleccionada");
     }
@@ -757,9 +472,9 @@ class AppointmentService {
     console.log("idSpecialty:", idSpecialty, "tipo:", typeof idSpecialty);
     console.log("data:", data);
     console.log("userId:", userId);
-    
+
     const { idDoctor, idHorario, idPaciente } = data;
-    
+
     console.log("idDoctor:", idDoctor, "tipo:", typeof idDoctor);
     console.log("idHorario:", idHorario, "tipo:", typeof idHorario);
     console.log("idPaciente:", idPaciente, "tipo:", typeof idPaciente);
@@ -770,13 +485,16 @@ class AppointmentService {
     await this.validateDoctorHasTimeSlot(idDoctor, idHorario);
 
     const order = await this.validateHasOrder(idPaciente, idSpecialty);
-
     await orderService.setCompletedOrder(order.dataValues.id);
     await TimeSlotService.markAsScheduled(idHorario);
 
-    return await Appointment.create({
+    const appointmentData = {
       ...data,
-    });
+      tipoCita: data.tipoCita || "general",
+      estado: data.estado || appointmentsStatus.PROGRAMADO,
+    };
+
+    return await Appointment.create({ ...appointmentData });
   }
 }
 

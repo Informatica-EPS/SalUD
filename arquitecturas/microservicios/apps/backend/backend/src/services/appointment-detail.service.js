@@ -11,6 +11,47 @@ const {
   decryptSensitiveFields,
 } = require("../utils/appointment-detail-crypto");
 
+const APPOINTMENT_INCLUDE = [
+  {
+    model: AppointmentModel,
+    attributes: ["tipoCita", "estado"],
+    include: [
+      {
+        model: PatientModel,
+        attributes: ["ocupacion", "discapacidad", "etnia", "identidadGenero", "sexo"],
+        include: [
+          {
+            model: UserModel,
+            attributes: [
+              "primer_nombre", "segundo_nombre",
+              "primer_apellido", "segundo_apellido",
+              "direccion", "email",
+            ],
+          },
+        ],
+      },
+      {
+        model: TimeSlotModel,
+        attributes: ["fecha", "horaInicio", "horaFin"],
+      },
+      {
+        model: DoctorModel,
+        attributes: ["licenciaMedica"],
+        include: [
+          {
+            model: UserModel,
+            attributes: [
+              "primer_nombre", "segundo_nombre",
+              "primer_apellido", "segundo_apellido",
+              "email",
+            ],
+          },
+        ],
+      },
+    ],
+  },
+];
+
 class AppointmentDetailService {
   async create(data, auditUserId) {
     await this.validateDetail(data, false); // false = no requiere diagnóstico
@@ -57,59 +98,7 @@ class AppointmentDetailService {
     const { rows, count, page, totalPages } = await functions.paginate(
       AppointmentDetail,
       queryParams,
-      {
-        include: [
-          {
-            model: AppointmentModel,
-            attributes: ["tipoCita", "estado"],
-            include: [
-              {
-                model: PatientModel,
-                attributes: [
-                  "ocupacion",
-                  "discapacidad",
-                  "etnia",
-                  "identidadGenero",
-                  "sexo",
-                ],
-                include: [
-                  {
-                    model: UserModel,
-                    attributes: [
-                      "primer_nombre",
-                      "segundo_nombre",
-                      "primer_apellido",
-                      "segundo_apellido",
-                      "direccion",
-                      "email",
-                    ],
-                  },
-                ],
-              },
-              {
-                model: TimeSlotModel,
-                attributes: ["fecha", "horaInicio", "horaFin"],
-              },
-              {
-                model: DoctorModel,
-                attributes: ["licenciaMedica"],
-                include: [
-                  {
-                    model: UserModel,
-                    attributes: [
-                      "primer_nombre",
-                      "segundo_nombre",
-                      "primer_apellido",
-                      "segundo_apellido",
-                      "email",
-                    ],
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      },
+      { include: APPOINTMENT_INCLUDE },
     );
 
     return {
@@ -128,59 +117,7 @@ class AppointmentDetailService {
   }
 
   async findById(id) {
-    const row = await AppointmentDetail.findByPk(id, {
-      include: [
-        {
-          model: AppointmentModel,
-          attributes: ["tipoCita", "estado"],
-          include: [
-            {
-              model: PatientModel,
-              attributes: [
-                "ocupacion",
-                "discapacidad",
-                "etnia",
-                "identidadGenero",
-                "sexo",
-              ],
-              include: [
-                {
-                  model: UserModel,
-                  attributes: [
-                    "primer_nombre",
-                    "segundo_nombre",
-                    "primer_apellido",
-                    "segundo_apellido",
-                    "direccion",
-                    "email",
-                  ],
-                },
-              ],
-            },
-            {
-              model: TimeSlotModel,
-              attributes: ["fecha", "horaInicio", "horaFin"],
-            },
-            {
-              model: DoctorModel,
-              attributes: ["licenciaMedica"],
-              include: [
-                {
-                  model: UserModel,
-                  attributes: [
-                    "primer_nombre",
-                    "segundo_nombre",
-                    "primer_apellido",
-                    "segundo_apellido",
-                    "email",
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    });
+    const row = await AppointmentDetail.findByPk(id, { include: APPOINTMENT_INCLUDE });
     return decryptSensitiveFields(row);
   }
 

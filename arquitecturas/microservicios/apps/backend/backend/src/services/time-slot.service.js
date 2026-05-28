@@ -1,15 +1,77 @@
 const TimeSlot = require("../models/time-slot.model");
-const Doctor = require("../models/doctor.model");
-const User = require("../models/user.model");
+const DoctorModel = require("../models/doctor.model");   // ← eliminado alias duplicado "Doctor"
+const UserModel = require("../models/user.model");       // ← eliminado alias duplicado "User"
 const DoctorService = require("./doctor.service");
-const DoctorModel = require("../models/doctor.model");
 const PatientModel = require("../models/patient.model");
 const AppointmentModel = require("../models/appointments.model");
-const UserModel = require("../models/user.model");
 const SpecialtyModel = require("../models/specialty.model");
 const { appointmentsStatus, timeSlotStatus, functions } = require("../utils");
 const { Op } = require("sequelize");
 const { getDateFormatUTC } = require("../utils/functions");
+
+// ── Atributos compartidos ────────────────────────────────────────────────────
+const USER_ID_NAME_ATTRIBUTES = [
+  "id", "primer_nombre", "segundo_nombre", "primer_apellido", "segundo_apellido",
+];
+
+const SPECIALTY_INCLUDE = {
+  model: SpecialtyModel,
+  attributes: ["id", "nombre", "descripcion"],
+};
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Devuelve la fecha y hora actuales formateadas en zona America/Bogota. */
+function getNowBogota() {
+  const now = new Date();
+  return {
+    nowDate: now.toLocaleDateString("sv-SE", { timeZone: "America/Bogota" }),
+    nowTime: now.toLocaleTimeString("en-GB", { timeZone: "America/Bogota" }),
+  };
+}
+
+/** Condición Sequelize para traer solo franjas desde ahora en adelante. */
+function buildFutureDateFilter(nowDate, nowTime) {
+  return {
+    [Op.or]: [
+      {
+        [Op.and]: [
+          { fecha: { [Op.eq]: nowDate } },
+          { horaInicio: { [Op.gte]: nowTime } },
+        ],
+      },
+      { fecha: { [Op.gt]: nowDate } },
+    ],
+  };
+}
+
+/** Condición Sequelize para detectar solapamiento entre franjas horarias. */
+function buildTimeOverlapCondition(horaInicio, horaFin) {
+  return [
+    { horaInicio: { [Op.between]: [horaInicio, horaFin] } },
+    { horaFin:    { [Op.between]: [horaInicio, horaFin] } },
+    { horaInicio: { [Op.lte]: horaInicio }, horaFin: { [Op.gte]: horaFin } },
+  ];
+}
+
+/** Include estándar de Doctor (con User e Id de Specialty) para listados. */
+function buildDoctorInclude(extraWhere) {
+  return {
+    model: DoctorModel,
+    ...(extraWhere ? { where: extraWhere } : {}),
+    include: [
+      { model: UserModel, attributes: USER_ID_NAME_ATTRIBUTES },
+      SPECIALTY_INCLUDE,
+    ],
+  };
+}
+
+/** Construye la respuesta paginada estándar de franjas horarias. */
+function toPaginatedResponse({ rows, count, page, totalPages }) {
+  return { totalPages, totalItems: count, currentPage: page, franjasHorarias: rows };
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 
 class TimeSlotService {
   async create(data, auditUserId = 1) {
@@ -33,12 +95,7 @@ class TimeSlotService {
     await this.validateStartAfterEndTime(data.horaInicio, data.horaFin);
     await this.validateDoctorExists(data.idDoctor);
     await this.validateItMustBeInTheFuture(data.fecha, data.horaInicio);
-    await this.validateOverlappingSlots(
-      data.idDoctor,
-      data.horaInicio,
-      data.horaFin,
-      data.fecha,
-    );
+    await this.validateOverlappingSlots(data.idDoctor, data.horaInicio, data.horaFin, data.fecha);
 
     return await TimeSlot.create({
       ...data,
@@ -54,335 +111,104 @@ class TimeSlotService {
   }
 
   async validateItMustBeInTheFuture(fecha, horaInicio) {
-    const now = new Date();
     const slotDateTime = getDateFormatUTC(fecha, horaInicio, "-05:00");
-
-    if (slotDateTime <= now) {
+    if (slotDateTime <= new Date()) {
       throw new Error("La franja horaria debe ser en el futuro");
     }
   }
 
   async getAvailableSlotsByDoctor(doctorId, queryParams) {
-    const nowObj = new Date();
-    const nowDate = nowObj.toLocaleDateString("sv-SE", {
-      timeZone: "America/Bogota",
-    });
+    const { nowDate, nowTime } = getNowBogota();
 
-    const nowTime = nowObj.toLocaleTimeString("en-GB", {
-      timeZone: "America/Bogota",
-    });
-
-    const { rows, count, page, totalPages } = await functions.paginate(
-      TimeSlot,
-      queryParams,
-      {
-        where: {
-          idDoctor: doctorId,
-          estado: timeSlotStatus.AVAILABLE,
-          [Op.or]: [
-            {
-              [Op.and]: [
-                {
-                  fecha: {
-                    [Op.eq]: nowDate,
-                  },
-                },
-                {
-                  horaInicio: {
-                    [Op.gte]: nowTime,
-                  },
-                },
-              ],
-            },
-            {
-              fecha: {
-                [Op.gt]: nowDate,
-              },
-            },
-          ],
-        },
-        order: [["createdAt", "ASC"]],
-        include: [
-          {
-            model: Doctor,
-            include: [
-              {
-                model: User,
-                attributes: [
-                  "id",
-                  "primer_nombre",
-                  "segundo_nombre",
-                  "primer_apellido",
-                  "segundo_apellido",
-                ],
-              },
-              {
-                model: SpecialtyModel,
-                attributes: ["id", "nombre", "descripcion"],
-              },
-            ],
-          },
-        ],
+    const result = await functions.paginate(TimeSlot, queryParams, {
+      where: {
+        idDoctor: doctorId,
+        estado: timeSlotStatus.AVAILABLE,
+        ...buildFutureDateFilter(nowDate, nowTime),
       },
-    );
+      order: [["createdAt", "ASC"]],
+      include: [buildDoctorInclude()],
+    });
 
-    return {
-      totalPages,
-      totalItems: count,
-      currentPage: page,
-      franjasHorarias: rows,
-    };
+    return toPaginatedResponse(result);
   }
 
   async getAllAvailableSlots(queryParams) {
-    const nowObj = new Date();
-    const nowDate = nowObj.toLocaleDateString("sv-SE", {
-      timeZone: "America/Bogota",
-    });
-
-    const nowTime = nowObj.toLocaleTimeString("en-GB", {
-      timeZone: "America/Bogota",
-    });
+    const { nowDate, nowTime } = getNowBogota();
 
     const doctorWhere = {};
-    if (queryParams.soloGenerales === 'true') {
+    if (queryParams.soloGenerales === "true") {
       doctorWhere.especialidad = null;
-    } else if (queryParams.soloEspecialistas === 'true') {
+    } else if (queryParams.soloEspecialistas === "true") {
       doctorWhere.especialidad = { [Op.ne]: null };
     }
 
-    const { rows, count, page, totalPages } = await functions.paginate(
-      TimeSlot,
-      queryParams,
-      {
-        where: {
-          estado: timeSlotStatus.AVAILABLE,
-          [Op.or]: [
-            {
-              [Op.and]: [
-                {
-                  fecha: {
-                    [Op.eq]: nowDate,
-                  },
-                },
-                {
-                  horaInicio: {
-                    [Op.gte]: nowTime,
-                  },
-                },
-              ],
-            },
-            {
-              fecha: {
-                [Op.gt]: nowDate,
-              },
-            },
-          ],
-        },
-        order: [["createdAt", "ASC"]],
-        include: [
-          {
-            model: Doctor,
-            where: Object.keys(doctorWhere).length > 0 ? doctorWhere : undefined,
-            include: [
-              {
-                model: User,
-                attributes: [
-                  "id",
-                  "primer_nombre",
-                  "segundo_nombre",
-                  "primer_apellido",
-                  "segundo_apellido",
-                ],
-              },
-              {
-                model: SpecialtyModel,
-                attributes: ["id", "nombre", "descripcion"],
-              },
-            ],
-          },
-        ],
+    const result = await functions.paginate(TimeSlot, queryParams, {
+      where: {
+        estado: timeSlotStatus.AVAILABLE,
+        ...buildFutureDateFilter(nowDate, nowTime),
       },
-    );
+      order: [["createdAt", "ASC"]],
+      include: [buildDoctorInclude(Object.keys(doctorWhere).length > 0 ? doctorWhere : undefined)],
+    });
 
-    return {
-      totalPages,
-      totalItems: count,
-      currentPage: page,
-      franjasHorarias: rows,
-    };
+    return toPaginatedResponse(result);
   }
 
   async getAllScheduledSlots(queryParams) {
-    const nowObj = new Date();
-    const nowDate = nowObj.toLocaleDateString("sv-SE", {
-      timeZone: "America/Bogota",
-    });
+    const { nowDate, nowTime } = getNowBogota();
 
-    const nowTime = nowObj.toLocaleTimeString("en-GB", {
-      timeZone: "America/Bogota",
-    });
-    const { rows, count, page, totalPages } = await functions.paginate(
-      TimeSlot,
-      queryParams,
-      {
-        where: {
-          estado: timeSlotStatus.SCHEDULED,
-          [Op.or]: [
-            {
-              [Op.and]: [
-                {
-                  fecha: {
-                    [Op.eq]: nowDate,
-                  },
-                },
-                {
-                  horaInicio: {
-                    [Op.gte]: nowTime,
-                  },
-                },
-              ],
-            },
-            {
-              fecha: {
-                [Op.gt]: nowDate,
-              },
-            },
-          ],
-        },
-        order: [["createdAt", "ASC"]],
-        include: [
-          {
-            model: Doctor,
-            include: [
-              {
-                model: User,
-                attributes: [
-                  "id",
-                  "primer_nombre",
-                  "segundo_nombre",
-                  "primer_apellido",
-                  "segundo_apellido",
-                ],
-              },
-              {
-                model: SpecialtyModel,
-                attributes: ["id", "nombre", "descripcion"],
-              },
-            ],
-          },
-        ],
+    const result = await functions.paginate(TimeSlot, queryParams, {
+      where: {
+        estado: timeSlotStatus.SCHEDULED,
+        ...buildFutureDateFilter(nowDate, nowTime),
       },
-    );
+      order: [["createdAt", "ASC"]],
+      include: [buildDoctorInclude()],
+    });
 
-    return {
-      totalPages,
-      totalItems: count,
-      currentPage: page,
-      franjasHorarias: rows,
-    };
+    return toPaginatedResponse(result);
   }
 
   async validateDoctorExists(idDoctor) {
     const doctor = await DoctorService.findById(idDoctor);
-
-    if (!doctor) {
-      throw new Error("Doctor not found");
-    }
+    if (!doctor) throw new Error("Doctor not found");
   }
 
-  async validateOverlappingSlotsForPatient(
-    slotHoraInicio,
-    slotHoraFin,
-    slotFecha,
-    idPacienteSlot,
-  ) {
+  async validateOverlappingSlotsForPatient(slotHoraInicio, slotHoraFin, slotFecha, idPacienteSlot) {
     const existingSlots = await TimeSlot.findAll({
       where: {
         fecha: slotFecha,
-        [Op.or]: [
-          {
-            horaInicio: {
-              [Op.between]: [slotHoraInicio, slotHoraFin],
-            },
-          },
-          {
-            horaFin: {
-              [Op.between]: [slotHoraInicio, slotHoraFin],
-            },
-          },
-          {
-            horaInicio: {
-              [Op.lte]: slotHoraInicio,
-            },
-            horaFin: {
-              [Op.gte]: slotHoraFin,
-            },
-          },
-        ],
+        [Op.or]: buildTimeOverlapCondition(slotHoraInicio, slotHoraFin),
       },
       include: [
         {
           model: AppointmentModel,
           attributes: ["id", "estado", "idPaciente"],
-          where: {
-            estado: appointmentsStatus.PROGRAMADO,
-            idPaciente: idPacienteSlot,
-          },
+          where: { estado: appointmentsStatus.PROGRAMADO, idPaciente: idPacienteSlot },
           required: true,
         },
       ],
     });
 
-    // console.log({ existingSlots: existingSlots.map((e) => e.dataValues) });
-
     if (existingSlots.length > 0) {
-      throw new Error(
-        "Paciente ya tiene una cita programada en ese horario en la fecha indicada",
-      );
+      throw new Error("Paciente ya tiene una cita programada en ese horario en la fecha indicada");
     }
     return existingSlots;
   }
 
-  async validateOverlappingSlots(
-    idDoctor,
-    slotHoraInicio,
-    slotHoraFin,
-    slotFecha,
-  ) {
+  async validateOverlappingSlots(idDoctor, slotHoraInicio, slotHoraFin, slotFecha) {
     const existingSlots = await TimeSlot.findAll({
       where: {
         idDoctor,
         fecha: slotFecha,
-        [Op.or]: [
-          {
-            horaInicio: {
-              [Op.between]: [slotHoraInicio, slotHoraFin],
-            },
-          },
-          {
-            horaFin: {
-              [Op.between]: [slotHoraInicio, slotHoraFin],
-            },
-          },
-          {
-            horaInicio: {
-              [Op.lte]: slotHoraInicio,
-            },
-            horaFin: {
-              [Op.gte]: slotHoraFin,
-            },
-          },
-        ],
+        [Op.or]: buildTimeOverlapCondition(slotHoraInicio, slotHoraFin),
       },
     });
-
-    // console.log({ existingSlots: existingSlots.map((e) => e.dataValues) });
 
     if (existingSlots.length > 0) {
       throw new Error("Overlapping time slots detected");
     }
-
     return existingSlots;
   }
 
@@ -391,77 +217,33 @@ class TimeSlotService {
   }
 
   async findAllPaginated(queryParams) {
-    const { rows, count, page, totalPages } = await functions.paginate(
-      TimeSlot,
-      queryParams,
-      {
-        order: [["createdAt", "ASC"]],
-        include: [
-          {
-            model: Doctor,
-            where: {
-              especialidad: null,
-            },
-            include: [
-              {
-                model: User,
-                attributes: [
-                  "id",
-                  "primer_nombre",
-                  "segundo_nombre",
-                  "primer_apellido",
-                  "segundo_apellido",
-                ],
-              },
-            ],
-          },
-        ],
-      },
-    );
+    const result = await functions.paginate(TimeSlot, queryParams, {
+      order: [["createdAt", "ASC"]],
+      include: [
+        {
+          model: DoctorModel,
+          where: { especialidad: null },
+          include: [{ model: UserModel, attributes: USER_ID_NAME_ATTRIBUTES }],
+        },
+      ],
+    });
 
-    return {
-      totalPages,
-      totalItems: count,
-      currentPage: page,
-      franjasHorarias: rows,
-    };
+    return toPaginatedResponse(result);
   }
 
   async findAllByDoctor(doctorId, queryParams) {
-    const { rows, count, page, totalPages } = await functions.paginate(
-      TimeSlot,
-      queryParams,
-      {
-        where: {
-          idDoctor: doctorId,
+    const result = await functions.paginate(TimeSlot, queryParams, {
+      where: { idDoctor: doctorId },
+      order: [["createdAt", "ASC"]],
+      include: [
+        {
+          model: DoctorModel,
+          include: [{ model: UserModel, attributes: USER_ID_NAME_ATTRIBUTES }],
         },
-        order: [["createdAt", "ASC"]],
-        include: [
-          {
-            model: Doctor,
-            include: [
-              {
-                model: User,
-                attributes: [
-                  "id",
-                  "primer_nombre",
-                  "segundo_nombre",
-                  "primer_apellido",
-                  "segundo_apellido",
-                ],
-              },
-            ],
-          },
-        ],
-      },
-    );
+      ],
+    });
 
-    return {
-      totalPages,
-      totalItems: count,
-      currentPage: page,
-      franjasHorarias: rows,
-    };
+    return toPaginatedResponse(result);
   }
 
   async findById(id) {
@@ -473,13 +255,7 @@ class TimeSlotService {
           include: [
             {
               model: UserModel,
-              attributes: [
-                "primer_nombre",
-                "segundo_nombre",
-                "primer_apellido",
-                "segundo_apellido",
-                "email",
-              ],
+              attributes: ["primer_nombre", "segundo_nombre", "primer_apellido", "segundo_apellido", "email"],
             },
           ],
         },
@@ -489,24 +265,11 @@ class TimeSlotService {
           include: [
             {
               model: PatientModel,
-              attributes: [
-                "ocupacion",
-                "discapacidad",
-                "etnia",
-                "identidadGenero",
-                "sexo",
-              ],
+              attributes: ["ocupacion", "discapacidad", "etnia", "identidadGenero", "sexo"],
               include: [
                 {
                   model: UserModel,
-                  attributes: [
-                    "primer_nombre",
-                    "segundo_nombre",
-                    "primer_apellido",
-                    "segundo_apellido",
-                    "direccion",
-                    "email",
-                  ],
+                  attributes: ["primer_nombre", "segundo_nombre", "primer_apellido", "segundo_apellido", "direccion", "email"],
                 },
               ],
             },
@@ -520,29 +283,16 @@ class TimeSlotService {
     const slot = await TimeSlot.findByPk(id);
     if (!slot) return null;
 
-    if (
+    const timeUnchanged =
       slot.horaInicio === data.horaInicio &&
       slot.horaFin === data.horaFin &&
-      slot.fecha === data.fecha
-    ) {
-      await slot.update({
-        ...data,
-        updatedBy: auditUserId,
-      });
-      return slot;
+      slot.fecha === data.fecha;
+
+    if (!timeUnchanged) {
+      await this.validateOverlappingSlots(slot.idDoctor, data.horaInicio, data.horaFin, data.fecha);
     }
 
-    await this.validateOverlappingSlots(
-      slot.idDoctor,
-      data.horaInicio,
-      data.horaFin,
-      data.fecha,
-    );
-
-    await slot.update({
-      ...data,
-      updatedBy: auditUserId,
-    });
+    await slot.update({ ...data, updatedBy: auditUserId });
     return slot;
   }
 
@@ -550,17 +300,8 @@ class TimeSlotService {
     const slot = await TimeSlot.findByPk(id);
     if (!slot) return null;
 
-    await this.validateOverlappingSlots(
-      slot.idDoctor,
-      data.horaInicio,
-      data.horaFin,
-      slot.fecha,
-    );
-
-    await slot.update({
-      ...data,
-      updatedBy: auditUserId,
-    });
+    await this.validateOverlappingSlots(slot.idDoctor, data.horaInicio, data.horaFin, slot.fecha);
+    await slot.update({ ...data, updatedBy: auditUserId });
     return slot;
   }
 
@@ -572,110 +313,40 @@ class TimeSlotService {
     return true;
   }
 
-  async markAsScheduled(id, updatedBy) {
+  // ── markAs* unificados en un helper privado ──────────────────────────────
+  async _updateSlotStatus(id, estado, updatedBy) {
     const slot = await TimeSlot.findByPk(id);
     if (!slot) return false;
 
-    await slot.update({
-      estado: timeSlotStatus.SCHEDULED,
-      updatedBy: updatedBy,
-    });
+    await slot.update({ estado, updatedBy });
     return slot;
+  }
+
+  async markAsScheduled(id, updatedBy) {
+    return this._updateSlotStatus(id, timeSlotStatus.SCHEDULED, updatedBy);
   }
 
   async markAsAvailable(id, updatedBy = null) {
-    const slot = await TimeSlot.findByPk(id);
-    if (!slot) return false;
-
-    await slot.update({
-      estado: timeSlotStatus.AVAILABLE,
-      updatedBy: updatedBy,
-    });
-    return slot;
+    return this._updateSlotStatus(id, timeSlotStatus.AVAILABLE, updatedBy);
   }
 
   async markAsCancelled(id, updatedBy) {
-    const slot = await TimeSlot.findByPk(id);
-    if (!slot) return false;
-
-    await slot.update({
-      estado: timeSlotStatus.CANCELLED,
-      updatedBy: updatedBy,
-    });
-    return slot;
+    return this._updateSlotStatus(id, timeSlotStatus.CANCELLED, updatedBy);
   }
 
   async findAllBySpeciality(specialityId, queryParams) {
-    const nowObj = new Date();
-    const nowDate = nowObj.toLocaleDateString("sv-SE", {
-      timeZone: "America/Bogota",
-    });
+    const { nowDate, nowTime } = getNowBogota();
 
-    const nowTime = nowObj.toLocaleTimeString("en-GB", {
-      timeZone: "America/Bogota",
-    });
-    const { rows, count, page, totalPages } = await functions.paginate(
-      TimeSlot,
-      queryParams,
-      {
-        where: {
-          estado: timeSlotStatus.AVAILABLE,
-          [Op.or]: [
-            {
-              [Op.and]: [
-                {
-                  fecha: {
-                    [Op.eq]: nowDate,
-                  },
-                },
-                {
-                  horaInicio: {
-                    [Op.gte]: nowTime,
-                  },
-                },
-              ],
-            },
-            {
-              fecha: {
-                [Op.gt]: nowDate,
-              },
-            },
-          ],
-        },
-        order: [["createdAt", "ASC"]],
-        include: [
-          {
-            model: DoctorModel,
-            where: {
-              especialidad: specialityId,
-            },
-            include: [
-              {
-                model: UserModel,
-                attributes: [
-                  "id",
-                  "primer_nombre",
-                  "segundo_nombre",
-                  "primer_apellido",
-                  "segundo_apellido",
-                ],
-              },
-              {
-                model: SpecialtyModel,
-                attributes: ["id", "nombre", "descripcion"],
-              },
-            ],
-          },
-        ],
+    const result = await functions.paginate(TimeSlot, queryParams, {
+      where: {
+        estado: timeSlotStatus.AVAILABLE,
+        ...buildFutureDateFilter(nowDate, nowTime),
       },
-    );
+      order: [["createdAt", "ASC"]],
+      include: [buildDoctorInclude({ especialidad: specialityId })],
+    });
 
-    return {
-      totalPages,
-      totalItems: count,
-      currentPage: page,
-      franjasHorarias: rows,
-    };
+    return toPaginatedResponse(result);
   }
 }
 
