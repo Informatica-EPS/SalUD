@@ -1,25 +1,9 @@
-# SalUD — Arquitectura de Microservicios
-
----
-
-## Tabla de contenidos
-
-1. [¿Qué es una arquitectura de microservicios?](#1-qué-es-una-arquitectura-de-microservicios)
-2. [¿Por qué microservicios en SalUD?](#2-por-qué-microservicios-en-salud)
-3. [Visión general del sistema](#3-visión-general-del-sistema)
-4. [Servicios del sistema](#4-servicios-del-sistema)
-5. [Comunicación entre servicios](#5-comunicación-entre-servicios)
-6. [Microfrontends y Module Federation](#6-microfrontends-y-module-federation)
-7. [Modelo de datos](#7-modelo-de-datos)
-8. [Flujo de eventos (RabbitMQ)](#8-flujo-de-eventos-rabbitmq)
-9. [Desarrollo vs Producción](#9-desarrollo-vs-producción)
-
----
+# SalUD : Arquitectura de Microservicios
 
 ## 1. ¿Qué es una arquitectura de microservicios?
 
 En una arquitectura de microservicios, la aplicación no es un único bloque de código (monolito), sino un conjunto de **servicios pequeños e independientes**, donde cada uno:
-
+ 
 - Tiene una **responsabilidad única y bien definida**
 - Tiene su **propia base de datos** (no comparte datos directamente con otros)
 - Se **despliega de forma independiente** (puedes actualizar uno sin tocar los demás)
@@ -64,6 +48,7 @@ SalUD tiene **5 servicios de aplicación** y **3 servicios de infraestructura**:
 USUARIOS
   Paciente ─────────────────────┐
   Médico   ─────────────────────┤
+  Admi Medicamentos   ──────────┤
                                 ▼
 ┌────────────────────────────────────────────────────────┐
 │                       FRONTEND                         │
@@ -139,7 +124,7 @@ Expone su API documentada automáticamente por FastAPI: `http://localhost:5010/d
 
 ---
 
-### Notifications Service (`Node.js — Worker`)
+### Notifications Service (`Node.js - Worker`)
 **Puerto:** 5001
 
 Servicio worker que **no expone API pública**. Su única función es:
@@ -200,9 +185,6 @@ Backend  ──publica evento──►  RabbitMQ  ──consume──►  Notifi
                               (broker)
 ```
 
-**¿Por qué asíncrono para las notificaciones?**
-Porque enviar un correo puede tardar o fallar (servidor SMTP caído, red lenta). Si fuera síncrono, el médico tendría que esperar a que el correo se envíe para que su acción se complete. Con RabbitMQ, el backend publica el evento y sigue adelante; el servicio de notificaciones lo procesa cuando puede, con reintentos automáticos si falla.
-
 ---
 
 ## 6. Microfrontends y Module Federation
@@ -225,22 +207,7 @@ Frontend Shell (:8080)                MF Medicamentos (:8081)
 
 ## 7. Modelo de datos
 
-### Base de datos principal — `db` (PostgreSQL :5432)
-
-Gestionada por el `backend` con migraciones de **Sequelize**:
-
-```
-User ──────┬── Doctor ──────── Specialty
-           │       │
-           │       └── TimeSlot ──── Appointment ──┬── AppointmentDetail
-           │                              │         └── Order ── Specialty
-           └── Patient ──────────── Appointment
-                                    (un paciente,
-                                     un médico,
-                                     un horario)
-
-Role ──── RoleUser ──── User
-```
+### Base de datos principal :`db` (PostgreSQL :5432)
 
 | Modelo | Descripción |
 |---|---|
@@ -256,39 +223,12 @@ Role ──── RoleUser ──── User
 
 ### Base de datos de medicamentos — `medicaments-db` (PostgreSQL :5433)
 
-Gestionada de forma autónoma por `medicaments-service` con migraciones de **Alembic**. Completamente separada de la BD principal — ningún servicio puede acceder a la BD del otro.
+Gestionada de forma autónoma por `medicaments-service` con migraciones de **Alembic**. Completamente separada de la BD principal, ningún servicio puede acceder a la BD del otro.
+
 
 ---
 
-## 8. Flujo de eventos (RabbitMQ)
-
-Cuando un médico genera una orden de atención, se activa este flujo asíncrono:
-
-```
-1. Médico registra la orden en el frontend
-         ↓
-2. Backend guarda la orden en PostgreSQL
-         ↓
-3. Backend publica: { evento: "orden.creada", id_cita: 123 }
-   en el exchange "clinic_events" de RabbitMQ
-         ↓
-4. RabbitMQ entrega el mensaje a Notifications Service
-         ↓
-5. Notifications Service llama al backend:
-   GET /api/appointments/123  →  obtiene email del paciente
-         ↓
-6. Notifications Service envía correo al paciente
-   vía Nodemailer (SMTP externo)
-```
-
-Este flujo garantiza que:
-- El médico no espera a que el correo se envíe para continuar
-- Si el SMTP falla, el mensaje permanece en la cola y se reintenta
-- Añadir nuevos consumidores (ej. SMS, push notification) no requiere modificar el backend
-
----
-
-## 9. Desarrollo vs Producción
+## 8. Desarrollo vs Producción
 
 El **código es exactamente el mismo** en ambos ambientes. Lo que cambia es dónde y cómo se ejecuta cada servicio:
 
@@ -305,4 +245,3 @@ El **código es exactamente el mismo** en ambos ambientes. Lo que cambia es dón
 
 La separación de `medicaments-microfrontend` y `medicaments-service` en servicios gestionados de Azure (Static Apps y Container Apps) permite que escalen de forma independiente según la demanda, sin afectar al resto del sistema.
 
-> Para más detalle sobre las diferencias entre ambos ambientes consulta [docs/DESARROLLO_VS_PRODUCCION.md](docs/DESARROLLO_VS_PRODUCCION.md).
