@@ -3,14 +3,14 @@
 -- =========================
 
 -- Rol administrador (control total)
-CREATE ROLE admin_clinica LOGIN PASSWORD 'password_admin';
+CREATE ROLE admin_clinica LOGIN PASSWORD 'Adm1nCl1n!c@2026';
 GRANT CONNECT ON DATABASE mi_base_de_datos TO admin_clinica;
 GRANT ALL PRIVILEGES ON DATABASE mi_base_de_datos TO admin_clinica;
 GRANT ALL PRIVILEGES ON SCHEMA public TO admin_clinica;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO admin_clinica;
 
 -- Rol aplicación (para la app clínica)
-CREATE ROLE app_user LOGIN PASSWORD 'password_app';
+CREATE ROLE app_user LOGIN PASSWORD 'AppUs3r#Clin1c2026';
 GRANT CONNECT ON DATABASE mi_base_de_datos TO app_user;
 GRANT USAGE ON SCHEMA public TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON pacientes TO app_user;
@@ -20,13 +20,13 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON ordenes TO app_user;
 GRANT SELECT ON doctores, especialidades, horarios TO app_user;
 
 -- Rol QAS (Quality Assurance, pruebas)
-CREATE ROLE qas_user LOGIN PASSWORD 'password_qas';
+CREATE ROLE qas_user LOGIN PASSWORD 'Q@sT3stCl1n1c2026';
 GRANT CONNECT ON DATABASE mi_base_de_datos TO qas_user;
 GRANT USAGE ON SCHEMA public TO qas_user;
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO qas_user;
 
 -- Rol logs/auditoría (roles y usuarios)
-CREATE ROLE logs_user LOGIN PASSWORD 'password_logs';
+CREATE ROLE logs_user LOGIN PASSWORD 'L0gsCl1n1c#2026';
 GRANT CONNECT ON DATABASE mi_base_de_datos TO logs_user;
 GRANT USAGE ON SCHEMA public TO logs_user;
 GRANT SELECT ON rol TO logs_user;
