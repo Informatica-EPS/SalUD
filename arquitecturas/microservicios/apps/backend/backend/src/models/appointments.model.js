@@ -28,7 +28,7 @@ const Appointment = sequelize.define(
       allowNull: false,
       field: "id_medico",
     },
-    idHorario: {
+    idFranjaHoraria: {
       type: DataTypes.BIGINT,
       allowNull: false,
       field: "id_franja_horaria",
@@ -53,6 +53,8 @@ const Appointment = sequelize.define(
   {
     tableName: "citas",
     timestamps: true,
+    createdAt: "fecha_creacion", 
+    updatedAt: "ultima_actualizacion", 
   },
 );
 

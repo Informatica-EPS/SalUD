@@ -15,6 +15,7 @@ export const useDoctors = () => {
          setLoading(true);
          setError(null);
          const data = await doctorsService.getAll();
+         console.log("Respuesta de backend (doctores):", data);
          setDoctors(data);
       } catch (err) {
          setError('Error al cargar doctores');

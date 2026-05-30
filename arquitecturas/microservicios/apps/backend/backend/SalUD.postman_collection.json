@@ -428,7 +428,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"tipoCita\": \"MEDICINA_GENERAL\",\n    \"estado\": \"programada\",\n    \"idPaciente\": 1,\n    \"idDoctor\": 3,\n    \"idHorario\": 19,\n    \"creadoPor\": 1,\n    \"actualizadoPor\": 1\n}",
+              "raw": "{\n    \"tipoCita\": \"MEDICINA_GENERAL\",\n    \"estado\": \"programada\",\n    \"idPaciente\": 1,\n    \"idDoctor\": 3,\n    \"idFranjaHoraria\": 19,\n    \"creadoPor\": 1,\n    \"actualizadoPor\": 1\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -577,7 +577,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"tipoCita\": \"Consulta General\",\n    \"estado\": \"programada\",\n    \"idPaciente\": 1,\n    \"idDoctor\": 1,\n    \"idHorario\": 5,\n    \"creadoPor\": 1,\n    \"actualizadoPor\": 1\n}",
+              "raw": "{\n    \"tipoCita\": \"Consulta General\",\n    \"estado\": \"programada\",\n    \"idPaciente\": 1,\n    \"idDoctor\": 1,\n    \"idFranjaHoraria\": 5,\n    \"creadoPor\": 1,\n    \"actualizadoPor\": 1\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -641,7 +641,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"tipoCita\": \"Consulta General\",\n    \"estado\": \"Programada\",\n    \"idPaciente\": 1,\n    \"idDoctor\": 1,\n    \"idHorario\": 7,\n    \"creadoPor\": 1,\n    \"actualizadoPor\": 1\n}",
+              "raw": "{\n    \"tipoCita\": \"Consulta General\",\n    \"estado\": \"Programada\",\n    \"idPaciente\": 1,\n    \"idDoctor\": 1,\n    \"idFranjaHoraria\": 7,\n    \"creadoPor\": 1,\n    \"actualizadoPor\": 1\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -680,7 +680,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"tipoCita\": \"Consulta General\",\n    \"estado\": \"Programada\",\n    \"idPaciente\": 1,\n    \"idDoctor\": 1,\n    \"idHorario\": 7,\n    \"creadoPor\": 1,\n    \"actualizadoPor\": 1\n}",
+              "raw": "{\n    \"tipoCita\": \"Consulta General\",\n    \"estado\": \"Programada\",\n    \"idPaciente\": 1,\n    \"idDoctor\": 1,\n    \"idFranjaHoraria\": 7,\n    \"creadoPor\": 1,\n    \"actualizadoPor\": 1\n}",
               "options": {
                 "raw": {
                   "language": "json"

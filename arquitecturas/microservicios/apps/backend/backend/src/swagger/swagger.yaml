@@ -196,7 +196,7 @@ paths:
             schema:
               type: object
               properties:
-                idHorario:
+                idFranjaHoraria:
                   type: integer
       responses:
         '200':
@@ -687,7 +687,7 @@ components:
           type: integer
         idDoctor:
           type: integer
-        idHorario:
+        idFranjaHoraria:
           type: integer
 
     AppointmentDetail:

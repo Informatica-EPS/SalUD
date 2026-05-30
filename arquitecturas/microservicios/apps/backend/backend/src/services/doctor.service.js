@@ -22,6 +22,7 @@ class DoctorService {
             "segundo_nombre",
             "primer_apellido",
             "segundo_apellido",
+            "email",
           ],
         },
       ],

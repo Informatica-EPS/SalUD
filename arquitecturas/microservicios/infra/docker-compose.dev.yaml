@@ -114,7 +114,7 @@ services:
     build:
       context: ../apps/frontend/medicaments-microfrontend
       dockerfile: Dockerfile
-      target: preview
+      target: development
     volumes:
     - ../apps/frontend/medicaments-microfrontend:/app
     - /app/node_modules

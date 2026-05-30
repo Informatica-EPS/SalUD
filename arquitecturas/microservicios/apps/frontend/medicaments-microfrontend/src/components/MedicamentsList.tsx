@@ -87,9 +87,9 @@ export const MedicamentsList: React.FC = () => {
   //   }
   // };
 
-  const getStockColor = (inventario: number): 'success' | 'warning' | 'error' => {
-    if (inventario >= 100) return 'success';
-    if (inventario > 50) return 'warning';
+  const getStockColor = (inventario: Inventario): 'success' | 'warning' | 'error' => {
+    if (inventario.total >= 100) return 'success';
+    if (inventario.total > 50) return 'warning';
     return 'error';
   };
 
@@ -151,7 +151,7 @@ export const MedicamentsList: React.FC = () => {
         <label style="display:block; text-align:left; margin-bottom:4px; font-weight:600;">Nombre</label>
         <input id="nombre" class="swal2-input" value="${medicament.nombre}">
         <label style="display:block; text-align:left; margin-bottom:4px; font-weight:600; margin-top:12px;">Inventario</label>
-        <input id="inventario" class="swal2-input" type="number" min="0" value="${medicament.inventario}">
+        <input id="inventario" class="swal2-input" type="number" min="0" value="${medicament.inventario.total}">
       `,
       showCancelButton: true,
       cancelButtonText: 'Cancelar',
@@ -179,7 +179,7 @@ export const MedicamentsList: React.FC = () => {
         medicamentsService.updateInventory(medicamentId, formValues.inventario),
       ]);
       setMedicaments(prev => prev.map(m =>
-        m.id === medicamentId ? { ...updated, inventario: formValues.inventario } : m
+        m.id === medicamentId ? { ...updated, inventario: { total: formValues.inventario } } : m
       ));
       Swal.fire('Éxito', 'Medicamento actualizado correctamente', 'success');
       await loadMedicaments(); 
@@ -433,7 +433,7 @@ export const MedicamentsList: React.FC = () => {
       <Typography variant="h4" fontWeight={700}>
         {
           visibleMedicaments.filter(
-            (m) => m.inventario <= 50
+            (m) => m.inventario.total <= 50
           ).length
         }
       </Typography>
@@ -547,8 +547,8 @@ export const MedicamentsList: React.FC = () => {
 
             <Box sx={{ mb: 2 }}>
               <Chip
-  label={`Inventario: ${medicament.inventario?.total ?? 0}`}
-  color={getStockColor(medicament.inventario)}
+  label={`Unidades: ${medicament.inventario.total}`}
+color={getStockColor(medicament.inventario)}
   sx={{
     fontWeight: 700,
     borderRadius: '10px',

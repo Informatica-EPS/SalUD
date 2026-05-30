@@ -110,7 +110,7 @@ export const usePatientAppointments = (
             estado: 'programada',
             idPaciente: appointment.idPaciente,
             idDoctor: appointment.idDoctor,
-            idHorario: newTimeSlotId,
+            idFranjaHoraria: newTimeSlotId,
             creadoPor: appointment.creadoPor,
             actualizadoPor: pacienteId,
          });

@@ -135,7 +135,7 @@ export const AgendarCitaEspecialidadPage = () => {
             estado: 'programada',
             idPaciente: pacienteId,
             idDoctor: selectedSlot.idDoctor,
-            idHorario: selectedSlot.id,
+            idFranjaHoraria: selectedSlot.id,
             creadoPor: user?.id || pacienteId,
             actualizadoPor: user?.id || pacienteId,
          };
