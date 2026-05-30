@@ -5,4 +5,4 @@ setup:
 	.venv/bin/pip install -r requirements.txt
 
 test:
-	PYTHONPATH=. .venv/bin/python3 -m unittest discover -s tests -p "test_*.py"
+	PYTHONPATH=. .venv/bin/python3 -m pytest -v
