@@ -1,0 +1,65 @@
+name: Azure Static Web Apps CI/CD
+
+on:
+  push:
+    branches:
+      - prod
+    paths:
+      - 'arquitecturas/microservicios/apps/frontend/medicaments-microfrontend/**'
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches:
+      - prod
+
+jobs:
+  build_and_deploy_job:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    runs-on: ubuntu-latest
+    name: Build and Deploy Job
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+          lfs: false
+          
+      # 1. Configurar Node.js (necesario para correr los test)
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18' # Puedes cambiarlo a la versión exacta que uses localmente (20, etc.)
+          
+      # 2. Instalar dependencias 
+      - name: Install Dependencies
+        working-directory: ./arquitecturas/microservicios/apps/frontend/medicaments-microfrontend
+        run: npm ci # "ci" es más seguro que "install" para despliegues automáticos
+        
+      # 3. Ejecutar las 2 pruebas automáticas que creamos
+      - name: Run Automated Tests
+        working-directory: ./arquitecturas/microservicios/apps/frontend/medicaments-microfrontend
+        run: npm run test
+
+      # 4. Despliegue en Azure (Solo se ejecutará si las pruebas de arriba fueron exitosas)
+      - name: Build And Deploy
+        id: builddeploy
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_BLUE_ROCK_0A2BADB0F }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "./arquitecturas/microservicios/apps/frontend/medicaments-microfrontend"
+          api_location: "" 
+          output_location: "dist" 
+        env:
+          VITE_MEDICAMENTS_API_URL: "${{ secrets.VITE_MEDICAMENTS_API_URL }}/api"
+          VITE_API_URL: "${{ secrets.VITE_API_URL }}"
+  close_pull_request_job:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    name: Close Pull Request Job
+    steps:
+      - name: Close Pull Request
+        id: closepullrequest
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_BLUE_ROCK_0A2BADB0F }}
+          action: "close"

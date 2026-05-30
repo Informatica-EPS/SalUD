@@ -1,0 +1,247 @@
+# SalUD : Arquitectura de Microservicios
+
+## 1. ¿Qué es una arquitectura de microservicios?
+
+En una arquitectura de microservicios, la aplicación no es un único bloque de código (monolito), sino un conjunto de **servicios pequeños e independientes**, donde cada uno:
+ 
+- Tiene una **responsabilidad única y bien definida**
+- Tiene su **propia base de datos** (no comparte datos directamente con otros)
+- Se **despliega de forma independiente** (puedes actualizar uno sin tocar los demás)
+- Se **comunica con los otros por red**, usando APIs REST o mensajería
+
+```
+MONOLITO                          MICROSERVICIOS
+┌─────────────────────┐           ┌──────────┐  ┌──────────┐
+│                     │           │ Servicio │  │ Servicio │
+│  Citas + Usuarios   │           │  Citas   │  │  Médicos │
+│  Médicos + Órdenes  │    vs     └──────────┘  └──────────┘
+│  Medicamentos       │               ↕               ↕
+│  Notificaciones     │           ┌──────────┐  ┌──────────┐
+│                     │           │Medicament│  │Notificac.│
+└─────────────────────┘           └──────────┘  └──────────┘
+  Una sola BD                     Cada uno con su propia BD
+```
+
+---
+
+## 2. ¿Por qué microservicios en SalUD?
+
+SalUD tiene dos dominios claramente separados que justifican este enfoque:
+
+| Dominio | Servicio responsable | Razón de la separación |
+|---|---|---|
+| Citas, pacientes, médicos, órdenes | `backend` (Node.js) | Lógica principal del negocio médico |
+| Medicamentos e inventario | `medicaments-service` (Python) | Dominio diferente, tecnología diferente, base de datos propia |
+
+Al separarlos se consigue que:
+- El equipo de medicamentos puede trabajar en **Python + FastAPI** sin afectar al backend principal en Node.js
+- La base de datos de medicamentos escala de forma independiente
+- Un fallo en el módulo de medicamentos no tumba toda la aplicación
+
+---
+
+## 3. Visión general del sistema
+
+SalUD tiene **5 servicios de aplicación** y **3 servicios de infraestructura**:
+
+```
+USUARIOS
+  Paciente ─────────────────────┐
+  Médico   ─────────────────────┤
+  Admi Medicamentos   ──────────┤
+                                ▼
+┌────────────────────────────────────────────────────────┐
+│                       FRONTEND                         │
+│  ┌─────────────────────┐  ┌──────────────────────────┐ │
+│  │   Frontend Shell    │  │    MF Medicamentos        │ │
+│  │   React + Vite      │◄─┤    React + Vite           │ │
+│  │   :8080             │  │    :8081                  │ │
+│  └──────────┬──────────┘  └───────────┬──────────────┘ │
+└─────────────┼──────────────────────────┼───────────────┘
+              │ REST API                 │ REST HTTP
+              ▼                          ▼
+    ┌──────────────────┐      ┌─────────────────────┐
+    │  Backend         │      │  Medicamentos Svc   │
+    │  Node.js :5000   │      │  Python / FastAPI   │
+    │  (API Gateway)   │      │  :5010              │
+    └─────┬──────┬─────┘      └──────────┬──────────┘
+          │      │                        │
+          ▼      ▼                        ▼
+    ┌──────┐  ┌──────────┐      ┌─────────────────┐
+    │  BD  │  │ RabbitMQ │      │ BD Medicamentos  │
+    │:5432 │  │  :5672   │      │    :5433         │
+    └──────┘  └────┬─────┘      └─────────────────┘
+                   │ consume
+                   ▼
+          ┌─────────────────┐
+          │ Notifications   │
+          │ Node.js Worker  │
+          │ :5001           │
+          └────────┬────────┘
+                   │ SMTP
+                   ▼
+           [Correo al Paciente]
+```
+
+---
+
+## 4. Servicios del sistema
+
+### Backend — API Gateway (`Node.js + Express`)
+**Puerto:** 5000
+
+Es el servicio central del sistema. Actúa como **API Gateway** (punto de entrada único para el frontend principal) y gestiona toda la lógica del negocio médico:
+
+- Autenticación y roles (paciente / médico / admin)
+- Gestión de usuarios, médicos y pacientes
+- Especialidades médicas
+- Horarios disponibles de los médicos (`TimeSlot`)
+- Agendamiento de citas (`Appointment`)
+- Detalle clínico de la atención (`AppointmentDetail`)
+- Generación de órdenes de atención (`Order`)
+- Publicación de eventos a RabbitMQ cuando se genera una orden
+
+Expone su API documentada en Swagger: `http://localhost:5000/api-docs`
+
+**Stack:** Node.js · Express · Sequelize ORM · PostgreSQL · amqplib · bcryptjs
+
+---
+
+### Medicamentos Service (`Python + FastAPI`)
+**Puerto:** 5010
+
+Microservicio completamente independiente que gestiona el dominio de medicamentos:
+
+- Catálogo de medicamentos
+- Control de inventario
+- Movimientos de stock
+
+Tiene su **propia base de datos** (PostgreSQL separada), lo que lo desacopla totalmente del backend principal. El microfrontend de medicamentos se comunica directamente con este servicio, sin pasar por el backend.
+
+Expone su API documentada automáticamente por FastAPI: `http://localhost:5010/docs`
+
+**Stack:** Python · FastAPI · SQLAlchemy · Alembic · Pydantic · psycopg2
+
+---
+
+### Notifications Service (`Node.js - Worker`)
+**Puerto:** 5001
+
+Servicio worker que **no expone API pública**. Su única función es:
+
+1. Escuchar la cola de mensajes de RabbitMQ
+2. Cuando llega un evento `orden.creada`, consultar al backend para obtener el email del paciente
+3. Enviar el correo de notificación al paciente
+
+Su diseño como worker independiente garantiza que si el envío de correos falla, el flujo principal de creación de órdenes no se ve afectado.
+
+**Stack:** Node.js · amqplib · Nodemailer · Axios
+
+---
+
+### Frontend Shell (`React + Vite + TypeScript`)
+**Puerto:** 8080
+
+Aplicación principal que el usuario ve y usa. Es el **host de Module Federation**: carga dinámicamente el microfrontend de medicamentos en tiempo de ejecución.
+
+- Gestión de citas médicas (paciente)
+- Panel de atención médica (médico)
+- Generación de órdenes de atención
+
+**Stack:** React 18 · TypeScript · Vite · Material UI v6 · Zustand · React Router v7 · Axios
+
+---
+
+### MF Medicamentos (`React + Vite + TypeScript`)
+**Puerto:** 8081
+
+**Microfrontend remoto** que se integra dentro del Frontend Shell mediante Module Federation. Se desarrolla y despliega de forma independiente pero el usuario lo experimenta como parte de la misma aplicación.
+
+Se comunica directamente con `medicaments-service` (no pasa por el backend principal).
+
+**Stack:** React 18 · TypeScript · Vite · Material UI v6
+
+---
+
+## 5. Comunicación entre servicios
+
+SalUD usa dos patrones de comunicación:
+
+### Comunicación síncrona — REST HTTP
+
+Se usa cuando el resultado se necesita de forma inmediata (el usuario está esperando la respuesta):
+
+```
+Frontend Shell  ──REST──►  Backend (Node.js)
+MF Medicamentos ──REST──►  Medicaments Service (Python)
+```
+
+### Comunicación asíncrona — Mensajería con RabbitMQ
+
+Se usa para operaciones que pueden procesarse en segundo plano sin que el usuario espere:
+
+```
+Backend  ──publica evento──►  RabbitMQ  ──consume──►  Notifications Service
+                              (broker)
+```
+
+---
+
+## 6. Microfrontends y Module Federation
+
+Module Federation (plugin de Vite) permite que una aplicación React cargue componentes de otra aplicación en tiempo de ejecución, sin necesidad de compilarlos juntos.
+
+```
+Frontend Shell (:8080)                MF Medicamentos (:8081)
+┌──────────────────────────┐          ┌────────────────────────┐
+│  - Página de citas       │          │  Expone:               │
+│  - Página de atención    │ carga    │  - MedicamentosApp     │
+│  - [MedicamentosApp] ────┼─────────►│  - Componentes UI      │
+│    (cargado en runtime)  │ dynamic  │                        │
+└──────────────────────────┘          └────────────────────────┘
+```
+
+**Ventaja:** el equipo que trabaja en medicamentos puede hacer cambios y desplegarlos de forma totalmente independiente. El shell simplemente carga lo que haya en `:8081` sin necesidad de recompilarse.
+
+---
+
+## 7. Modelo de datos
+
+### Base de datos principal :`db` (PostgreSQL :5432)
+
+| Modelo | Descripción |
+|---|---|
+| `User` | Cuenta de acceso al sistema |
+| `Role` | Roles: paciente, médico, admin |
+| `Doctor` | Perfil médico — especialidad, datos profesionales |
+| `Patient` | Perfil paciente — vinculado a su `User` |
+| `Specialty` | Especialidades médicas (cardiología, pediatría, etc.) |
+| `TimeSlot` | Bloque de tiempo disponible de un médico |
+| `Appointment` | Cita: une `Patient` + `Doctor` + `TimeSlot` |
+| `AppointmentDetail` | Notas clínicas registradas durante la atención |
+| `Order` | Orden de atención generada por el médico |
+
+### Base de datos de medicamentos — `medicaments-db` (PostgreSQL :5433)
+
+Gestionada de forma autónoma por `medicaments-service` con migraciones de **Alembic**. Completamente separada de la BD principal, ningún servicio puede acceder a la BD del otro.
+
+
+---
+
+## 8. Desarrollo vs Producción
+
+El **código es exactamente el mismo** en ambos ambientes. Lo que cambia es dónde y cómo se ejecuta cada servicio:
+
+| Servicio | Desarrollo (local) | Producción (Azure) |
+|---|---|---|
+| `frontend` | Docker · localhost:8080 | Azure VM · docker-compose |
+| `backend` | Docker · localhost:5000 | Azure VM · docker-compose |
+| `notifications-service` | Docker · localhost:5001 | Azure VM · docker-compose |
+| `rabbitmq` | Docker · localhost:5672 | Azure VM · docker-compose |
+| `medicaments-microfrontend` | Docker · localhost:8081 | **Azure Static Apps** (CDN global) |
+| `medicaments-service` | Docker · localhost:5010 | **Azure Container Apps** (serverless) |
+| BD principal | PostgreSQL en Docker | **Azure Database for PostgreSQL** |
+| BD medicamentos | PostgreSQL en Docker | **Neon.tech** (PostgreSQL serverless) |
+
+La separación de `medicaments-microfrontend` y `medicaments-service` en servicios gestionados de Azure (Static Apps y Container Apps) permite que escalen de forma independiente según la demanda, sin afectar al resto del sistema.
+
