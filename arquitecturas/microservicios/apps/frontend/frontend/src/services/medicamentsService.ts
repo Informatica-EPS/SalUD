@@ -14,7 +14,7 @@ export interface Medicament {
 
 export const medicamentsService = {
   getAll: async (): Promise<Medicament[]> => {
-    const response = await medicamentsClient.get<Medicament[]>('/api/medicaments');
+    const response = await medicamentsClient.get<Medicament[]>('/apiiiiiiiii/medicaments');
     return response.data;
   },
 };
