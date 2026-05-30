@@ -15,7 +15,7 @@ CREATE DOMAIN dom_tipo_documento AS VARCHAR(30)
 CHECK (VALUE IN ('CC', 'CE', 'PAS', 'PE', 'TI', 'RC'));
 
 CREATE DOMAIN dom_tipo_movimiento AS VARCHAR(20)
-CHECK (VALUE IN ('entrada', 'salida'));
+CHECK (VALUE IN ('entrada', 'salida', 'despacho'));
 
 CREATE DOMAIN dom_sexo AS VARCHAR(15)
 CHECK (VALUE IN ('M', 'F','masculino', 'femenino', 'intersexual', 'no_responde'));
@@ -204,6 +204,7 @@ CREATE TABLE IF NOT EXISTS ordenes (
     entidad_destino VARCHAR(100),
     especialidad BIGINT,
     descripcion VARCHAR(200),
+    cantidad_medicamento INT,
     fecha_creacion TIMESTAMPTZ DEFAULT NOW(),
     fecha_actualizacion TIMESTAMPTZ,
     CONSTRAINT ordenes_id_cita_fkey
@@ -239,7 +240,6 @@ CREATE TABLE IF NOT EXISTS roles_usuario (
 CREATE TABLE IF NOT EXISTS medicamentos (
     id BIGSERIAL PRIMARY KEY,
     nombre VARCHAR(20) NOT NULL,
-    cantidad VARCHAR(20) NOT NULL,
     presentacion VARCHAR(20) NOT NULL,
     concentracion VARCHAR(20) NOT NULL,
     fecha_creacion TIMESTAMPTZ DEFAULT NOW(),
@@ -311,7 +311,6 @@ Se ha implementado un sistema de auditoría basado en triggers para todas las ta
     CREATE TABLE IF NOT EXISTS auditoria_medicamentos (
     id_medicamento BIGINT,
     nombre VARCHAR(20),
-    cantidad VARCHAR(20),
     presentacion VARCHAR(20),
     concentracion VARCHAR(20),
     momento TIMESTAMPTZ DEFAULT NOW(),
