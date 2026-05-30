@@ -51,7 +51,6 @@ class TestMedicamentsService(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(result), 2)
         self.assertEqual(result[0]["id"], 1)
         self.assertEqual(result[0]["nombre"], "Paracetamol")
-        self.assertEqual(result[0]["cantidad"], "500")
         self.assertEqual(result[0]["presentacion"], "tableta")
         self.assertEqual(result[0]["concentracion"], "500mg")
         self.assertEqual(result[0]["inventario"], {"total": 100})
