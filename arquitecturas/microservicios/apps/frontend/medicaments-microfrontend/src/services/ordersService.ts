@@ -25,4 +25,4 @@ export const ordersService = {
       const response = await apiClient.get<OrdenesResponse>(`/orders/getByPatientDocument/${id}`);
       return response.data;
     },
-};
+}; 
