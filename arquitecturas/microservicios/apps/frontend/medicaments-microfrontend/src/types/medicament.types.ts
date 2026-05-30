@@ -1,9 +1,9 @@
 export interface Movimiento {
   id: number;
-  id_medicamento: number;
+  id_medicamento?: number;
   cantidad: number;
-  tipo_movimiento: 'entrada' | 'salida';
-  created_by: string;
+  tipo_movimiento: 'entrada' | 'salida' | 'despacho';
+  created_by?: string;
   created_at: string;
 }
 
@@ -14,7 +14,9 @@ export interface Inventory {
 export interface Medicament {
   id: number;
   nombre: string;
-  inventario?: Inventory;
+  presentacion?: string;
+  concentracion?: string;
+  inventario: Inventory;
   movimientos: Movimiento[];
 }
 

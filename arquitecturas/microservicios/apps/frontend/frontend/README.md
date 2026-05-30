@@ -159,7 +159,7 @@ const cita = await appointmentsService.create({
   estado: "programada",
   idPaciente: 1,
   idDoctor: 3,
-  idHorario: 19,
+  idFranjaHoraria: 19,
   creadoPor: 1,
   actualizadoPor: 1
 });

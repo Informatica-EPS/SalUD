@@ -133,7 +133,7 @@ export const DoctoresPage = () => {
                                     whiteSpace: 'nowrap',
                                  }}
                               >
-                                 {(doctor.User || doctor.usuario)?.email || (doctor.User || doctor.usuario)?.correo}
+                                 {(doctor.User || doctor.usuario)?.email}
                               </Typography>
                            </Box>
                            <Box display="flex" alignItems="center" gap={1}>

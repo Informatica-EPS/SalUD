@@ -72,14 +72,15 @@ Appointment.belongsTo(Doctor, {
 });
 
 TimeSlot.hasOne(Appointment, {
-  foreignKey: "idHorario",
+  foreignKey: "idFranjaHoraria",   
   sourceKey: "id",
 });
 
 Appointment.belongsTo(TimeSlot, {
-  foreignKey: "idHorario",
+  foreignKey: "idFranjaHoraria",  
   targetKey: "id",
 });
+
 
 Appointment.hasOne(AppointmentDetail, {
   foreignKey: "idCita",

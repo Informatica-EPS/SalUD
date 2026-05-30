@@ -47,7 +47,7 @@ describe("appointment service", () => {
 
   describe("create", () => {
     test("success - general specialty appointment", async () => {
-      const data = { idDoctor: 1, idHorario: 2, idPaciente: 3 };
+      const data = { idDoctor: 1, idFranjaHoraria: 2, idPaciente: 3 };
 
       DoctorModel.findByPk.mockResolvedValue({ id: 1, especialidad: null });
       SpecialtyModel.findByPk.mockResolvedValue(null);
@@ -84,7 +84,7 @@ describe("appointment service", () => {
     });
 
     test("failure - general specialty appointment with specialist doctor", async () => {
-      const data = { idDoctor: 1, idHorario: 2, idPaciente: 3 };
+      const data = { idDoctor: 1, idFranjaHoraria: 2, idPaciente: 3 };
 
       DoctorModel.findByPk.mockResolvedValue({ id: 1, especialidad: 5 });
       SpecialtyModel.findByPk.mockResolvedValue({ id: 5, nombre: "Cardiología" });
@@ -96,7 +96,7 @@ describe("appointment service", () => {
     });
 
     test("failure - past date", async () => {
-      const data = { idDoctor: 1, idHorario: 2, idPaciente: 3 };
+      const data = { idDoctor: 1, idFranjaHoraria: 2, idPaciente: 3 };
 
       DoctorModel.findByPk.mockResolvedValue({ id: 1, especialidad: null });
       SpecialtyModel.findByPk.mockResolvedValue(null);
@@ -117,7 +117,7 @@ describe("appointment service", () => {
     });
 
     test("failure - doctor slot mismatch", async () => {
-      const data = { idDoctor: 1, idHorario: 2, idPaciente: 3 };
+      const data = { idDoctor: 1, idFranjaHoraria: 2, idPaciente: 3 };
 
       DoctorModel.findByPk.mockResolvedValue({ id: 1, especialidad: null });
       SpecialtyModel.findByPk.mockResolvedValue(null);
@@ -139,7 +139,7 @@ describe("appointment service", () => {
     });
 
     test("failure - slot already scheduled", async () => {
-      const data = { idDoctor: 1, idHorario: 2, idPaciente: 3 };
+      const data = { idDoctor: 1, idFranjaHoraria: 2, idPaciente: 3 };
 
       DoctorModel.findByPk.mockResolvedValue({ id: 1, especialidad: null });
       SpecialtyModel.findByPk.mockResolvedValue(null);
@@ -314,7 +314,7 @@ describe("appointment service", () => {
     test("success with time slot available", async () => {
       const mockAppointment = {
         id: 1,
-        idHorario: 2,
+        idFranjaHoraria: 2,
         estado: "pendiente",
         destroy: jest.fn().mockResolvedValue(undefined),
       };
@@ -354,7 +354,7 @@ describe("appointment service", () => {
     test("success", async () => {
       const mockAppointment = {
         id: 1,
-        idHorario: 2,
+        idFranjaHoraria: 2,
         update: jest.fn().mockResolvedValue(undefined),
       };
       Appointment.findByPk.mockResolvedValue(mockAppointment);
@@ -362,12 +362,12 @@ describe("appointment service", () => {
       TimeSlotService.markAsAvailable.mockResolvedValue(undefined);
       TimeSlotService.markAsScheduled.mockResolvedValue(undefined);
 
-      const result = await appointmentService.updateRescheduledAppointment(1, { idHorario: 3 }, 99);
+      const result = await appointmentService.updateRescheduledAppointment(1, { idFranjaHoraria: 3 }, 99);
 
       expect(TimeSlotService.markAsAvailable).toHaveBeenCalledWith(2, 99);
       expect(TimeSlotService.markAsScheduled).toHaveBeenCalledWith(3);
       expect(mockAppointment.update).toHaveBeenCalledWith({
-        idHorario: 3,
+        idFranjaHoraria: 3,
         updatedBy: 99,
       });
       expect(result).toBe(mockAppointment);
@@ -450,7 +450,7 @@ describe("appointment service", () => {
           estado: "realizado",
           idPaciente: 3,
           idDoctor: 4,
-          idHorario: 5,
+          idFranjaHoraria: 5,
           createdAt: "2026-05-20T10:00:00Z",
           TimeSlot: { fecha: "2026-05-20", horaInicio: "10:00", horaFin: "10:30" },
           AppointmentDetail: { motivo: "Fiebre" },
@@ -480,7 +480,7 @@ describe("appointment service", () => {
 
   describe("createBySpecialty", () => {
     test("success - specialty appointment with authorized order", async () => {
-      const data = { idDoctor: 1, idHorario: 2, idPaciente: 3 };
+      const data = { idDoctor: 1, idFranjaHoraria: 2, idPaciente: 3 };
 
       DoctorModel.findByPk.mockResolvedValue({ id: 1, especialidad: 5 });
 
@@ -522,7 +522,7 @@ describe("appointment service", () => {
     });
 
     test("failure - specialty mismatch", async () => {
-      const data = { idDoctor: 1, idHorario: 2, idPaciente: 3 };
+      const data = { idDoctor: 1, idFranjaHoraria: 2, idPaciente: 3 };
 
       DoctorModel.findByPk.mockResolvedValue({ id: 1, especialidad: 4 }); // doctor has specialty 4, expected 5
 
@@ -532,7 +532,7 @@ describe("appointment service", () => {
     });
 
     test("failure - no authorized order", async () => {
-      const data = { idDoctor: 1, idHorario: 2, idPaciente: 3 };
+      const data = { idDoctor: 1, idFranjaHoraria: 2, idPaciente: 3 };
 
       DoctorModel.findByPk.mockResolvedValue({ id: 1, especialidad: 5 });
 
@@ -555,7 +555,7 @@ describe("appointment service", () => {
     });
 
     test("failure - expired order", async () => {
-      const data = { idDoctor: 1, idHorario: 2, idPaciente: 3 };
+      const data = { idDoctor: 1, idFranjaHoraria: 2, idPaciente: 3 };
 
       DoctorModel.findByPk.mockResolvedValue({ id: 1, especialidad: 5 });
 

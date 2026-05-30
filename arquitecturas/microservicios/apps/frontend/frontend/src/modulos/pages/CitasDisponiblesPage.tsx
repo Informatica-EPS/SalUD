@@ -150,32 +150,38 @@ export const CitasDisponiblesPage = () => {
    };
 
    const handleAgendarCita = async () => {
-      if (!selectedSlot) return;
+  if (!selectedSlot) return;
 
-      const result = await createAppointment(
-         {
-            tipoCita,
-            estado: 'programada',
-            idPaciente: pacienteId,
-            idDoctor: selectedSlot.idDoctor,
-            idHorario: selectedSlot.id,
-            creadoPor: pacienteId,
-            actualizadoPor: pacienteId,
-         },
-         {
-            motivo: motivo || 'Consulta general',
-         }
-      );
+  const payload = {
+    tipoCita,
+    estado: 'programada',
+    idPaciente: pacienteId,
+    idDoctor: selectedSlot.idDoctor,
+    idFranjaHoraria: selectedSlot.id,   // 👈 asegurarse que sea este campo
+    creadoPor: pacienteId,
+    actualizadoPor: pacienteId,
+  };
 
-      if (result.success) {
-         setSuccess('¡Cita agendada exitosamente!');
-         handleCloseDialog();
-         await loadAvailableSlots();
-         setTimeout(() => setSuccess(null), 3000);
-      } else {
-         setError('Error al agendar la cita');
-      }
-   };
+  const extra = {
+    motivo: motivo || 'Consulta general',
+  };
+
+  // 👇 imprime en consola lo que se va a enviar
+  console.log("Payload cita:", payload);
+  console.log("Extra data:", extra);
+
+  const result = await createAppointment(payload, extra);
+
+  if (result.success) {
+    setSuccess('¡Cita agendada exitosamente!');
+    handleCloseDialog();
+    await loadAvailableSlots();
+    setTimeout(() => setSuccess(null), 3000);
+  } else {
+    setError('Error al agendar la cita');
+  }
+};
+
 
    // Obtener todas las fechas disponibles (necesitamos cargar todas para el filtro)
    const [allDates, setAllDates] = useState<string[]>([]);

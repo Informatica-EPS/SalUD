@@ -37,16 +37,18 @@ const Patient = sequelize.define(
     },
     createdAt: {
       type: DataTypes.DATE,
-      field: "fecha_creacion",
+      field: "fecha_creacion",  
     },
     updatedAt: {
       type: DataTypes.DATE,
-      field: "ultima_actualizacion",
+      field: "ultima_actualizacion",   
     },
   },
   {
     tableName: "pacientes",
     timestamps: true,
+    createdAt: "fecha_creacion",      
+    updatedAt: "ultima_actualizacion",  
   },
 );
 

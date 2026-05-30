@@ -117,7 +117,7 @@ export interface IAppointment {
    estado: 'programada' | 'completada' | 'completado' | 'cancelada' | 'cancelado' | 'en_proceso';
    idPaciente: number;
    idDoctor: number;
-   idHorario: number;
+   idFranjaHoraria: number;
    creadoPor: number;
    actualizadoPor: number;
    createdAt?: string;
@@ -199,7 +199,7 @@ export interface ICreateAppointmentRequest {
    estado: 'programada' | 'completada' | 'completado' | 'cancelada' | 'cancelado' | 'en_proceso';
    idPaciente: number;
    idDoctor: number;
-   idHorario: number;
+   idFranjaHoraria: number;
    creadoPor: number;
    actualizadoPor: number;
 }
@@ -210,7 +210,7 @@ export interface IRescheduleAppointmentRequest {
    estado: 'programada' | 'completada' | 'completado' | 'cancelada' | 'cancelado' | 'en_proceso';
    idPaciente: number;
    idDoctor: number;
-   idHorario: number;
+   idFranjaHoraria: number;
    creadoPor: number;
    actualizadoPor: number;
 }

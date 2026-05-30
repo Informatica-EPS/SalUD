@@ -99,18 +99,27 @@ function toPaginatedResponse({ rows, count, page, totalPages }) {
 
 class AppointmentService {
   async create(data) {
-    const { idDoctor, idHorario, idPaciente } = data;
+    const { idDoctor, idFranjaHoraria, idPaciente } = data;
     const appointmentData = {
       ...data,
       tipoCita: data.tipoCita || "general",
       estado: data.estado || appointmentsStatus.PROGRAMADO,
     };
 
+    console.log("Validando especialidad del doctor:", idDoctor);
     await this.validateIsGeneralSpecialty(idDoctor);
-    await this.validateMustBeFutureDate(idHorario);
-    await this.validatePatientHasNoScheduledAppointments(idPaciente, idHorario);
-    await this.validateDoctorHasTimeSlot(idDoctor, idHorario);
-    await TimeSlotService.markAsScheduled(idHorario);
+
+    console.log("Validando fecha futura:", idFranjaHoraria);
+    await this.validateMustBeFutureDate(idFranjaHoraria);
+
+    console.log("Validando citas previas del paciente:", idPaciente, idFranjaHoraria);
+    await this.validatePatientHasNoScheduledAppointments(idPaciente, idFranjaHoraria);
+
+    console.log("Validando franja del doctor:", idDoctor, idFranjaHoraria);
+    await this.validateDoctorHasTimeSlot(idDoctor, idFranjaHoraria);
+
+    console.log("Marcando franja como programada:", idFranjaHoraria);
+    await TimeSlotService.markAsScheduled(idFranjaHoraria);
 
     return await Appointment.create({ ...appointmentData });
   }
@@ -218,9 +227,9 @@ class AppointmentService {
 
     await this.validateIsNotCompleted(appointment);
 
-    const timeSlot = await TimeSlotService.findById(appointment.idHorario);
+    const timeSlot = await TimeSlotService.findById(appointment.idFranjaHoraria);
     if (timeSlot) {
-      await TimeSlotService.markAsAvailable(appointment.idHorario);
+      await TimeSlotService.markAsAvailable(appointment.idFranjaHoraria);
     }
     await appointment.destroy();
     return true;
@@ -232,8 +241,8 @@ class AppointmentService {
     }
   }
 
-  async validateMustBeFutureDate(idHorario) {
-    const timeSlot = await TimeSlotService.findById(idHorario);
+  async validateMustBeFutureDate(idFranjaHoraria) {
+    const timeSlot = await TimeSlotService.findById(idFranjaHoraria);
     const timeSlotDate = getDateFormatUTC(timeSlot.fecha, timeSlot.horaInicio, "-05:00");
 
     if (timeSlotDate < new Date()) {
@@ -241,8 +250,8 @@ class AppointmentService {
     }
   }
 
-  async validatePatientHasNoScheduledAppointments(idPaciente, idHorario) {
-    const newTimeSlot = await TimeSlotService.findById(idHorario);
+  async validatePatientHasNoScheduledAppointments(idPaciente, idFranjaHoraria) {
+    const newTimeSlot = await TimeSlotService.findById(idFranjaHoraria);
     await TimeSlotService.validateOverlappingSlotsForPatient(
       newTimeSlot.horaInicio,
       newTimeSlot.horaFin,
@@ -251,8 +260,8 @@ class AppointmentService {
     );
   }
 
-  async validateDoctorHasTimeSlot(idDoctor, idHorario) {
-    const timeSlot = await TimeSlotService.findById(idHorario);
+  async validateDoctorHasTimeSlot(idDoctor, idFranjaHoraria) {
+    const timeSlot = await TimeSlotService.findById(idFranjaHoraria);
 
     if (!timeSlot || timeSlot.idDoctor !== idDoctor) {
       throw new Error("El médico no tiene horario disponible para esa franja horaria");
@@ -266,11 +275,11 @@ class AppointmentService {
     const appointment = await Appointment.findByPk(id);
     if (!appointment) return null;
 
-    const oldSlot = await TimeSlotService.findById(appointment.idHorario);
+    const oldSlot = await TimeSlotService.findById(appointment.idFranjaHoraria);
     if (!oldSlot) throw new Error("Old time slot not found");
 
-    await TimeSlotService.markAsAvailable(appointment.idHorario, auditUserId);
-    await TimeSlotService.markAsScheduled(data.idHorario);
+    await TimeSlotService.markAsAvailable(appointment.idFranjaHoraria, auditUserId);
+    await TimeSlotService.markAsScheduled(data.idFranjaHoraria);
     await appointment.update({ ...data, updatedBy: auditUserId });
     return appointment;
   }
@@ -340,7 +349,7 @@ class AppointmentService {
         estado: a.estado,
         idPaciente: a.idPaciente,
         idDoctor: a.idDoctor,
-        idHorario: a.idHorario,
+        idFranjaHoraria: a.idFranjaHoraria,
         createdAt: a.createdAt,
         horario: this.mapTimeSlot(a.TimeSlot),
         detalles: this.mapAppointmentDetail(a.AppointmentDetail),
@@ -473,20 +482,20 @@ class AppointmentService {
     console.log("data:", data);
     console.log("userId:", userId);
 
-    const { idDoctor, idHorario, idPaciente } = data;
+    const { idDoctor, idFranjaHoraria, idPaciente } = data;
 
     console.log("idDoctor:", idDoctor, "tipo:", typeof idDoctor);
-    console.log("idHorario:", idHorario, "tipo:", typeof idHorario);
+    console.log("idFranjaHoraria:", idFranjaHoraria, "tipo:", typeof idFranjaHoraria);
     console.log("idPaciente:", idPaciente, "tipo:", typeof idPaciente);
 
     await this.validateDoctorSpecialty(idDoctor, idSpecialty);
-    await this.validateMustBeFutureDate(idHorario);
-    await this.validatePatientHasNoScheduledAppointments(idPaciente, idHorario);
-    await this.validateDoctorHasTimeSlot(idDoctor, idHorario);
+    await this.validateMustBeFutureDate(idFranjaHoraria);
+    await this.validatePatientHasNoScheduledAppointments(idPaciente, idFranjaHoraria);
+    await this.validateDoctorHasTimeSlot(idDoctor, idFranjaHoraria);
 
     const order = await this.validateHasOrder(idPaciente, idSpecialty);
     await orderService.setCompletedOrder(order.dataValues.id);
-    await TimeSlotService.markAsScheduled(idHorario);
+    await TimeSlotService.markAsScheduled(idFranjaHoraria);
 
     const appointmentData = {
       ...data,
