@@ -124,6 +124,8 @@ jobs:
             add_if_not_exists "VITE_MEDICAMENTS_API_URL"      "${{ secrets.VITE_MEDICAMENTS_API_URL }}"
             add_to_infra      "VITE_MEDICAMENTS_REMOTE_URL"   "${{ secrets.VITE_MEDICAMENTS_REMOTE_URL }}"
             add_to_infra      "VITE_API_URL"                  "${{ secrets.VITE_API_URL }}"
+            add_to_infra      "VITE_MEDICAMENTS_API_URL"      "${{ secrets.VITE_MEDICAMENTS_API_URL }}"
+
 
             # ── DESPLIEGUE SIN DOWNTIME ────────────────────────────
             # 1. Construye las imágenes ANTES de bajar los contenedores.

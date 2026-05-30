@@ -1,3 +1,8 @@
+arquitecturas/capas/
+arquitecturas/cliente-servidor/
+arquitecturas/eventos/
+
+
 # Logs
 logs
 *.log
