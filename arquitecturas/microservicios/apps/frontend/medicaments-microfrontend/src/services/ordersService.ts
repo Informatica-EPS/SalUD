@@ -22,7 +22,7 @@ apiClient.interceptors.request.use((config) => {
 export const ordersService = {
   // Obtener ordenes del paciente por medicamento
   getByPatientDocument: async (id: number): Promise<OrdenesResponse> => {
-      const response = await apiClient.get<OrdenesResponse>(`/api/orders/getByPatientDocument/${id}`);
+      const response = await apiClient.get<OrdenesResponse>(`/orders/getByPatientDocument/${id}`);
       return response.data;
     },
 };
