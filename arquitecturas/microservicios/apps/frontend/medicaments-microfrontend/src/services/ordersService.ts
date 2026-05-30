@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { OrdenesResponse } from '../types/medicament.types';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -22,7 +22,7 @@ apiClient.interceptors.request.use((config) => {
 export const ordersService = {
   // Obtener ordenes del paciente por medicamento
   getByPatientDocument: async (id: number): Promise<OrdenesResponse> => {
-      const response = await apiClient.get<OrdenesResponse>(`/orders/getByPatientDocument/${id}`);
+      const response = await apiClient.get<OrdenesResponse>(`/api/orders/getByPatientDocument/${id}`);
       return response.data;
     },
 };
