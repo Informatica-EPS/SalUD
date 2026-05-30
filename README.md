@@ -36,8 +36,8 @@ El proyecto se desarrolla utilizando diferentes enfoques arquitectónicos, permi
 | ----------------- | ---------------- | ---------------------------------------------------------------- |
 | Cliente–Servidor  | ✅ Finalizada     | Arquitectura tradicional con frontend y backend desacoplados     |
 | Basada en Eventos | ✅ Finalizada     | Comunicación asincrónica mediante eventos y mensajería           |
-| En Capas          | 🚧 En desarrollo | Separación por responsabilidades y lógica organizada por niveles |
-| Microservicios    | ⏳ Pendiente      | División funcional del sistema en servicios independientes       |
+| En Capas          | ✅ Finalizada   | Separación por responsabilidades y lógica organizada por niveles |
+| Microservicios    | ✅ Finalizada      | División funcional del sistema en servicios independientes       |
 
 ---
 
