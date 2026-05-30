@@ -22,6 +22,7 @@ class MedicamentsService:
             {
                 "id": m.id,
                 "nombre": m.nombre,
+                "cantidad": m.cantidad,
                 "presentacion": m.presentacion,
                 "concentracion": m.concentracion,
                 "inventario": {
